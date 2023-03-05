@@ -10,5 +10,4 @@ void LCD_display_ShowText(char *text, int size);
 // Turns the LCD off
 void LCD_display_Cleanup();
 
-
 #endif // LCD_DISPLAY_H

@@ -18,7 +18,7 @@ void GPIO_init(const char **buses_config_commands, int bus_size, const int *pins
 // void GPIO_write();
 
 
-// This function does nothing
+// This function does nothing - no need to unable bus or un-export the pins
 void GPIO_cleanup();
 
 

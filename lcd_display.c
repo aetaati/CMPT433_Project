@@ -40,6 +40,8 @@ void LCD_display_Init()
     // GPIO initialization for the LCD - enable the busses and configure the pins
     GPIO_init(buses_config_commands, BUSES_CONFIG_COUNT, pins, PIN_COUNT, DIR);
 
+    // Set the LCD display registers to the initial state
+
     is_module_initialized = true;
 }
 

@@ -28,10 +28,6 @@ static bool is_module_initialized = false;
 #define DIGIT_GPIO_PATH "/sys/class/gpio/gpio" 
 #define DIR_PATH "/direction"
 
-
-
-
-
 /****************************** Private/Static Functions ******************************/
 
 // Helper function to run linux command
@@ -97,7 +93,6 @@ static void export_pins(const int *pins, int pin_size)
     Sleep_ms(300);
 }
 
-
 // Helper function to set pins' directions to "pin_dir"
 static void set_pin_direction(const int *pins, int pin_size, const char *pin_dir)
 {
@@ -119,8 +114,6 @@ static void set_pin_direction(const int *pins, int pin_size, const char *pin_dir
         fclose(exportFile);
     }
 }
-
-
 
 /****************************** Public/Module Functions ******************************/
 
