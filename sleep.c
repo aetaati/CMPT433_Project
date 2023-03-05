@@ -19,3 +19,10 @@ void Sleep_ms(long long delayInMs) {
     struct timespec reqDelay = {seconds, nanoseconds};
     nanosleep(&reqDelay, (struct timespec *) NULL);
 }
+
+
+void Sleep_ns(int s, int ns)
+{
+    struct timespec delay = {s, ns};
+    nanosleep(&delay, (struct timespec*) NULL);
+}
