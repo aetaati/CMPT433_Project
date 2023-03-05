@@ -1,0 +1,32 @@
+/*
+Subject: CMPT433 (Embedded Systems) - BeablePod Project
+Purpose: The main program to start and terminate all the modules
+Author: Amirhossein Etaati
+Date: 2023-03-04
+*/
+
+
+#include <stdbool.h>
+
+#include "sleep.h"
+#include "lcd_display.h"
+#include "gpio.h"
+
+
+
+int main(int argc, char const *argv[])
+{
+    /////////////////////////////////////// FOR TESTING ///////////////////////////////////////
+
+    LCD_display_Init();
+
+    LCD_display_ShowText("Hello World! My name is Amir.", false);    
+
+    Sleep_ms(5000);
+    
+    LCD_display_Cleanup();
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////
+
+    return 0;
+}
