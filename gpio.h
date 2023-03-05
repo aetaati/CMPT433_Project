@@ -13,10 +13,11 @@ Date: 2023-03-04
 // Node: "buses" should be an array of null-terminated config-pin commands
 void GPIO_init(const char **buses_config_commands, int bus_size, const int *pins, int pin_size, char *pin_dir);
 
+// Set the direction of the pin associated to "pin_number" to "direction"
+void GPIO_SetPinDirection(int pin_number, char *direction);
 
-// Write "value" to the file located at "file_path"
-void GPIO_writeFile(const char *file_path, char *value);
-
+// Set the "value" of the file associated to "pin_number"
+void GPIO_SetPinValue(int pin_number, char *value);
 
 // This function does nothing - no need to unable bus or un-export the pins
 void GPIO_cleanup();
