@@ -20,7 +20,7 @@ int main(int argc, char const *argv[])
 
     LCD_display_Init();
 
-    LCD_display_ShowText("Hello World! My name is Amir.", false);    
+    LCD_display_ShowText("Hello World! My name is Amir.", true);    
 
     Sleep_ms(5000);
     
