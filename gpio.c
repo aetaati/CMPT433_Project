@@ -10,6 +10,7 @@ Date: 2023-03-04
 #include <unistd.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <string.h>
 
 #include "gpio.h"
 #include "sleep.h"
@@ -81,7 +82,7 @@ static void export_pins(const int *pins, int pin_size)
         // open pin file for write access
         FILE *exportFile = fopen(EXPORT_PATH, "w");
         if (exportFile == NULL) {
-            printf("Lcd_display ERROR: Unable to open export file (export_pins). Pin#=%d\n", pins[i]);
+            printf("GPIO ERROR: Unable to open export file (export_pins). Pin#=%d\n", pins[i]);
             exit(1);
         }
 
@@ -129,13 +130,14 @@ void GPIO_SetPinValue(int pin_number, const char *value)
         return;
     }
     // concatenate to get pin's direction file location
-    char direction_path[MAX_PATH_LEN];
-    sprintf(direction_path, "%s%d%s", DIGIT_GPIO_PATH, pin_number, VAL_PATH);
+    char value_path[MAX_PATH_LEN];
+    memset(value_path, 0, MAX_PATH_LEN*sizeof(char));
+    sprintf(value_path, "%s%d%s", DIGIT_GPIO_PATH, pin_number, VAL_PATH);
 
     // open pin file for write access
-    FILE *exportFile = fopen(direction_path, "w");
+    FILE *exportFile = fopen(value_path, "w");
     if (exportFile == NULL) {
-        printf("Lcd_display - ERROR: Unable to open export file (GPIO_SetPinValue). %d\n", pin_number);
+        printf("GPIO - ERROR: Unable to open export file (GPIO_SetPinValue). %d\n", pin_number);
         exit(1);
     }
 
@@ -152,12 +154,13 @@ void GPIO_SetPinDirection(int pin_number, const char *pin_direction)
     }
     // concatenate to get pin's direction file location
     char direction_path[MAX_PATH_LEN];
+    memset(direction_path, 0, MAX_PATH_LEN*sizeof(char));
     sprintf(direction_path, "%s%d%s", DIGIT_GPIO_PATH, pin_number, DIR_PATH);
 
     // open pin file for write access
     FILE *exportFile = fopen(direction_path, "w");
     if (exportFile == NULL) {
-        printf("Lcd_display - ERROR: Unable to open export file (GPIO_SetPinDirection). %d\n", pin_number);
+        printf("GPIO - ERROR: Unable to open export file (GPIO_SetPinDirection). %d\n", pin_number);
         exit(1);
     }
 
@@ -176,7 +179,7 @@ void GPIO_writeFile(const char *file_path, char *value)
     // open file for write access
     FILE *exportFile = fopen(file_path, "w");
     if (exportFile == NULL) {
-        printf("Lcd_display - ERROR: Unable to open export file (GPIO_writeFile).\n" );
+        printf("GPIO - ERROR: Unable to open export file (GPIO_writeFile).\n" );
         exit(1);
     }
 

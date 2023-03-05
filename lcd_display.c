@@ -69,7 +69,7 @@ static void setDataPinsToZero(const int *pins, int pin_count)
     // URL: https://opencoursehub.cs.sfu.ca/bfraser/grav-cms/cmpt433/links/files/2022-student-howtos/16x2CharacterLCDThroughGPIO.pdf
 static void write4Bits(uint8_t value)
 {
-    char strBit[2];
+    char strBit[2] = {0 , 0};
     strBit[1] = '\0'; 
     strBit[0] = (value & 0x01 ? 1 : 0) + '0';
 	GPIO_SetPinValue(D4_GPIO_NUMBER, strBit);
@@ -225,13 +225,16 @@ void LCD_display_ShowText(char *text, bool slide)
 
     if(slide) {
         // at the end, display the cropped text with ... if sliding was done
-        char text_with_dot[MAX_ROW_CHARS_DISPLAY];
+        char *text_with_dot = calloc(MAX_ROW_CHARS_DISPLAY, sizeof(char));
+
         snprintf(text_with_dot, MAX_ROW_CHARS_DISPLAY, "%s", text);
+        text_with_dot[MAX_ROW_CHARS_DISPLAY - 4] = '.';
         text_with_dot[MAX_ROW_CHARS_DISPLAY - 3] = '.';
         text_with_dot[MAX_ROW_CHARS_DISPLAY - 2] = '.';
-        text_with_dot[MAX_ROW_CHARS_DISPLAY - 1] = '.';
         
         writeMessage(text_with_dot, 0);
+        free(text_with_dot);
+
         Sleep_ms(500);
     }
 }
