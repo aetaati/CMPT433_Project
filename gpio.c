@@ -80,7 +80,7 @@ static void export_pins(const int *pins, int pin_size)
         // open pin file for write access
         FILE *exportFile = fopen(EXPORT_PATH, "w");
         if (exportFile == NULL) {
-            printf("Led_display ERROR: Unable to open export file (export_pins). Pin#=%d\n", pins[i]);
+            printf("Lcd_display ERROR: Unable to open export file (export_pins). Pin#=%d\n", pins[i]);
             exit(1);
         }
 
@@ -104,7 +104,7 @@ static void set_pin_direction(const int *pins, int pin_size, const char *pin_dir
         // open pin file for write access
         FILE *exportFile = fopen(direction_path, "w");
         if (exportFile == NULL) {
-            printf("Led_display - ERROR: Unable to open export file (set_direction). %d\n", pins[i]);
+            printf("Lcd_display - ERROR: Unable to open export file (set_pin_direction). %d\n", pins[i]);
             exit(1);
         }
 
@@ -117,7 +117,8 @@ static void set_pin_direction(const int *pins, int pin_size, const char *pin_dir
 
 /****************************** Public/Module Functions ******************************/
 
-void GPIO_init(const char **buses_config_commands, int bus_size, const int *pins, int pin_size, char *pin_dir) {
+void GPIO_init(const char **buses_config_commands, int bus_size, const int *pins, int pin_size, char *pin_dir) 
+{
     // handle errors
     if (buses_config_commands != NULL && bus_size != 0) {
         // enable linux support for the required buses
@@ -135,7 +136,27 @@ void GPIO_init(const char **buses_config_commands, int bus_size, const int *pins
     is_module_initialized = true;
 }
 
-void GPIO_cleanup(int *pins, int size) {
+void GPIO_writeFile(const char *file_path, char *value)
+{
+    if(!file_path || !value) {
+        return;
+    }
+
+    // open file for write access
+    FILE *exportFile = fopen(file_path, "w");
+    if (exportFile == NULL) {
+        printf("Lcd_display - ERROR: Unable to open export file (GPIO_writeFile).\n" );
+        exit(1);
+    }
+
+    // write DIR to file
+    fprintf(exportFile, "%s", value);
+
+    fclose(exportFile);
+}
+
+void GPIO_cleanup(int *pins, int size) 
+{
     
     assert(is_module_initialized);
     // does nothing
