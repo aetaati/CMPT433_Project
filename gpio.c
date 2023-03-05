@@ -12,7 +12,7 @@ Date: 2023-03-04
 #include <assert.h>
 
 #include "gpio.h"
-#include "sleep_ms.h"
+#include "sleep.h"
 
 // To check if the module functions' caller has called init first
 static bool is_module_initialized = false;
@@ -146,4 +146,6 @@ void GPIO_cleanup(int *pins, int size) {
     
     assert(is_module_initialized);
     // does nothing
+
+    is_module_initialized = false;
 }

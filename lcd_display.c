@@ -35,7 +35,7 @@ static const int pins[] = {48, 49, 66, 67, 68, 69};
 
 /****************************** Public/Module Functions ******************************/
 
-void LCD_displayInit()
+void LCD_display_Init()
 {
     // GPIO initialization for the LCD - enable the busses and configure the pins
     GPIO_init(buses_config_commands, BUSES_CONFIG_COUNT, pins, PIN_COUNT, DIR);
@@ -43,16 +43,19 @@ void LCD_displayInit()
     is_module_initialized = true;
 }
 
-void LCD_displayText(char *text, int size)
+void LCD_display_ShowText(char *text, int size)
 {
     assert(is_module_initialized);
+    // TODO
 }
 
-void LCD_displayCleanup()
+void LCD_display_Cleanup()
 {
     assert(is_module_initialized);    
 
     GPIO_cleanup();
+
+    is_module_initialized = false;
 }
 
 
@@ -60,9 +63,10 @@ void LCD_displayCleanup()
 /****************************** For testing only ******************************/
 int main(int argc, char const *argv[])
 {
-    LCD_displayInit();
-    
-    GPIO_cleanup();    
+    LCD_display_Init();
+
+
+    LCD_display_Cleanup();
     return 0;
 }
 

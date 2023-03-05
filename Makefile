@@ -8,8 +8,8 @@ CFLAGS = -Wall -g -std=c99 -D _POSIX_C_SOURCE=200809L -Wshadow
 
 all: beaglePod
 
-beaglePod: beaglePod.c lcd_display.o gpio.o sleep_ms.o
-	$(CC_C) $(CFLAGS) beaglePod.c $(OUTDIR)/lcd_display.o $(OUTDIR)/gpio.o $(OUTDIR)/sleep_ms.o -o $(OUTDIR)/$(OUTFILE)
+beaglePod: beaglePod.c lcd_display.o gpio.o sleep.o
+	$(CC_C) $(CFLAGS) beaglePod.c $(OUTDIR)/lcd_display.o $(OUTDIR)/gpio.o $(OUTDIR)/sleep.o -o $(OUTDIR)/$(OUTFILE)
 
 lcd_display.o: lcd_display.c
 	$(CC_C) $(CFLAGS) -c lcd_display.c -o $(OUTDIR)/lcd_display.o
@@ -17,8 +17,8 @@ lcd_display.o: lcd_display.c
 gpio.o: gpio.c
 	$(CC_C) $(CFLAGS) -c gpio.c -o $(OUTDIR)/gpio.o
 
-sleep_ms.o: sleep_ms.c
-	$(CC_C) $(CFLAGS) -c sleep_ms.c -o $(OUTDIR)/sleep_ms.o
+sleep.o: sleep.c
+	$(CC_C) $(CFLAGS) -c sleep.c -o $(OUTDIR)/sleep.o
 	
 clean:
 	rm $(OUTDIR)/$(OUTFILE) $(OUTDIR)/*.o $(OUTDIR)/beaglePod
@@ -26,5 +26,5 @@ clean:
 
 
 ######################################### for testing #########################################
-lcd_display: lcd_display.c gpio.o sleep_ms.o
-	$(CC_C) $(CFLAGS) lcd_display.c $(OUTDIR)/gpio.o $(OUTDIR)/sleep_ms.o -o $(OUTDIR)/lcd_display
+lcd_display: lcd_display.c gpio.o sleep.o
+	$(CC_C) $(CFLAGS) lcd_display.c $(OUTDIR)/gpio.o $(OUTDIR)/sleep.o -o $(OUTDIR)/lcd_display
