@@ -123,12 +123,34 @@ void GPIO_init(const char **buses_config_commands, int bus_size, const int *pins
     is_module_initialized = true;
 }
 
-void GPIO_SetPinValue(int pin_number, char *value) {
-    
+//
+void GPIO_SetPinValue(int pin_number, char *value) 
+{
+    if(!value) {
+        return;
+    }
+    // concatenate to get pin's direction file location
+    char direction_path[MAX_PATH_LEN];
+    sprintf(direction_path, "%s%d%s", DIGIT_GPIO_PATH, pin_number, VAL_PATH);
+
+    // open pin file for write access
+    FILE *exportFile = fopen(direction_path, "w");
+    if (exportFile == NULL) {
+        printf("Lcd_display - ERROR: Unable to open export file (GPIO_SetPinValue). %d\n", pin_number);
+        exit(1);
+    }
+
+    // write "value" to file
+    fprintf(exportFile, "%s", value);
+
+    fclose(exportFile);
 }
 
 void GPIO_SetPinDirection(int pin_number, char *pin_direction) 
 {
+    if(!pin_direction) {
+        return;
+    }
     // concatenate to get pin's direction file location
     char direction_path[MAX_PATH_LEN];
     sprintf(direction_path, "%s%d%s", DIGIT_GPIO_PATH, pin_number, DIR_PATH);
@@ -136,11 +158,11 @@ void GPIO_SetPinDirection(int pin_number, char *pin_direction)
     // open pin file for write access
     FILE *exportFile = fopen(direction_path, "w");
     if (exportFile == NULL) {
-        printf("Lcd_display - ERROR: Unable to open export file (set_pin_direction). %d\n", pin_number);
+        printf("Lcd_display - ERROR: Unable to open export file (GPIO_SetPinDirection). %d\n", pin_number);
         exit(1);
     }
 
-    // write DIR to file
+    // write pin_direction to file
     fprintf(exportFile, "%s", pin_direction);
 
     fclose(exportFile);
