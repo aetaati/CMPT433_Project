@@ -1,3 +1,10 @@
+/*
+Subject: CMPT433 (Embedded Systems) - BeablePod Project
+Purpose: Definition of the Sleep module to handle required waitings
+Author: Amirhossein Etaati
+Date: 2023-03-04
+*/
+
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>

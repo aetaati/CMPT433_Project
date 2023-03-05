@@ -1,6 +1,6 @@
 /*
 Subject: CMPT433 (Embedded Systems) - BeablePod Project
-Purpose: Definitions of the LCD module functions to manage text display
+Purpose: Definitions of the LCD module functions to manage bus and pin configuration
 Author: Amirhossein Etaati
 Date: 2023-03-04
 */
@@ -123,8 +123,7 @@ void GPIO_init(const char **buses_config_commands, int bus_size, const int *pins
     is_module_initialized = true;
 }
 
-//
-void GPIO_SetPinValue(int pin_number, char *value) 
+void GPIO_SetPinValue(int pin_number, const char *value) 
 {
     if(!value) {
         return;
@@ -146,7 +145,7 @@ void GPIO_SetPinValue(int pin_number, char *value)
     fclose(exportFile);
 }
 
-void GPIO_SetPinDirection(int pin_number, char *pin_direction) 
+void GPIO_SetPinDirection(int pin_number, const char *pin_direction) 
 {
     if(!pin_direction) {
         return;
