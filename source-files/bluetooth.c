@@ -56,7 +56,7 @@ void Bluetooth_displayAvailableDevices(inquiry_info* devices, int num_devices){
         if (hci_read_remote_name(bt_sock_fd, &(devices+i)->bdaddr, sizeof(name), name, 0) < 0){
             strcpy(name, "[unknown]");
         }
-        printf("%s  %s\n", addr, name);
+        printf("[%d]: %s  %s\n", i, addr, name);
     }
 
 }
@@ -65,13 +65,28 @@ void Bluetooth_displayAvailableDevices(inquiry_info* devices, int num_devices){
 
 
 void* bluetoothThread(void* args){
+    int selection;
+    char input[15] = { 0 };
     while(!stopping){
         printf("Scanning for bluetooth devices...\n");
         inquiry_info* scanned_devices = malloc(MAX_DEV_RSP * sizeof(inquiry_info));
+        if(scanned_devices == NULL){
+            fprintf(stderr, "failed to allocate memory for scanned devices\n");
+            exit(1);
+        }
+
         int num_rsp = hci_inquiry(bt_adapter_id, SCAN_LENGTH, MAX_DEV_RSP, NULL, &scanned_devices, IREQ_CACHE_FLUSH);
         Bluetooth_displayAvailableDevices(scanned_devices, num_rsp);
+
         
-        sleep(5);
+        printf("Choose a device to connect to\n");
+        if(fgets(input, sizeof(input), stdin) == NULL){
+            fprintf(stderr, "error reading from stdin");
+        }
+
+        sscanf(input, "%d", &selection);
+        printf("choice %d\n", selection);
+        memset(input, 0 , sizeof(input));
         free(scanned_devices);
         scanned_devices = NULL;
 

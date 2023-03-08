@@ -31,6 +31,6 @@ int main(int argc, char const *argv[])
     
     Bluetooth_init();
     
-    Sleep_ms(50000);
+    Sleep_ms(10000000);
     return 0;
 }
