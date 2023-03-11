@@ -15,6 +15,8 @@ void Bluetooth_displayAvailableDevices(inquiry_info* devices, int num_devices);
 
 int Bluetooth_connect(bdaddr_t* device_address);
 
+int Bluetooth_scan(char **devices);
+
 void Bluetooth_disconnect(void);
 
 void checkError(void);

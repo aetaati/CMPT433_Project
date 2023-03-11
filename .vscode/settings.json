@@ -3,6 +3,7 @@
         "gpio.h": "c",
         "types.h": "c",
         "bluetooth.h": "c",
-        "errno.h": "c"
+        "errno.h": "c",
+        "sdp_lib.h": "c"
     }
 }

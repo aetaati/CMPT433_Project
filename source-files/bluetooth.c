@@ -20,7 +20,7 @@
 #define MAX_DEV_RSP 255
 
 // the duration of the bluetooth scan = 1.28s * SCAN_LENGTH
-#define SCAN_LENGTH 8
+#define SCAN_LENGTH 4
 
 // Bluetooth Module Threading
 void *bluetoothThread(void *arg);
@@ -32,11 +32,6 @@ pthread_mutex_t mtx_bluetooth = PTHREAD_MUTEX_INITIALIZER;
 int bt_adapter_id;
 int bt_adapter_fd;
 wavedata_t song;
-
-/*typedef struct{
-    int num_devices;
-    inquiry_info* devices;
-}scanned_devices;*/
 
 void Bluetooth_init(void)
 {
@@ -53,12 +48,13 @@ void Bluetooth_displayAvailableDevices(inquiry_info *devices, int num_devices)
 {
     char addr[19] = {0};
     char name[256] = {0};
-    for (int i = 0; i < num_devices; i++){
+    for (int i = 0; i < num_devices; i++)
+    {
         // baddr is the 6 byte address of the bt device. format: XX:XX:XX:XX:XX:XX
         ba2str(&(devices + i)->bdaddr, addr);
         memset(name, 0, sizeof(name));
 
-        // send request to device with address = baddr for human readable name
+        // send request to device with address equal to baddr, for human readable name
         if (hci_read_remote_name(bt_adapter_fd, &(devices + i)->bdaddr, sizeof(name), name, 0) < 0)
         {
             strcpy(name, "[unknown]");
@@ -70,24 +66,15 @@ void Bluetooth_displayAvailableDevices(inquiry_info *devices, int num_devices)
 void *bluetoothThread(void *args)
 {
     int selection;
+    char* device_names[MAX_DEV_RSP];
     char input[15] = {0};
     while (!stopping)
-    {  
-        printf("Scanning for bluetooth devices...\n");
-        inquiry_info *scanned_devices = malloc(MAX_DEV_RSP * sizeof(inquiry_info));
-        if (scanned_devices == NULL)
-        {
-            fprintf(stderr, "failed to allocate memory for scanned devices\n");
-            exit(1);
-        }
-        // scan for bt devices
-        int num_rsp = hci_inquiry(bt_adapter_id, SCAN_LENGTH, MAX_DEV_RSP, NULL, &scanned_devices, IREQ_CACHE_FLUSH);
-        if (num_rsp < 0)
-        {
-            fprintf(stderr, "hci_inquiry: error scanning devices");
-        }
+    {
 
-        Bluetooth_displayAvailableDevices(scanned_devices, num_rsp);
+        int num_scanned = Bluetooth_scan(device_names);
+        for(int i = 0; i < num_scanned; i++){
+            printf("device: %s\n", *(device_names+i));
+        }
 
         printf("Choose a device to connect to\n");
         if (fgets(input, sizeof(input), stdin) == NULL)
@@ -96,150 +83,116 @@ void *bluetoothThread(void *args)
         }
         sscanf(input, "%d", &selection);
 
-        printf("connecting to device...\n");
-        if (Bluetooth_connect(&(scanned_devices + selection)->bdaddr) != 0){
+        /*printf("connecting to device...\n");
+        if (Bluetooth_connect(&(scanned_devices + selection)->bdaddr) != 0)
+        {
             printf("error connecting to device\n");
         }
-        printf("Connected!\n");
-
+        printf("Connected!\n");*/
 
         sleep(5);
 
         printf("disconnecting...\n");
         Bluetooth_disconnect();
         printf("disconnected!\n");
-        
 
-
-        //AudioMixer_init("default");
-        //AudioMixer_readWaveFileIntoMemory("som-liveletlive.wav", &song);
-        //AudioMixer_readWaveFileIntoMemory("beatbox-wav-files/100060__menegass__gui-drum-splash-hard.wav", &song);
-        //AudioMixer_queueSound(&song);
+        // AudioMixer_init("default");
+        // AudioMixer_readWaveFileIntoMemory("som-liveletlive.wav", &song);
+        // AudioMixer_readWaveFileIntoMemory("beatbox-wav-files/100060__menegass__gui-drum-splash-hard.wav", &song);
+        // AudioMixer_queueSound(&song);
 
         memset(input, 0, sizeof(input));
-        free(scanned_devices);
-        scanned_devices = NULL;
+        
+        
     }
 
     return NULL;
 }
 
-void Bluetooth_disconnect(void){
+// returns the amount of devices that responded to a scan
+// must free each string in returned list
+int Bluetooth_scan(char **devices)
+{
+    printf("Scanning for bluetooth devices...\n");
+    inquiry_info *scanned_devices = malloc(MAX_DEV_RSP * sizeof(inquiry_info));
+    if (scanned_devices == NULL)
+    {
+        fprintf(stderr, "failed to allocate memory for scanned devices\n");
+        return(-1);
+    }
+
+    // scan for bt devices
+    int num_rsp = hci_inquiry(bt_adapter_id, SCAN_LENGTH, MAX_DEV_RSP, NULL, &scanned_devices, IREQ_CACHE_FLUSH);
+    if (num_rsp < 0)
+    {
+        fprintf(stderr, "hci_inquiry: error scanning devices");
+    }
+
+    char name[256] = {0};
+    for (int i = 0; i < num_rsp; i++)
+    {
+        memset(name, 0, sizeof(name));
+
+        // send request to device with address equal to baddr, for human readable name
+        if (hci_read_remote_name(bt_adapter_fd, &(scanned_devices + i)->bdaddr, sizeof(name), name, 0) < 0)
+        {
+            strcpy(name, "[unknown]");
+        }
+        *(devices+i) = calloc(sizeof(char) , strlen(name) + 1);
+        strcpy(*(devices+i), name);
+    }
+
+    free(scanned_devices);
+    scanned_devices = NULL;
+    return(num_rsp);
+
+}
+
+void Bluetooth_disconnect(void)
+{
     runCommand("bluetoothctl disconnect");
-
 }
 
-int Bluetooth_connect(bdaddr_t* device_address){
-    
-    char addr[19] = { 0 };
+int Bluetooth_connect(bdaddr_t *device_address)
+{
+
+    char addr[19] = {0};
     ba2str(device_address, addr);
-    char* tmp  = "bluetoothctl connect ";
-    char* bt_command = calloc(sizeof(char), strlen(tmp) + 19 );
-   
+    char *tmp = "bluetoothctl connect ";
+    char *bt_command = calloc(sizeof(char), strlen(tmp) + 19);
+
     strcat(strcat(bt_command, tmp), addr);
-        
-      
-    return runCommand(bt_command);
+
+    int result = runCommand(bt_command);
+    free(bt_command);
+    bt_command = NULL;
+
+    return result;
 }
 
+int runCommand(char *command)
+{
 
-
-
-int runCommand(char* command){
-
-    FILE* pipe = popen(command, "r");
+    FILE *pipe = popen(command, "r");
 
     char buffer[1024];
-    while(!feof(pipe) && !ferror(pipe)){
-        if(fgets(buffer, sizeof(buffer), pipe)){
+    while (!feof(pipe) && !ferror(pipe))
+    {
+        if (fgets(buffer, sizeof(buffer), pipe))
+        {
             break;
         }
     }
 
     int exit_code = WEXITSTATUS(pclose(pipe));
-    if(exit_code != 0){
+    if (exit_code != 0)
+    {
         fprintf(stderr, "Unable to execute command:\n  command: %s\n  exit code: %d\n", command, exit_code);
-        return(1);
+        return (1);
     }
 
-    return(0);
+    return (0);
 }
-
-
-void print_record(sdp_record_t *record) {
-    printf("Handle: %d\n", record->handle);
-
-    printf("Search Pattern:\n");
-    sdp_list_t *pattern = record->pattern;
-    while (pattern) {
-        uuid_t uuid;
-        sdp_uuid128_create(&uuid, pattern->data);
-        char uuid_str[128];
-        sdp_uuid2strn(&uuid, uuid_str, 128);
-        printf("  %s\n", uuid_str);
-        pattern = pattern->next;
-    }
-
-    /*printf("Attribute List:\n");
-    sdp_list_t *attrlist = record->attrlist;
-    while (attrlist) {
-        uint16_t attr_id = attrlist->id;
-        sdp_data_t *attr_data = attrlist->data;
-        printf("  Attribute ID: 0x%04x\n", attr_id);
-        printf("  Attribute Data:\n");
-        while (attr_data) {
-            switch (attr_data->type) {
-                case SDP_UUID128:
-                case SDP_UUID32:
-                case SDP_UUID16:
-                {
-                    uuid_t uuid;
-                    sdp_uuid128_create(&uuid, attr_data->val.uuid128);
-                    char uuid_str[128];
-                    sdp_uuid2strn(&uuid, uuid_str, 128);
-                    printf("    UUID: %s\n", uuid_str);
-                    break;
-                }
-                case SDP_UINT8:
-                    printf("    UINT8: %d\n", attr_data->val.uint8);
-                    break;
-                case SDP_UINT16:
-                    printf("    UINT16: %d\n", attr_data->val.uint16);
-                    break;
-                case SDP_UINT32:
-                    printf("    UINT32: %d\n", attr_data->val.uint32);
-                    break;
-                case SDP_INT8:
-                    printf("    INT8: %d\n", attr_data->val.int8);
-                    break;
-                case SDP_INT16:
-                    printf("    INT16: %d\n", attr_data->val.int16);
-                    break;
-                case SDP_INT32:
-                    printf("    INT32: %d\n", attr_data->val.int32);
-                    break;
-                case SDP_STRING:
-                    printf("    STRING: %s\n", attr_data->val.str);
-                    break;
-                default:
-                    printf("    Unknown attribute data type: 0x%x\n", attr_data->type);
-                    break;
-            }
-            attr_data = attr_data->next;
-        }
-        attrlist = attrlist->next;
-    }*/
-
-
-    char svclass_str[128];
-    sdp_uuid2strn(&record->svclass, svclass_str, 128);
-    printf("Service Class: %s\n", svclass_str);
-}
-
-
-
-
-
 
 void checkError(void)
 {
