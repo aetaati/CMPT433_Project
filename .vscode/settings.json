@@ -2,6 +2,7 @@
     "files.associations": {
         "gpio.h": "c",
         "types.h": "c",
-        "bluetooth.h": "c"
+        "bluetooth.h": "c",
+        "errno.h": "c"
     }
 }
