@@ -53,9 +53,7 @@ void Bluetooth_displayAvailableDevices(inquiry_info *devices, int num_devices)
 {
     char addr[19] = {0};
     char name[256] = {0};
-    for (int i = 0; i < num_devices; i++)
-    {
-
+    for (int i = 0; i < num_devices; i++){
         // baddr is the 6 byte address of the bt device. format: XX:XX:XX:XX:XX:XX
         ba2str(&(devices + i)->bdaddr, addr);
         memset(name, 0, sizeof(name));
@@ -65,16 +63,16 @@ void Bluetooth_displayAvailableDevices(inquiry_info *devices, int num_devices)
         {
             strcpy(name, "[unknown]");
         }
-        printf("[%d]: %s  %s\n", i, addr, name);
+        printf("[%d]: %s\n", i, name);
     }
 }
 
 void *bluetoothThread(void *args)
 {
-    //int selection;
-    //char input[15] = {0};
+    int selection;
+    char input[15] = {0};
     while (!stopping)
-    {  /*
+    {  
         printf("Scanning for bluetooth devices...\n");
         inquiry_info *scanned_devices = malloc(MAX_DEV_RSP * sizeof(inquiry_info));
         if (scanned_devices == NULL)
@@ -98,133 +96,74 @@ void *bluetoothThread(void *args)
         }
         sscanf(input, "%d", &selection);
 
+        printf("connecting to device...\n");
+        if (Bluetooth_connect(&(scanned_devices + selection)->bdaddr) != 0){
+            printf("error connecting to device\n");
+        }
+        printf("Connected!\n");
+
+
+        sleep(5);
+
+        printf("disconnecting...\n");
+        Bluetooth_disconnect();
+        printf("disconnected!\n");
         
 
-        // *connect to selection*
-        // open RFCOMM socket
-        int bt_connection_fd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
 
-        // initialize connection parameters
-        struct sockaddr_rc device_addr = {0};
-        device_addr.rc_family = AF_BLUETOOTH;
-        device_addr.rc_bdaddr = (scanned_devices + selection)->bdaddr;
-        char addr[19] = {0};
-        ba2str(&device_addr.rc_bdaddr, addr);
-        printf("connecting to address: %s\n", addr);
-        uint8_t channel = 2;
-
-        // Get the SDP record for the device
-        uuid_t svc_uuid;
-        uint8_t svc_uuid_int[] = {0x00, 0x00, 0x11, 0x08, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
-        sdp_session_t *session = 0;
-        sdp_record_t *record = 0;
-
-        session = sdp_connect(BDADDR_ANY, &device_addr.rc_bdaddr, SDP_RETRY_IF_BUSY);
-
-        // Convert the Audio Sink UUID to a uuid_t object
-        sdp_uuid128_create(&svc_uuid, &svc_uuid_int);
-
-        // Search for the SDP record for the service
-        sdp_list_t *search_list = sdp_list_append(NULL, &svc_uuid);
-        sdp_list_t *response_list = 0;
-        sdp_list_t *attrid_list;
-
-        // specify that we want a list of all the matching applications' attributes
-        uint32_t range = 0x0000ffff;
-        attrid_list = sdp_list_append(NULL, &range);
-        sdp_service_search_attr_req(session, search_list, SDP_ATTR_REQ_RANGE, attrid_list, &response_list);
-
-        //uint32_t svc_channel = -1;
-        // Get the SDP record for the service
-        if (response_list)
-        {
-            sdp_list_t *r = response_list;
-
-            // go through each of the service records
-            for (; r; r = r->next)
-            {
-                record = (sdp_record_t *)r->data;
-                sdp_list_t *proto_list;
-
-                // get a list of the protocol sequences
-                if (sdp_get_access_protos(record, &proto_list) == 0)
-                {
-                    sdp_list_t *p = proto_list;
-
-                    // go through each protocol sequence
-                    for (; p; p = p->next)
-                    {
-                        sdp_list_t *pds = (sdp_list_t *)p->data;
-
-                        // go through each protocol list of the protocol sequence
-                        for (; pds; pds = pds->next)
-                        {
-
-                            // check the protocol attributes
-                            sdp_data_t *d = (sdp_data_t *)pds->data;
-                            int proto = 0;
-                            for (; d; d = d->next)
-                            {
-                                switch (d->dtd)
-                                {
-                                case SDP_UUID16:
-                                case SDP_UUID32:
-                                case SDP_UUID128:
-                                    proto = sdp_uuid_to_proto(&d->val.uuid);
-                                    break;
-                                case SDP_UINT8:
-                                    if (proto == RFCOMM_UUID)
-                                    {
-                                        channel = d->val.int8;
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                        sdp_list_free((sdp_list_t *)p->data, 0);
-                    }
-                    sdp_list_free(proto_list, 0);
-                }
-
-                printf("found service record 0x%x\n", record->handle);
-                print_record(record);
-                sdp_record_free(record);
-            }
-        }
-
-        // Clean up the search list and the SDP session
-        sdp_list_free(search_list, 0);
-        sdp_close(session);
-        device_addr.rc_channel = (uint8_t) channel;
-
-        // connect to device
-        int connection_status = connect(bt_connection_fd, (struct sockaddr *)&device_addr, sizeof(device_addr));
-        checkError();
-
-        if (connection_status < 0)
-        {
-            perror("failed to connect\n");
-            exit(1);
-        }
-
-        printf("Connected to device!\n");*/
-
-        AudioMixer_init("default");
-        AudioMixer_readWaveFileIntoMemory("som-liveletlive.wav", &song);
+        //AudioMixer_init("default");
+        //AudioMixer_readWaveFileIntoMemory("som-liveletlive.wav", &song);
         //AudioMixer_readWaveFileIntoMemory("beatbox-wav-files/100060__menegass__gui-drum-splash-hard.wav", &song);
-        AudioMixer_queueSound(&song);
-        printf("chucka");
-        sleep(180);
+        //AudioMixer_queueSound(&song);
 
-        //memset(input, 0, sizeof(input));
-        //free(scanned_devices);
-        //scanned_devices = NULL;
+        memset(input, 0, sizeof(input));
+        free(scanned_devices);
+        scanned_devices = NULL;
     }
 
     return NULL;
 }
 
+void Bluetooth_disconnect(void){
+    runCommand("bluetoothctl disconnect");
 
+}
+
+int Bluetooth_connect(bdaddr_t* device_address){
+    
+    char addr[19] = { 0 };
+    ba2str(device_address, addr);
+    char* tmp  = "bluetoothctl connect ";
+    char* bt_command = calloc(sizeof(char), strlen(tmp) + 19 );
+   
+    strcat(strcat(bt_command, tmp), addr);
+        
+      
+    return runCommand(bt_command);
+}
+
+
+
+
+int runCommand(char* command){
+
+    FILE* pipe = popen(command, "r");
+
+    char buffer[1024];
+    while(!feof(pipe) && !ferror(pipe)){
+        if(fgets(buffer, sizeof(buffer), pipe)){
+            break;
+        }
+    }
+
+    int exit_code = WEXITSTATUS(pclose(pipe));
+    if(exit_code != 0){
+        fprintf(stderr, "Unable to execute command:\n  command: %s\n  exit code: %d\n", command, exit_code);
+        return(1);
+    }
+
+    return(0);
+}
 
 
 void print_record(sdp_record_t *record) {
