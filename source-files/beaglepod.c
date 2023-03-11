@@ -11,7 +11,6 @@ Date: 2023-03-04
 #include "lcd_display.h"
 #include "bluetooth.h"
 #include "gpio.h"
-#include "audio-mixer.h"
 
 int main(int argc, char const *argv[])
 {

@@ -1,5 +1,4 @@
 #include "bluetooth.h"
-#include "audio-mixer.h"
 
 #include <stdbool.h>
 #include <pthread.h>
@@ -31,7 +30,8 @@ pthread_mutex_t mtx_bluetooth = PTHREAD_MUTEX_INITIALIZER;
 // Bluetooth Info
 int bt_adapter_id;
 int bt_adapter_fd;
-wavedata_t song;
+
+
 
 void Bluetooth_init(void)
 {
@@ -44,24 +44,6 @@ void Bluetooth_init(void)
     pthread_create(&bluetooth_thread_id, NULL, bluetoothThread, NULL);
 }
 
-void Bluetooth_displayAvailableDevices(inquiry_info *devices, int num_devices)
-{
-    char addr[19] = {0};
-    char name[256] = {0};
-    for (int i = 0; i < num_devices; i++)
-    {
-        // baddr is the 6 byte address of the bt device. format: XX:XX:XX:XX:XX:XX
-        ba2str(&(devices + i)->bdaddr, addr);
-        memset(name, 0, sizeof(name));
-
-        // send request to device with address equal to baddr, for human readable name
-        if (hci_read_remote_name(bt_adapter_fd, &(devices + i)->bdaddr, sizeof(name), name, 0) < 0)
-        {
-            strcpy(name, "[unknown]");
-        }
-        printf("[%d]: %s\n", i, name);
-    }
-}
 
 void *bluetoothThread(void *args)
 {
@@ -70,7 +52,6 @@ void *bluetoothThread(void *args)
     char input[15] = {0};
     while (!stopping)
     {
-
         int num_scanned = Bluetooth_scan(device_names);
         for(int i = 0; i < num_scanned; i++){
             printf("device: %s\n", *(device_names+i));
@@ -96,17 +77,30 @@ void *bluetoothThread(void *args)
         Bluetooth_disconnect();
         printf("disconnected!\n");
 
-        // AudioMixer_init("default");
-        // AudioMixer_readWaveFileIntoMemory("som-liveletlive.wav", &song);
-        // AudioMixer_readWaveFileIntoMemory("beatbox-wav-files/100060__menegass__gui-drum-splash-hard.wav", &song);
-        // AudioMixer_queueSound(&song);
-
         memset(input, 0, sizeof(input));
-        
-        
     }
-
     return NULL;
+}
+
+
+
+void Bluetooth_displayAvailableDevices(inquiry_info *devices, int num_devices)
+{
+    char addr[19] = {0};
+    char name[256] = {0};
+    for (int i = 0; i < num_devices; i++)
+    {
+        // baddr is the 6 byte address of the bt device. format: XX:XX:XX:XX:XX:XX
+        ba2str(&(devices + i)->bdaddr, addr);
+        memset(name, 0, sizeof(name));
+
+        // send request to device with address equal to baddr, for human readable name
+        if (hci_read_remote_name(bt_adapter_fd, &(devices + i)->bdaddr, sizeof(name), name, 0) < 0)
+        {
+            strcpy(name, "[unknown]");
+        }
+        printf("[%d]: %s\n", i, name);
+    }
 }
 
 // returns the amount of devices that responded to a scan
