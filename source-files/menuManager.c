@@ -1,7 +1,7 @@
 /*
-Author: Amirhossein Etaati, Mehdi Esmaeilzadeh
-Date: 2023-02-25
-Subject: Implementation of the MenuManager module to get the current accelerometer action
+Author: Mehdi Esmaeilzadeh
+Date: 2023-03-12
+Subject: Implementation of the MenuManager module
 */
 
 #include <pthread.h>
@@ -16,56 +16,75 @@ Subject: Implementation of the MenuManager module to get the current acceleromet
 #include "joystick.h"
 #include "lcd_display.h"
 #include "gpio.h"
+#include "shutdown.h"
 #include "bluetooth.h"
+#include "sleep.h"
 
 // #include "accelerometer.h"
 // #include "shutdown.h"
 // #include "periodTimer.h"
 
-static void playSingleSound(char *soundPath);
+struct SongInfo
+{
+  char *path;
+};
 
-////////////////////////// Accelerometer and Joystick Input
+/***********TODO: FILL THIS WITH THE PATH OF .WAV FILES*****************/
+const struct SongInfo songs[] = {
+    {"DUMMY 1",},
+    {"DUMMY 2",},
+    {"DUMMY 3",},
+    {"DUMMY 4",},
+    {"DUMMY 5",},
+};
 static bool stoppingMenu = false;
 static pthread_t menuManagerThreadId;
 
-///////////////////////// Sounds and Songs
-static bool stoppingSong = true; // default is true for song thread to check if no playing thread is active - set to false as soon as a player thread is created
-#define TEMPO_DEFAULT 120
-static int currentTempo = TEMPO_DEFAULT;
+
+
+//////////////////////MIGHT USE
+//#define TEMPO_DEFAULT 120
+//static int currentTempo = TEMPO_DEFAULT;
 
 static enum eCurrentSong currentSongPlaying = NO_SONG;
 
-// Gets the waiting time for a half beat in milliseconds
-// #define GET_BEAT_TIME(BPM) ((120 * 1000) / (BPM))
+wavedata_t *pSound_currentSong = NULL;
 
-static pthread_t songPlayerThreadId;
-static pthread_mutex_t tempoMutex = PTHREAD_MUTEX_INITIALIZER;
+//static pthread_mutex_t tempoMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t volumeMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t currentModeMutex = PTHREAD_MUTEX_INITIALIZER;
+
+
+// Flags Used for switching to the playsong menu
+static bool display_mainMenu = true;
 
 /********************** Private/Helper functions**********************/
 
 ////////////////////////// Accelerometer and Joystick Input
+static void MenuManager_PlaySong(char *soundPath);
 
 // Sets the timer for action related to idx
 // Done after the action gets triggered
-// static void setTimers(long long * timers, int idx, int wait_time)
-// {
-//   if (timers[idx] == 0) {
-//     timers[idx] = wait_time;
-//   }
-// }
+static void setTimers(long long *timers, int idx, int wait_time)
+{
+  if (timers[idx] == 0)
+  {
+    timers[idx] = wait_time;
+  }
+}
 
 // // Reduces wait time for all waiting actions
 // // Done at end of each loop
-// static void decrementTimers(long long * timers, int size)
-// {
-//   for (size_t i = 0; i < size; i++) {
-//     if (timers[i] > 0) {
-//       timers[i] -= INPUT_CHECK_WAIT_TIME;
-//     }
-//   }
-// }
+static void decrementTimers(long long *timers, int size)
+{
+  for (size_t i = 0; i < size; i++)
+  {
+    if (timers[i] > 0)
+    {
+      timers[i] -= INPUT_CHECK_WAIT_TIME;
+    }
+  }
+}
 
 // Checks to see if the action can be triggered or should wait.
 // Used for debouncing
@@ -78,51 +97,71 @@ static bool isActionTriggered(long long *timers, int idx)
   return false;
 }
 
-static void triggerJoystickAction(enum eJoystickDirections currentJoyStickDirection)
+static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection)
 {
-  enum eCurrentSong localCurrentSongPlaying = NO_SONG;
-  pthread_mutex_lock(&currentModeMutex);
-  localCurrentSongPlaying = currentSongPlaying;
-  pthread_mutex_unlock(&currentModeMutex);
+
+  /***
+   * 1) If Joystick is pressed Up Increase the Volume
+   * 2) If Joystick is pressed Down Decrease the volume
+   * 3) If Joystick is pressed Left QUIT from the main menu
+   * 4) If Joystick is pressed Right Connect to the Bluetooth
+   * 5) If Joystick is pressed Center Go the songs menu
+  */
 
   if (currentJoyStickDirection == JOYSTICK_UP)
   {
-    menuManager_UpdateVolume(VOLUME_CHANGE_SIZE, true);
+    MenuManager_UpdateVolume(VOLUME_CHANGE_SIZE, true);
   }
   else if (currentJoyStickDirection == JOYSTICK_DOWN)
   {
-    menuManager_UpdateVolume(VOLUME_CHANGE_SIZE, false);
+    MenuManager_UpdateVolume(VOLUME_CHANGE_SIZE, false);
   }
   else if (currentJoyStickDirection == JOYSTICK_LEFT)
   {
-    // MenuManager_UpdateTempo(TEMPO_CHANGE_SIZE, false);
-
-    // JOYSTICK IS PRESSED TO The Left
+    printf("Quiting from the Beaglepod !\n");
+    Shutdown_triggerForShutdown();
   }
   else if (currentJoyStickDirection == JOYSTICK_RIGHT)
   {
-    // MenuManager_UpdateTempo(TEMPO_CHANGE_SIZE, true);
-    //  JOYSTICK IS PRESSED TO The RIGHT
+    //  Connect to the Bluetooth
   }
   else if (currentJoyStickDirection == JOYSTICK_CENTER)
   {
-    if (localCurrentSongPlaying == NO_SONG)
-    {
-      MenuManager_StopSong();
-      MenuManager_StartSong(STANDARD_ROCK_SONG);
-    }
-    else if (localCurrentSongPlaying == STANDARD_ROCK_SONG)
-    {
-      MenuManager_StopSong();
-      MenuManager_StartSong(MADE_UP_SONG);
-    }
-    else if (localCurrentSongPlaying == MADE_UP_SONG)
-    {
-      MenuManager_StopSong();
-    }
+    display_mainMenu = false;
   }
 }
 
+static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection)
+{
+  /**
+   * 1) If Pressed Joystick is up then play song #1
+   * 2) If Pressed Joystick is down then play song #2
+   * 3) If Pressed Joystick is right then play song #3
+   * 4) If Pressed Joystick is left then go back to the main menu
+  */
+  
+  if (currentJoyStickDirection == JOYSTICK_UP)
+    {
+      MenuManager_StopSong();
+      MenuManager_StartSong(SONG_NUM_ONE);
+    }
+    else if (currentJoyStickDirection == JOYSTICK_DOWN)
+    {
+      MenuManager_StopSong();
+      MenuManager_StartSong(SONG_NUM_TWO);
+    }
+    else if (currentJoyStickDirection == JOYSTICK_RIGHT)
+    {
+      MenuManager_StopSong();
+      MenuManager_StartSong(SONG_NUM_THREE);
+    }
+    else if (currentJoyStickDirection == JOYSTICK_LEFT)
+    {
+      display_mainMenu = true;
+    }
+}
+
+/**********************************FUNCTION WE MIGHT USE ******************************************************/
 // static void triggerAccelerometerAction(enum eAccelerometerActions accelerometerAction)
 // {
 //   if (accelerometerAction == ACCELEROMETER_X) {
@@ -135,6 +174,7 @@ static void triggerJoystickAction(enum eJoystickDirections currentJoyStickDirect
 //     playSingleSound(BASE_DRUM_FILE);
 //   }
 // }
+/**************************************************************************************************************/
 
 static void display_menu_content()
 {
@@ -148,53 +188,66 @@ static void display_menu_content()
 
 static void display_songs_in_menu()
 {
+  /*******************************************/
+  // for(int i=0; i < MAX_NUM_SONGS; i++)
+  // {}
 
+  /*******************************************/
+
+  printf("1)Song #1 (Press Joystick Up)\n");
+  printf("2)Song #2 (Press Joystick Down)\n");
+  printf("3)Song #3 (Press Joystick Right)\n");
+  printf("Go back to the main menu (Press Joystick Left)\n");
 }
 
 static void *MenuManagerThread(void *arg)
 {
-  //int timer_size = JOYSTICK_MAX_NUMBER_DIRECTIONS + ACCELEROMETER_MAX_NUMBER_ACTIONS;
+  // int timer_size = JOYSTICK_MAX_NUMBER_DIRECTIONS + ACCELEROMETER_MAX_NUMBER_ACTIONS;
+
+  /********************TIMERS USED FOR DEBOUNCING LOGIC********************/
+
   int timer_size = JOYSTICK_MAX_NUMBER_DIRECTIONS;
-  // long long action_timers[timer_size];
-  // for (size_t i = 0; i < timer_size; i++) {
-  //   action_timers[i] = (long long) 0;
-  // }
+  long long action_timers[timer_size];
+  for (size_t i = 0; i < timer_size; i++)
+  {
+    action_timers[i] = (long long)0;
+  }
 
-  // 
-  display_menu_content();
-
+  /*************************************************************************/
 
   while (!stoppingMenu && !Shutdown_isShutdown())
   {
+    if(display_mainMenu)
+    {
+      // Display Menu
+      display_menu_content();
+    }
+    else
+    {
+      // Display the songs menu
+      display_songs_in_menu();
+    }
     // Read the Joystick
     enum eJoystickDirections currentJoyStickDirection = Joystick_process_direction();
-    //enum eAccelerometerActions accelerometerAction = Accelerometer_GetCurrentAction();
 
     // Debouncing logic: Joystick
-    //int accelerometer_idx = JOYSTICK_MAX_NUMBER_DIRECTIONS + accelerometerAction;
-    int accelerometer_idx = JOYSTICK_MAX_NUMBER_DIRECTIONS;
     // Trigger action
     if (isActionTriggered(action_timers, currentJoyStickDirection))
     {
-      triggerJoystickAction(currentJoyStickDirection);
-
+      if(display_mainMenu) {
+        mainMenuJoystickAction(currentJoyStickDirection);
+      }
+      else {
+        songMenuJoystickAction(currentJoyStickDirection);
+      }
       // Update current direction time
       setTimers(action_timers, currentJoyStickDirection, DEBOUNCE_WAIT_TIME);
-    }
-
-    // Debouncing logic: Accelerometer
-    if (isActionTriggered(action_timers, accelerometer_idx))
-    {
-      triggerAccelerometerAction(accelerometerAction);
-
-      // Update current direction time
-      setTimers(action_timers, accelerometer_idx, DEBOUNCE_WAIT_TIME);
     }
 
     // Adjust timers
     decrementTimers(action_timers, timer_size);
 
-    sleepForMs(INPUT_CHECK_WAIT_TIME);
+    Sleep_ms(INPUT_CHECK_WAIT_TIME);
   }
 
   return NULL;
@@ -202,34 +255,12 @@ static void *MenuManagerThread(void *arg)
 
 ///////////////////////// Sounds and Songs
 
-// Queues a single sound corresponding to soundPath
-static void playSingleSound(char *soundPath)
+// Queues a song corresponding to soundPath
+static void playSong(char *soundPath)
 {
-  wavedata_t *currentSound = malloc(sizeof(*currentSound));
-  AudioMixer_readWaveFileIntoMemory(soundPath, currentSound);
-  AudioMixer_queueSound(currentSound);
-}
-
-// Thread function to continuously play song passed in as argument
-static void *songPlayerThread(void *args)
-{
-  enum eCurrentSong *mode = (enum eCurrentSong *)args;
-  while (!stoppingSong && !Shutdown_isShutdown())
-  {
-    if (*mode == STANDARD_ROCK_SONG)
-    {
-      playStandardRockSong(currentRockSoundPlaying);
-    }
-    else if (*mode == MADE_UP_SONG)
-    {
-      playMadeUpSong(currentMadeUpSoundPlaying);
-    }
-
-    sleepForMs(GET_BEAT_TIME(currentTempo));
-  }
-
-  free(args);
-  return NULL;
+  pSound_currentSong = malloc(sizeof(*pSound_currentSong));
+  AudioMixer_readWaveFileIntoMemory(soundPath, pSound_currentSong);
+  AudioMixer_queueSound(pSound_currentSong);
 }
 
 /********************** Public/Module functions**********************/
@@ -244,37 +275,22 @@ void MenuManager_init(void)
   AudioMixer_init();
 
   LCD_display_Init();
-  // Accelerometer
-  // Accelerometer_init();
-  // Wait for 330ms for the GPIOs to configure before user
-  // sleepForMs(330);
-}
 
-void MenuManager_HandleInputs(void)
-{
-  // Launch input manager thread
+  // Launch menu manager thread
   pthread_create(&menuManagerThreadId, NULL, MenuManagerThread, NULL);
 }
 
-void MenuManager_PlaySingleSound(char *soundPath)
+static void MenuManager_PlaySong(char *soundPath)
 {
-  playSingleSound(soundPath);
+  playSong(soundPath);
 }
 
 // Starts a new thread to play the song corresponding to mode
 void MenuManager_StartSong(enum eCurrentSong mode)
 {
   pthread_mutex_lock(&currentModeMutex);
-  // only start a new thread when no thread is active
-  if (stoppingSong == true)
-  {
-    stoppingSong = false;
-    currentSongPlaying = mode;
-    // need to allocate thread argument - to be freed from inside the thread
-    enum eCurrentSong *modeArg = malloc(sizeof(enum eCurrentSong));
-    *modeArg = mode;
-    pthread_create(&songPlayerThreadId, NULL, songPlayerThread, (void *)modeArg);
-  }
+  currentSongPlaying = mode;
+  MenuManager_PlaySong(songs[mode].path);
   pthread_mutex_unlock(&currentModeMutex);
 }
 
@@ -282,19 +298,18 @@ void MenuManager_StartSong(enum eCurrentSong mode)
 void MenuManager_StopSong(void)
 {
   pthread_mutex_lock(&currentModeMutex);
-  stoppingSong = true;
   if (currentSongPlaying != NO_SONG)
   {
-    pthread_join(songPlayerThreadId, NULL);
-    currentSongPlaying = NO_SONG;
+    AudioMixer_freeWaveFileData(pSound_currentSong);
   }
+  currentSongPlaying = NO_SONG;
+
   pthread_mutex_unlock(&currentModeMutex);
 }
 
 void MenuManager_cleanup(void)
 {
   stoppingMenu = true;
-  
 
   MenuManager_StopSong();
   pthread_join(menuManagerThreadId, NULL);
@@ -303,47 +318,12 @@ void MenuManager_cleanup(void)
   Joystick_cleanup();
 
   Bluetooth_cleanup();
-  // Accelerometer
-  // Accelerometer_cleanup();
   // AudioMixer
   AudioMixer_cleanup();
 
   LCD_display_Cleanup();
 }
 
-void MenuManager_UpdateTempo(int changeSize, bool isIncrease)
-{
-  if (changeSize < 0)
-  {
-    return;
-  }
-  pthread_mutex_lock(&tempoMutex);
-  if (!isIncrease)
-  {
-    // decrease tempo
-    if ((currentTempo - changeSize) < MIN_TEMPO)
-    {
-      currentTempo = MIN_TEMPO;
-    }
-    else
-    {
-      currentTempo -= changeSize;
-    }
-  }
-  else
-  {
-    // increase tempo
-    if ((currentTempo + changeSize) > MAX_TEMPO)
-    {
-      currentTempo = MAX_TEMPO;
-    }
-    else
-    {
-      currentTempo += changeSize;
-    }
-  }
-  pthread_mutex_unlock(&tempoMutex);
-}
 
 void MenuManager_UpdateVolume(int changeSize, bool isIncrease)
 {
@@ -382,15 +362,6 @@ void MenuManager_UpdateVolume(int changeSize, bool isIncrease)
   pthread_mutex_unlock(&volumeMutex);
 }
 
-int MenuManager_GetCurrentTempo(void)
-{
-  int tempo = -1;
-  pthread_mutex_lock(&tempoMutex);
-  tempo = currentTempo;
-  pthread_mutex_unlock(&tempoMutex);
-  return tempo;
-}
-
 int MenuManager_GetCurrentVolume(void)
 {
   int volume = -1;
@@ -409,6 +380,53 @@ int MenuManager_GetCurrentSongPlaying(void)
 
   return currentMode;
 }
+
+
+/////////////////////////////FUNCTIONS MIGHT USE//////////////////////////////////////////////////
+// void MenuManager_UpdateTempo(int changeSize, bool isIncrease)
+// {
+//   if (changeSize < 0)
+//   {
+//     return;
+//   }
+  // pthread_mutex_lock(&tempoMutex);
+  // if (!isIncrease)
+  // {
+  //   // decrease tempo
+  //   if ((currentTempo - changeSize) < MIN_TEMPO)
+  //   {
+  //     currentTempo = MIN_TEMPO;
+  //   }
+  //   else
+  //   {
+  //     currentTempo -= changeSize;
+  //   }
+  // }
+//   else
+//   {
+//     // increase tempo
+//     if ((currentTempo + changeSize) > MAX_TEMPO)
+//     {
+//       currentTempo = MAX_TEMPO;
+//     }
+//     else
+//     {
+//       currentTempo += changeSize;
+//     }
+//   }
+//   pthread_mutex_unlock(&tempoMutex);
+// }
+
+// int MenuManager_GetCurrentTempo(void)
+// {
+//   int tempo = -1;
+//   pthread_mutex_lock(&tempoMutex);
+//   tempo = currentTempo;
+//   pthread_mutex_unlock(&tempoMutex);
+//   return tempo;
+// }
+
+
 
 /////////////////////////////////////////////////////// For Testing ///////////////////////////////////////////////////////
 // int main(int argc, char

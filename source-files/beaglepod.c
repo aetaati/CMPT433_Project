@@ -12,6 +12,7 @@ Date: 2023-03-04
 #include "bluetooth.h"
 #include "gpio.h"
 #include "joystick.h"
+#include "menuManager.h"
 
 
 int main(int argc, char const *argv[])

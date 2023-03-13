@@ -42,7 +42,6 @@ const struct DirectionInfo directions[] = {
 
 void Joystick_init()
 {
-    int length = strlen(GPIO_FILE_DIRECTION) + 1;
     for (int i = 0; i < (JOYSTICK_MAX_NUMBER_DIRECTIONS - 1); i++)
     {
         // printf("... todo: actually open file for GPIO #%d\n", directions[i].portNumber);
