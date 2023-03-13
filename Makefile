@@ -19,6 +19,10 @@ gpio.o: gpio.c
 
 sleep.o: sleep.c
 	$(CC_C) $(CFLAGS) -c sleep.c -o $(OUTDIR)/sleep.o
+
+joystick.o: joystick.c
+	$(CC_C) $(CFLAGS) -c joystick.c -o $(OUTDIR)/joystick.o
+
 	
 clean:
 	rm $(OUTDIR)/$(OUTFILE) $(OUTDIR)/*.o
