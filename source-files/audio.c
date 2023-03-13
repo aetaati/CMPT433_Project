@@ -1,4 +1,3 @@
-// Note: Generates low latency audio on BeagleBone Black; higher latency found on host.
 #include "audio.h"
 #include "time.h"
 #include <alsa/asoundlib.h>
@@ -6,54 +5,49 @@
 #include <pthread.h>
 #include <limits.h>
 #include <string.h>
-#include <alloca.h> // needed for mixer
+#include <alloca.h>
 
 
 static snd_pcm_t *handle;
 
 #define DEFAULT_VOLUME 80
-
 #define SAMPLE_RATE 48000
 #define NUM_CHANNELS 2
-#define SAMPLE_SIZE (sizeof(short)) 			// bytes per sample
-// Sample size note: This works for mono files because each sample ("frame') is 1 value.
-// If using stereo files then a frame would be two samples.
+
+// size of each PCM sample from the audio file.
+// each frame sent to the PCM device 
+// will consist of NUM_CHANNELS samples 
+#define SAMPLE_SIZE (sizeof(short))  
+
 
 static unsigned long playbackBufferSize = 0;
 static short *playbackBuffer = NULL;
 
 
-// Currently active (waiting to be played) sound bites
-#define MAX_SOUND_BITES 30
+
 typedef struct {
-	// A pointer to a previously allocated sound bite (wavedata_t struct).
-	// Note that many different sound-bite slots could share the same pointer
-	// (overlapping cymbal crashes, for example)
+	// a pointer to the raw PCM data
 	wavedata_t *pSound;
 
 	// The offset into the pData of pSound. Indicates how much of the
 	// sound has already been played (and hence where to start playing next).
 	int location;
 } playbackSound_t;
-static playbackSound_t soundBites[MAX_SOUND_BITES];
+
 
 // Playback threading
 void* playbackThread(void* arg);
 static bool stopping = false;
 static pthread_t playbackThreadId;
 static pthread_mutex_t audioMutex = PTHREAD_MUTEX_INITIALIZER;
+static playbackSound_t current_sound;
 
 static int volume = 0;
 
 void AudioMixer_init(void)
 {
-	//AudioMixer_setVolume(DEFAULT_VOLUME);
+	AudioMixer_setVolume(DEFAULT_VOLUME);
 
-	// Initialize the currently active sound-bites being played
-    for(int i = 0; i < MAX_SOUND_BITES; i++){
-        soundBites[i].pSound = NULL;
-        soundBites[i].location = 0;
-    }
 
 	// Open the PCM output
 	int err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
@@ -80,8 +74,9 @@ void AudioMixer_init(void)
 	// ..get info on the hardware buffers:
  	unsigned long unusedBufferSize = 0;
 	snd_pcm_get_params(handle, &unusedBufferSize, &playbackBufferSize);
+	playbackBufferSize = playbackBufferSize * NUM_CHANNELS;
 	// ..allocate playback buffer:
-	playbackBuffer = malloc(playbackBufferSize * 2* sizeof(*playbackBuffer));
+	playbackBuffer = malloc(playbackBufferSize * sizeof(*playbackBuffer));
 
 	// Launch playback thread:
 	pthread_create(&playbackThreadId, NULL, playbackThread, NULL);
@@ -136,23 +131,23 @@ void AudioMixer_freeWaveFileData(wavedata_t *pSound)
 	pSound->pData = NULL;
 }
 
-void AudioMixer_queueSound(wavedata_t *pSound)
+void AudioMixer_playWAV(wavedata_t *pSound)
 {
 	// Ensure we are only being asked to play "good" sounds:
 	assert(pSound->numSamples > 0);
 	assert(pSound->pData);
 
     pthread_mutex_lock(&audioMutex);
-    for(int i = 0; i < MAX_SOUND_BITES; i++){
-        if(soundBites[i].pSound == NULL){
-            // sample to list of sound bites
-            soundBites[i].pSound = pSound;
-            pthread_mutex_unlock(&audioMutex);
-            return;
-        }
-    }
+	{
+		// sample to list of sound bites
+		current_sound.pSound = pSound;
+		current_sound.location = 0;
+		pthread_mutex_unlock(&audioMutex);
+		return;
+	} 
     pthread_mutex_unlock(&audioMutex);
-    fprintf(stderr, "Failed to queue sample\n");
+
+    fprintf(stderr, "Failed to update current song\n");
 
 }
 
@@ -237,17 +232,17 @@ static void fillPlaybackBuffer(short *buff, int size)
     memset(buff, 0, size * SAMPLE_SIZE);
 
     pthread_mutex_lock(&audioMutex);
-    for(int i = 0; i < MAX_SOUND_BITES; i++){
-        wavedata_t* sound_data = soundBites[i].pSound;
+	{
+        wavedata_t* sound_data = current_sound.pSound;
         if(sound_data != NULL){
             
             // copy into playback buff
             int total_samples = sound_data->numSamples;
-            int location = soundBites[i].location;
+            int location = current_sound.location;
             int samples_left = (total_samples - location);
 			short* start_copy = sound_data->pData + location;
+			short left_val, right_val;
 
-			// add sample to values to other sounds
             if( samples_left <= size){
 				short tmp;
 				for(int i = 0; i < samples_left; i++){
@@ -263,46 +258,41 @@ static void fillPlaybackBuffer(short *buff, int size)
 
 					*(buff+i) = tmp; 
 				}
-                soundBites[i].location += samples_left;
-                soundBites[i].pSound = NULL;
-                soundBites[i].location = 0;
+                current_sound.location += samples_left;
+                current_sound.pSound = NULL;
+                current_sound.location = 0;
             }
             else{
                 samples_left = size;
-				short tmp, left_val, right_val;
 				for(int i = 0; i < samples_left - 1; i += NUM_CHANNELS){
 
 					// get left sample
-					tmp = *(start_copy+i);
-					if((tmp + *(buff+i)) > SHRT_MAX){
+					if(*(start_copy+i) > SHRT_MAX){
 						left_val = SHRT_MAX;
 					}
-					else if ((tmp + *(buff+i)) < SHRT_MIN){
+					else if (*(start_copy+i)  < SHRT_MIN){
 						left_val = SHRT_MIN;
 					}
 					else{
-						left_val = tmp + *(buff+i);
+						left_val = *(start_copy+i);
 					}
-					*(buff+i) = left_val;
+					*(buff + i) = left_val;
 
 
 					// get right sample
-					tmp = *(start_copy + i + 1) ;
-					if((tmp + *(buff+i+1)) > SHRT_MAX){
+					if(*(start_copy + i + 1)> SHRT_MAX){
 						right_val = SHRT_MAX;
 					}
-					else if ((tmp + *(buff+i+1)) < SHRT_MIN){
+					else if (*(start_copy + i + 1) < SHRT_MIN){
 						right_val = SHRT_MIN;
 					}
 					else{
-						right_val = tmp + *(buff+i+1);
+						right_val = *(start_copy + i + 1);
 					}
 					*(buff + i + 1) = right_val;
 
-
-					
 				}
-                soundBites[i].location += samples_left;
+                current_sound.location += samples_left;
             }
 
             
@@ -322,7 +312,7 @@ void* playbackThread(void* arg)
 
 		// Output the audio
 		snd_pcm_sframes_t frames = snd_pcm_writei(handle,
-				playbackBuffer, playbackBufferSize / 2 );
+				playbackBuffer, playbackBufferSize / NUM_CHANNELS );
 
 		// Check for (and handle) possible error conditions on output
 		if (frames < 0) {
@@ -334,7 +324,7 @@ void* playbackThread(void* arg)
 					frames);
 			exit(EXIT_FAILURE);
 		}
-		if (frames > 0 && frames < playbackBufferSize/2) {
+		if (frames > 0 && frames < playbackBufferSize / NUM_CHANNELS) {
 			printf("Short write (expected %li, wrote %li)\n",
 					playbackBufferSize, frames);
 		}

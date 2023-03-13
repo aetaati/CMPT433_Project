@@ -33,7 +33,7 @@ int main(int argc, char const *argv[])
     AudioMixer_init();
     wavedata_t song;
     AudioMixer_readWaveFileIntoMemory(SONG , &song);
-    AudioMixer_queueSound(&song);
+    AudioMixer_playWAV(&song);
 
     Sleep_ms(10000000);
     return 0;
