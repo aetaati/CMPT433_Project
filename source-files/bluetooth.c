@@ -67,6 +67,8 @@ void *bluetoothThread(void *args)
         }
         sscanf(input, "%d", &selection);
 
+
+
         printf("connecting to device...\n");
         if (Bluetooth_connect(&(devices + selection)->bdaddr) != 0)
         {
@@ -76,7 +78,7 @@ void *bluetoothThread(void *args)
             printf("Connected!\n");
         }
         
-
+        runCommand("aplay som-liveletlive.wav");
         sleep(5);
 
         printf("disconnecting...\n");
@@ -107,6 +109,22 @@ void Bluetooth_displayDevices(inquiry_info *devices, int num_devices)
         }
         printf("[%d]: %s\n", i, name);
     }
+}
+
+
+int Bluetooth_pair(bdaddr_t *device_address){
+    char addr[19] = {0};
+    ba2str(device_address, addr);
+    char *tmp = "bluetoothctl pair ";
+    char *bt_command = calloc(sizeof(char), strlen(tmp) + 19);
+
+    strcat(strcat(bt_command, tmp), addr);
+
+    int result = runCommand(bt_command);
+    free(bt_command);
+    bt_command = NULL;
+
+    return result;
 }
 
 

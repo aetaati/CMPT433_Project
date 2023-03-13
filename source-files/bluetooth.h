@@ -29,6 +29,14 @@ void Bluetooth_displayDevices(inquiry_info *devices, int num_devices);
 */
 int Bluetooth_connect(bdaddr_t* device_address);
 
+/**
+ * Pairs with a bluetooth device with device_address
+ * 
+ * @param device_address the address of the device in the form XX:XX:XX:XX:XX:XX
+ * @return 0 on success, -1 on failure
+*/
+int Bluetooth_pair(bdaddr_t *device_address);
+
 
 /**
  * Scans for nearby bluetooth devices
