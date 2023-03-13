@@ -14,14 +14,12 @@ Subject: Implementation of the AudioMixer module to get the current acceleromete
 #include <alloca.h> // needed for mixer
 
 #include "audioMixer.h"
-#include "periodTimer.h"
-#include "shutdown.h"
 
 static snd_pcm_t *handle;
 
 #define DEFAULT_VOLUME 80
-
-#define SAMPLE_RATE 44100
+//44100 * 2
+#define SAMPLE_RATE 44100 * 2.1
 #define NUM_CHANNELS 1
 #define SAMPLE_SIZE (sizeof(short)) // bytes per sample
 // Sample size note: This works for mono files because each sample ("frame') is 1 value.
@@ -71,6 +69,7 @@ void AudioMixer_init(void)
 		printf("Playback open error: %s\n", snd_strerror(err));
 		exit(EXIT_FAILURE);
 	}
+	//50000
 
 	// Configure parameters of PCM output
 	err = snd_pcm_set_params(handle,
@@ -370,12 +369,10 @@ static void fillPlaybackBuffer(short *buff, int size)
 void *playbackThread(void *arg)
 {
 
-	while (!stopping && !Shutdown_isShutdown())
+	while (!stopping)
 	{
 		// Generate next block of audio
 		fillPlaybackBuffer(playbackBuffer, playbackBufferSize);
-		// Mark event when finished filling the playback buffer
-		Period_markEvent(PERIOD_EVENT_SAMPLE_AUDIO);
 
 		// Output the audio
 		snd_pcm_sframes_t frames = snd_pcm_writei(handle,
