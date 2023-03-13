@@ -91,7 +91,6 @@ void *bluetoothThread(void *args)
 }
 
 
-
 void Bluetooth_displayDevices(inquiry_info *devices, int num_devices)
 {
     char addr[19] = {0};
@@ -147,10 +146,12 @@ int Bluetooth_scan(inquiry_info *scanned_devices, int n)
 
 }
 
+
 void Bluetooth_disconnect(void)
 {
     runCommand("bluetoothctl disconnect");
 }
+
 
 int Bluetooth_connect(bdaddr_t *device_address)
 {
