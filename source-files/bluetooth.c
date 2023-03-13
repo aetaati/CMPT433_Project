@@ -1,4 +1,5 @@
 #include "bluetooth.h"
+#include "audio_player.h"
 
 #include <stdbool.h>
 #include <pthread.h>
@@ -14,6 +15,8 @@
 #include <bluetooth/rfcomm.h>
 #include <bluetooth/sdp.h>
 #include <bluetooth/sdp_lib.h>
+
+#define SONG "som-liveletlive.wav"
 
 // max number of devices that can respond to a bluetooth scan query
 #define MAX_DEV_RSP 255
@@ -78,7 +81,9 @@ void *bluetoothThread(void *args)
             printf("Connected!\n");
         }
         
-        runCommand("aplay som-liveletlive.wav");
+        wavedata_t song;
+        AudioPlayer_readWaveFileIntoMemory(SONG , &song);
+        AudioPlayer_playWAV(&song);
         sleep(5);
 
         printf("disconnecting...\n");

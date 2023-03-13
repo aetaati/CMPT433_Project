@@ -10,9 +10,9 @@ Date: 2023-03-04
 #include "sleep.h"
 #include "lcd_display.h"
 #include "bluetooth.h"
-#include "audio.h"
+#include "audio_player.h"
 #include "gpio.h"
-#define SONG "som-liveletlive.wav"
+
 
 int main(int argc, char const *argv[])
 {
@@ -27,13 +27,11 @@ int main(int argc, char const *argv[])
     LCD_display_Cleanup();*/
 
     ////////////////////////////////////////////////////////////////////////////////////////////
-
-    //Bluetooth_init();
+    AudioPlayer_init();
+    Bluetooth_init();
     
-    AudioMixer_init();
-    wavedata_t song;
-    AudioMixer_readWaveFileIntoMemory(SONG , &song);
-    AudioMixer_playWAV(&song);
+    
+    
 
     Sleep_ms(10000000);
     return 0;
