@@ -24,11 +24,15 @@ enum eJoystickDirections
     JOYSTICK_NONE,
     JOYSTICK_MAX_NUMBER_DIRECTIONS      // Get the number of directions via the enum
 };
-
+// Initialize the Joystick module
 void Joystick_init();
+// Remove any dynamic memory or open file
 void Joystick_cleanup();
+// Returns the direction hit by the user
 enum eJoystickDirections Joystick_process_direction();
+// Is the given direction pressed by the user
 bool Joystick_isDirectionPressed(enum eJoystickDirections direction);
+// Returns "Up", "Down", "Left", "Right" as a char *
 const char* Joystick_getDirectionName(enum eJoystickDirections direction);
 
 
