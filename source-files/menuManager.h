@@ -1,13 +1,11 @@
 /*
 Author: Mehdi Esmaeilzadeh
 Date: 2023-02-25
-Subject: Definition of the inputManager module to get the current accelerometer action
+Subject: Definition of the MenuManager module to get the current accelerometer action
 */
 
-
-#if !defined(_INPUTMANAGER_H)
-#define _INPUTMANAGER_H
-
+#if !defined(_MENUMANAGER_H)
+#define _MENUMANAGER_H
 
 #define VOLUME_CHANGE_SIZE 5
 #define TEMPO_CHANGE_SIZE 5
@@ -22,8 +20,9 @@ Subject: Definition of the inputManager module to get the current accelerometer 
 enum eCurrentSong
 {
    NO_SONG = 0,
-   STANDARD_ROCK_SONG,
-   MADE_UP_SONG,
+   SONG_NUM_ONE,
+   SONG_NUM_TWO,
+   SONG_NUM_THREE,
    MAX_NUM_SONGS
 };
 
@@ -52,46 +51,44 @@ enum eCurrentSong
 // #define TOM_LO_FILE "wave-files/100065__menegass__gui-drum-tom-lo-soft.wav"
 // #define CO_FILE "wave-files/100055__menegass__gui-drum-co.wav"
 
-void InputManager_init(void);
+void MenuManager_init(void);
 
 // Handles Joystick and Accelerometer
-void InputManager_HandleInputs(void);
+void MenuManager_HandleInputs(void);
 
 // Starts a thread to start playing the "mode" song
-void InputManager_StartSong(enum eCurrentSong mode);
+void MenuManager_StartSong(enum eCurrentSong mode);
 
-// Stops the thread that is playing song 
-void InputManager_StopSong(void);
+// Stops the thread that is playing song
+void MenuManager_StopSong(void);
 
-// Plays a single sound
-void InputManager_PlaySingleSound(char *soundPath);
+// // Plays a
+// void MenuManager_PlaySingleSound(char *soundPath);
 
-void InputManager_cleanup(void);
+void MenuManager_cleanup(void);
 
 // Update the tempo by "changeSize"
 // Increases tempo if "isIncrease" is true, decreases otherwise
 // Note: "changeSize" should be positive or else this function would do nothing
-// Note: this function is thread safe to handle simultaneous tempo change 
+// Note: this function is thread safe to handle simultaneous tempo change
 //    from the web interface and the joyStick
-void InputManager_UpdateTempo(int changeSize, bool isIncrease);
+// void MenuManager_UpdateTempo(int changeSize, bool isIncrease);
 
 // Change the volume by "changeSize"
 // Increases volume if "isIncrease" is true, decreases otherwise
 // Note: "changeSize" should be positive or else this function would do nothing
-// Note: this function is thread safe to handle simultaneous volume change 
+// Note: this function is thread safe to handle simultaneous volume change
 //    from the web interface and the joyStick
-void InputManager_UpdateVolume(int changeSize, bool isIncrease);
+void MenuManager_UpdateVolume(int changeSize, bool isIncrease);
 
 // Get the current tempo
 // Note: this function is thread safe
-int InputManager_GetCurrentTempo(void);
+// int MenuManager_GetCurrentTempo(void);
 
 // Get the current volume
 // Note: this function is thread safe
-int InputManager_GetCurrentVolume(void);
+int MenuManager_GetCurrentVolume(void);
 
+int MenuManager_GetCurrentSongPlaying();
 
-int InputManager_GetCurrentMode();
-
-
-#endif // _INPUTMANAGER_H
+#endif // _MENUMANAGER_H
