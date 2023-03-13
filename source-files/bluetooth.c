@@ -31,6 +31,10 @@ pthread_mutex_t mtx_bluetooth = PTHREAD_MUTEX_INITIALIZER;
 int bt_adapter_id;
 int bt_adapter_fd;
 
+// Private functions
+void checkError(void);
+int runCommand(char* command);
+
 
 
 void Bluetooth_init(void)
@@ -48,28 +52,30 @@ void Bluetooth_init(void)
 void *bluetoothThread(void *args)
 {
     int selection;
-    char* device_names[MAX_DEV_RSP];
+    inquiry_info* devices;
     char input[15] = {0};
     while (!stopping)
     {
-        int num_scanned = Bluetooth_scan(device_names);
-        for(int i = 0; i < num_scanned; i++){
-            printf("device: %s\n", *(device_names+i));
-        }
+        devices = malloc(MAX_DEV_RSP * sizeof(inquiry_info));
+        int num_scanned = Bluetooth_scan(devices, MAX_DEV_RSP);
+        Bluetooth_displayDevices(devices, num_scanned);
 
-        printf("Choose a device to connect to\n");
+        printf("Choose a device to connect to\n> ");
         if (fgets(input, sizeof(input), stdin) == NULL)
         {
             fprintf(stderr, "error reading from stdin");
         }
         sscanf(input, "%d", &selection);
 
-        /*printf("connecting to device...\n");
-        if (Bluetooth_connect(&(scanned_devices + selection)->bdaddr) != 0)
+        printf("connecting to device...\n");
+        if (Bluetooth_connect(&(devices + selection)->bdaddr) != 0)
         {
             printf("error connecting to device\n");
         }
-        printf("Connected!\n");*/
+        else{
+            printf("Connected!\n");
+        }
+        
 
         sleep(5);
 
@@ -84,17 +90,17 @@ void *bluetoothThread(void *args)
 
 
 
-void Bluetooth_displayAvailableDevices(inquiry_info *devices, int num_devices)
+void Bluetooth_displayDevices(inquiry_info *devices, int num_devices)
 {
     char addr[19] = {0};
     char name[256] = {0};
     for (int i = 0; i < num_devices; i++)
     {
-        // baddr is the 6 byte address of the bt device. format: XX:XX:XX:XX:XX:XX
+        // bdaddr is the 6 byte address of the bluetooth device. format: XX:XX:XX:XX:XX:XX
         ba2str(&(devices + i)->bdaddr, addr);
         memset(name, 0, sizeof(name));
 
-        // send request to device with address equal to baddr, for human readable name
+        // send request to device with address equal to bdaddr, for human readable name
         if (hci_read_remote_name(bt_adapter_fd, &(devices + i)->bdaddr, sizeof(name), name, 0) < 0)
         {
             strcpy(name, "[unknown]");
@@ -103,41 +109,22 @@ void Bluetooth_displayAvailableDevices(inquiry_info *devices, int num_devices)
     }
 }
 
-// returns the amount of devices that responded to a scan
-// must free each string in returned list
-int Bluetooth_scan(char **devices)
+
+int Bluetooth_scan(inquiry_info *scanned_devices, int n)
 {
     printf("Scanning for bluetooth devices...\n");
-    inquiry_info *scanned_devices = malloc(MAX_DEV_RSP * sizeof(inquiry_info));
     if (scanned_devices == NULL)
     {
         fprintf(stderr, "failed to allocate memory for scanned devices\n");
         return(-1);
     }
 
-    // scan for bt devices
-    int num_rsp = hci_inquiry(bt_adapter_id, SCAN_LENGTH, MAX_DEV_RSP, NULL, &scanned_devices, IREQ_CACHE_FLUSH);
+    // scan for bluetooth devices
+    int num_rsp = hci_inquiry(bt_adapter_id, SCAN_LENGTH, n, NULL, &scanned_devices, IREQ_CACHE_FLUSH);
     if (num_rsp < 0)
     {
         fprintf(stderr, "hci_inquiry: error scanning devices");
     }
-
-    char name[256] = {0};
-    for (int i = 0; i < num_rsp; i++)
-    {
-        memset(name, 0, sizeof(name));
-
-        // send request to device with address equal to baddr, for human readable name
-        if (hci_read_remote_name(bt_adapter_fd, &(scanned_devices + i)->bdaddr, sizeof(name), name, 0) < 0)
-        {
-            strcpy(name, "[unknown]");
-        }
-        *(devices+i) = calloc(sizeof(char) , strlen(name) + 1);
-        strcpy(*(devices+i), name);
-    }
-
-    free(scanned_devices);
-    scanned_devices = NULL;
     return(num_rsp);
 
 }
@@ -164,9 +151,11 @@ int Bluetooth_connect(bdaddr_t *device_address)
     return result;
 }
 
+
+
+// Private Function Definitions
 int runCommand(char *command)
 {
-
     FILE *pipe = popen(command, "r");
 
     char buffer[1024];
@@ -181,8 +170,7 @@ int runCommand(char *command)
     int exit_code = WEXITSTATUS(pclose(pipe));
     if (exit_code != 0)
     {
-        fprintf(stderr, "Unable to execute command:\n  command: %s\n  exit code: %d\n", command, exit_code);
-        return (1);
+        return (-1);
     }
 
     return (0);
