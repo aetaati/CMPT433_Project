@@ -1,6 +1,6 @@
 /*
-Author: Amirhossein Etaati, Mehdi Esmaeilzadeh
-Date: 2023-02-25
+Author: Mehdi Esmaeilzadeh
+Date: 2023-03-10
 Subject: Implementation of the Joystick module to get the current accelerometer action
 */
 
@@ -14,6 +14,8 @@ Subject: Implementation of the Joystick module to get the current accelerometer 
 #include <string.h>
 
 #include "joystick.h"
+
+#include "gpio.h"
 
 
 
@@ -44,18 +46,7 @@ void Joystick_init()
     for (int i = 0; i < (JOYSTICK_MAX_NUMBER_DIRECTIONS - 1); i++)
     {
         // printf("... todo: actually open file for GPIO #%d\n", directions[i].portNumber);
-        char filepath[length];
-        sprintf(filepath, GPIO_FILE_DIRECTION, directions[i].portNumber);
-        FILE *pFile = fopen(filepath, "w");
-        if (pFile == NULL)
-        {
-            printf("ERROR: Unable to open export file.\n");
-            exit(1);
-        }
-        // Write to data to the file using fprintf():
-        fprintf(pFile, "in");
-        // Close the file using fclose():
-        fclose(pFile);
+        GPIO_SetPinDirection(directions[i].portNumber, "in");
     }
 }
 
