@@ -54,7 +54,7 @@ static playbackSound_t current_sound;
 static int volume = 0;
 
 
-int pa_simple_set_volume(pa_simple *s, const pa_cvolume *volume, pa_error_code_t *error) {
+/*int pa_simple_set_volume(pa_simple *s, const pa_cvolume *volume, pa_error_code_t *error) {
     pa_operation *op;
 
     op = pa_context_set_sink_volume_by_index(pa_simple_get_context(s), pa_simple_get_sink_info(s)->index, volume, NULL, NULL);
@@ -63,7 +63,7 @@ int pa_simple_set_volume(pa_simple *s, const pa_cvolume *volume, pa_error_code_t
     return 0;
 }
 
-
+*/
 
 
 void AudioPlayer_init(void)
@@ -205,18 +205,21 @@ int AudioPlayer_getVolume()
 
 }
 
-/*
-static int runCommand(char *command)
-{
-    FILE *pipe = popen(command, "r");
 
-    char buffer[1024];
-    while (!feof(pipe) && !ferror(pipe))
+static int getSinkIndexes(int* sink_indexes)
+{
+    FILE *pipe = popen("pactl list short sinks", "r");
+	int valid = 0;
+
+    char buffer[1024] = { 0 };	
+    for(int i = 0; i < 2; i++)
     {
-        if (fgets(buffer, sizeof(buffer), pipe))
+        if (fgets(buffer, sizeof(buffer), pipe) == NULL)
         {
             break;
         }
+		valid++;
+		*(sink_indexes+i) = atoi(buffer);
     }
 
     int exit_code = WEXITSTATUS(pclose(pipe));
@@ -225,9 +228,9 @@ static int runCommand(char *command)
         return (-1);
     }
 
-    return (0);
+    return (valid);
 }
-*/
+
 
 // Function copied from:
 // http://stackoverflow.com/questions/6787318/set-alsa-master-volume-from-c-code
@@ -236,21 +239,12 @@ void AudioMixer_setVolume(int newVolume)
 {
 	//pthread_mutex_lock(&audioMutex);
 	{
-		pa_simple *s;
-		pa_sample_spec ss;
-		pa_cvolume cv;
-
-		ss.format = PA_SAMPLE_S16LE;
-		ss.rate = 44100;
-		ss.channels = 2;
-
-		s = pa_simple_new(NULL, "set-volume", PA_STREAM_PLAYBACK, NULL, "set volume", &ss, NULL, NULL, NULL);
-
-		pa_cvolume_set(&cv, ss.channels, 0x10000);
-		pa_simple_set_volume(s, &cv, NULL);
-
-		pa_simple_drain(s, NULL);
-		pa_simple_free(s);
+		int* sinks = malloc(2 * sizeof(int));
+		int valid = getSinkIndexes(sinks);
+		for (int i =0; i<valid; i++){
+			printf("sink: %d\n", *(sinks+i));
+		}
+		
 	}
 	//pthread_mutex_unlock(&audioMutex);
 }
