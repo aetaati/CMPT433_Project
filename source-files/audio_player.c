@@ -1,6 +1,11 @@
 #include "audio_player.h"
 #include "time.h"
 #include <alsa/asoundlib.h>
+#include <pulse/simple.h>
+#include <pulse/error.h>
+#include <pulse/volume.h>
+#include <pulse/mainloop.h>
+#include <pulse/pulseaudio.h>
 #include <stdbool.h>
 #include <pthread.h>
 #include <limits.h>
@@ -18,6 +23,10 @@ static snd_pcm_t *handle;
 // each frame sent to the PCM device 
 // will consist of NUM_CHANNELS samples 
 #define SAMPLE_SIZE (sizeof(short))  
+
+#define AUDIO_PLAYER_MIN_VOLUME 0
+#define AUDIO_PLAYER_MAX_VOLUME 100
+
 
 
 static unsigned long playbackBufferSize = 0;
@@ -44,11 +53,23 @@ static playbackSound_t current_sound;
 
 static int volume = 0;
 
+
+int pa_simple_set_volume(pa_simple *s, const pa_cvolume *volume, pa_error_code_t *error) {
+    pa_operation *op;
+
+    op = pa_context_set_sink_volume_by_index(pa_simple_get_context(s), pa_simple_get_sink_info(s)->index, volume, NULL, NULL);
+    pa_operation_unref(op);
+
+    return 0;
+}
+
+
+
+
 void AudioPlayer_init(void)
 {
 	
-	AudioMixer_setVolume(DEFAULT_VOLUME);
-
+	//AudioMixer_setVolume(DEFAULT_VOLUME);
 
 	// Open the PCM output
 	int err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
@@ -137,7 +158,6 @@ void AudioPlayer_playWAV(wavedata_t *pSound)
 	// Ensure we are only being asked to play "good" sounds:
 	assert(pSound->numSamples > 0);
 	assert(pSound->pData);
-
     pthread_mutex_lock(&audioMutex);
 	{
 		// sample to list of sound bites
@@ -185,48 +205,54 @@ int AudioPlayer_getVolume()
 
 }
 
+/*
+static int runCommand(char *command)
+{
+    FILE *pipe = popen(command, "r");
+
+    char buffer[1024];
+    while (!feof(pipe) && !ferror(pipe))
+    {
+        if (fgets(buffer, sizeof(buffer), pipe))
+        {
+            break;
+        }
+    }
+
+    int exit_code = WEXITSTATUS(pclose(pipe));
+    if (exit_code != 0)
+    {
+        return (-1);
+    }
+
+    return (0);
+}
+*/
+
 // Function copied from:
 // http://stackoverflow.com/questions/6787318/set-alsa-master-volume-from-c-code
 // Written by user "trenki".
 void AudioMixer_setVolume(int newVolume)
 {
-	pthread_mutex_lock(&audioMutex);
-	// Ensure volume is reasonable; If so, cache it for later getVolume() calls.
-	if (newVolume < AUDIO_PLAYER_MIN_VOLUME || newVolume > AUDIO_PLAYER_MAX_VOLUME) {
-		printf("ERROR: Volume must be between 0 and 100.\n");
-		pthread_mutex_unlock(&audioMutex);
-		return;
+	//pthread_mutex_lock(&audioMutex);
+	{
+		pa_simple *s;
+		pa_sample_spec ss;
+		pa_cvolume cv;
+
+		ss.format = PA_SAMPLE_S16LE;
+		ss.rate = 44100;
+		ss.channels = 2;
+
+		s = pa_simple_new(NULL, "set-volume", PA_STREAM_PLAYBACK, NULL, "set volume", &ss, NULL, NULL, NULL);
+
+		pa_cvolume_set(&cv, ss.channels, 0x10000);
+		pa_simple_set_volume(s, &cv, NULL);
+
+		pa_simple_drain(s, NULL);
+		pa_simple_free(s);
 	}
-	volume = newVolume;
-
-    long min, max;
-    snd_mixer_t *volHandle;
-    snd_mixer_selem_id_t *sid;
-    const char *card = "default";
-    const char *selem_name = "PCM";
-
-    snd_mixer_open(&volHandle, 0);
-    snd_mixer_attach(volHandle, card);
-    snd_mixer_selem_register(volHandle, NULL, NULL);
-    snd_mixer_load(volHandle);
-
-    snd_mixer_selem_id_alloca(&sid);
-    snd_mixer_selem_id_set_index(sid, 0);
-    snd_mixer_selem_id_set_name(sid, selem_name);
-    snd_mixer_elem_t* elem = snd_mixer_find_selem(volHandle, sid);
-	if (!elem) {
-		printf("Error: %s\n", strerror(errno));
-		snd_mixer_close(volHandle);
-		pthread_mutex_unlock(&audioMutex);
-		return;
-	}
-	printf("a\n");
-    snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-	printf("b\n");
-    snd_mixer_selem_set_playback_volume_all(elem, volume * max / 100);
-
-    snd_mixer_close(volHandle);
-	pthread_mutex_unlock(&audioMutex);
+	//pthread_mutex_unlock(&audioMutex);
 }
 
 
