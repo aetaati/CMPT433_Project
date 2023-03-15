@@ -241,10 +241,15 @@ void AudioMixer_setVolume(int newVolume)
 	{
 		int* sinks = malloc(2 * sizeof(int));
 		int valid = getSinkIndexes(sinks);
-		for (int i =0; i<valid; i++){
-			printf("sink: %d\n", *(sinks+i));
+		char sink_index[16];
+		for (int i =0; i < valid; i++){
+			snprintf(sink_index, sizeof(sink_index), "%d", *(sinks+i));
+			printf("index %s\n", sink_index);
 		}
 		
+		
+		
+		free(sinks);
 	}
 	//pthread_mutex_unlock(&audioMutex);
 }
