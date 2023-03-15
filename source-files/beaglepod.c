@@ -12,6 +12,9 @@ Date: 2023-03-04
 #include "bluetooth.h"
 #include "audio_player.h"
 #include "gpio.h"
+#include "joystick.h"
+#include "menuManager.h"
+
 
 #define SONG "som-liveletlive.wav"
 
@@ -29,7 +32,7 @@ int main(int argc, char const *argv[])
     LCD_display_Cleanup();*/
 
     ////////////////////////////////////////////////////////////////////////////////////////////
-    AudioPlayer_init();
+
     Bluetooth_init();
     
     int selection;
