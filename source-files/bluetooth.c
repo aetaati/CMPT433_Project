@@ -1,4 +1,5 @@
 #include "bluetooth.h"
+#include "audio_player.h"
 
 #include <stdbool.h>
 #include <pthread.h>
@@ -15,16 +16,18 @@
 #include <bluetooth/sdp.h>
 #include <bluetooth/sdp_lib.h>
 
+
+
 // max number of devices that can respond to a bluetooth scan query
-#define MAX_DEV_RSP 255
+
 
 // the duration of the bluetooth scan = 1.28s * SCAN_LENGTH
 #define SCAN_LENGTH 4
 
 // Bluetooth Module Threading
-void *bluetoothThread(void *arg);
-static bool stopping = false;
-static pthread_t bluetooth_thread_id;
+//void *bluetoothThread(void *arg);
+//static bool stopping = false;
+//static pthread_t bluetooth_thread_id;
 pthread_mutex_t mtx_bluetooth = PTHREAD_MUTEX_INITIALIZER;
 
 // Bluetooth Info
@@ -45,11 +48,11 @@ void Bluetooth_init(void)
     bt_adapter_fd = hci_open_dev(bt_adapter_id);
     checkError();
 
-    pthread_create(&bluetooth_thread_id, NULL, bluetoothThread, NULL);
+    //pthread_create(&bluetooth_thread_id, NULL, bluetoothThread, NULL);
 }
 
 
-void *bluetoothThread(void *args)
+/*void *bluetoothThread(void *args)
 {
     int selection;
     inquiry_info* devices;
@@ -78,18 +81,24 @@ void *bluetoothThread(void *args)
             printf("Connected!\n");
         }
         
-        runCommand("aplay som-liveletlive.wav");
-        sleep(5);
-
+        wavedata_t song;
+        AudioPlayer_readWaveFileIntoMemory(SONG , &song);
+        AudioPlayer_playWAV(&song);
+        sleep(30);
+        printf("hey\n");
+        AudioMixer_setVolume(0.9);
+        sleep(100);
+        AudioMixer_setVolume(0.9);
+        sleep(10);
         printf("disconnecting...\n");
         Bluetooth_disconnect();
         printf("disconnected!\n");
 
-        memset(input, 0, sizeof(input));
+        //memset(input, 0, sizeof(input));
     }
     return NULL;
 }
-
+*/
 
 void Bluetooth_displayDevices(inquiry_info *devices, int num_devices)
 {

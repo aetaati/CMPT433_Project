@@ -7,6 +7,8 @@
 #include <bluetooth/sdp.h>
 #include <bluetooth/sdp_lib.h>
 
+#define BT_MAX_DEV_RSP 255
+
 void Bluetooth_init(void);
 
 void Bluetooth_cleanup(void);
