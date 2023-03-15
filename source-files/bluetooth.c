@@ -84,11 +84,12 @@ void *bluetoothThread(void *args)
         wavedata_t song;
         AudioPlayer_readWaveFileIntoMemory(SONG , &song);
         AudioPlayer_playWAV(&song);
-        sleep(10);
+        sleep(30);
         printf("hey\n");
-        AudioMixer_setVolume(50);
+        AudioMixer_setVolume(0.9);
         sleep(100);
-
+        AudioMixer_setVolume(0.9);
+        sleep(10);
         printf("disconnecting...\n");
         Bluetooth_disconnect();
         printf("disconnected!\n");

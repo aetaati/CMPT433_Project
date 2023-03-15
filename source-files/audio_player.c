@@ -15,7 +15,7 @@
 
 static snd_pcm_t *handle;
 
-#define DEFAULT_VOLUME 80
+#define DEFAULT_VOLUME 0.8
 #define SAMPLE_RATE 48000
 #define NUM_CHANNELS 2
 
@@ -206,6 +206,29 @@ int AudioPlayer_getVolume()
 }
 
 
+static int runCommand(char *command)
+{
+    FILE *pipe = popen(command, "r");
+
+    char buffer[1024];
+    while (!feof(pipe) && !ferror(pipe))
+    {
+        if (fgets(buffer, sizeof(buffer), pipe))
+        {
+            break;
+        }
+    }
+
+    int exit_code = WEXITSTATUS(pclose(pipe));
+    if (exit_code != 0)
+    {
+        return (-1);
+    }
+
+    return (0);
+}
+
+
 static int getSinkIndexes(int* sink_indexes)
 {
     FILE *pipe = popen("pactl list short sinks", "r");
@@ -235,16 +258,30 @@ static int getSinkIndexes(int* sink_indexes)
 // Function copied from:
 // http://stackoverflow.com/questions/6787318/set-alsa-master-volume-from-c-code
 // Written by user "trenki".
-void AudioMixer_setVolume(int newVolume)
+void AudioMixer_setVolume(double newVolume)
 {
 	//pthread_mutex_lock(&audioMutex);
 	{
 		int* sinks = malloc(2 * sizeof(int));
 		int valid = getSinkIndexes(sinks);
-		char sink_index[16];
+		char vol[16] = { 0 };
+		snprintf(vol, sizeof(vol), "%f", newVolume);
+		char sink_index[16] = { 0 };
 		for (int i =0; i < valid; i++){
-			snprintf(sink_index, sizeof(sink_index), "%d", *(sinks+i));
-			printf("index %s\n", sink_index);
+			snprintf(sink_index, sizeof(sink_index), "%d ", *(sinks+i));
+
+			char* tmp = "pactl set-sink-volume ";
+			char* command = calloc(strlen(tmp) + strlen(sink_index) + strlen(vol) + 1, sizeof(char));
+			command = strcat(strcat(strcat(command, tmp), sink_index), vol);	
+			if( i != 0){
+				runCommand(command);
+			}		
+			
+
+
+
+			
+			printf("<%s>\n", command);
 		}
 		
 		
