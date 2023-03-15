@@ -1,11 +1,6 @@
 #include "audio_player.h"
 #include "time.h"
 #include <alsa/asoundlib.h>
-#include <pulse/simple.h>
-#include <pulse/error.h>
-#include <pulse/volume.h>
-#include <pulse/mainloop.h>
-#include <pulse/pulseaudio.h>
 #include <stdbool.h>
 #include <pthread.h>
 #include <limits.h>

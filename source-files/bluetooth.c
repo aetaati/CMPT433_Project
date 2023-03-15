@@ -54,12 +54,12 @@ void Bluetooth_init(void)
 
 void *bluetoothThread(void *args)
 {
-    //int selection;
-    //inquiry_info* devices;
-    //char input[15] = {0};
+    int selection;
+    inquiry_info* devices;
+    char input[15] = {0};
     while (!stopping)
     {
-        /*devices = malloc(MAX_DEV_RSP * sizeof(inquiry_info));
+        devices = malloc(MAX_DEV_RSP * sizeof(inquiry_info));
         int num_scanned = Bluetooth_scan(devices, MAX_DEV_RSP);
         Bluetooth_displayDevices(devices, num_scanned);
 
@@ -79,7 +79,7 @@ void *bluetoothThread(void *args)
         }
         else{
             printf("Connected!\n");
-        }*/
+        }
         
         wavedata_t song;
         AudioPlayer_readWaveFileIntoMemory(SONG , &song);
