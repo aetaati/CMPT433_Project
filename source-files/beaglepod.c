@@ -33,8 +33,22 @@ int main(int argc, char const *argv[])
 
     ////////////////////////////////////////////////////////////////////////////////////////////
 
-    Bluetooth_init();
+    AudioPlayer_init();
+
+
     
+    
+    
+    wavedata_t song;
+    AudioPlayer_readWaveFileIntoMemory(SONG , &song);
+    AudioPlayer_playWAV(&song);
+    sleep(4);
+    AudioPlayer_setVolume(0.9);
+    sleep(5);
+    AudioPlayer_setVolume(0.1);
+
+
+
     int selection;
     inquiry_info* devices;
     char input[15] = {0};
@@ -59,10 +73,11 @@ int main(int argc, char const *argv[])
     else{
         printf("Connected!\n");
     }
-    
-    wavedata_t song;
-    AudioPlayer_readWaveFileIntoMemory(SONG , &song);
-    AudioPlayer_playWAV(&song);
+
+    sleep(5);
+    AudioPlayer_setVolume(0.1);
+
+
     sleep(30);
 
     
