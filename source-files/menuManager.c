@@ -12,7 +12,7 @@ Subject: Implementation of the MenuManager module
 #include <string.h>
 
 #include "menuManager.h"
-#include "../audioMixer.h"
+#include "audio_player.h"
 #include "joystick.h"
 #include "lcd_display.h"
 #include "gpio.h"
@@ -259,8 +259,8 @@ static void *MenuManagerThread(void *arg)
 static void playSong(char *soundPath)
 {
   pSound_currentSong = malloc(sizeof(*pSound_currentSong));
-  AudioMixer_readWaveFileIntoMemory(soundPath, pSound_currentSong);
-  AudioMixer_queueSound(pSound_currentSong);
+  AudioPlayer_readWaveFileIntoMemory(soundPath, pSound_currentSong);
+  AudioPlayer_playWAV(pSound_currentSong);
 }
 
 /********************** Public/Module functions**********************/
@@ -269,10 +269,8 @@ void MenuManager_init(void)
 {
   // Joystick
   Joystick_init();
-
-  Bluetooth_init();
-  // AudioMixer
-  AudioMixer_init();
+  // AudioPlayer
+  AudioPlayer_init();
 
   LCD_display_Init();
 
@@ -300,7 +298,7 @@ void MenuManager_StopSong(void)
   pthread_mutex_lock(&currentModeMutex);
   if (currentSongPlaying != NO_SONG)
   {
-    AudioMixer_freeWaveFileData(pSound_currentSong);
+    AudioPlayer_freeWaveFileData(pSound_currentSong);
   }
   currentSongPlaying = NO_SONG;
 
@@ -317,9 +315,8 @@ void MenuManager_cleanup(void)
   // Joystick
   Joystick_cleanup();
 
-  Bluetooth_cleanup();
-  // AudioMixer
-  AudioMixer_cleanup();
+  // AudioPlayer
+  AudioPlayer_cleanup();
 
   LCD_display_Cleanup();
 }
@@ -332,7 +329,7 @@ void MenuManager_UpdateVolume(int changeSize, bool isIncrease)
     return;
   }
   pthread_mutex_lock(&volumeMutex);
-  int current_volume = AudioMixer_getVolume();
+  int current_volume = AudioPlayer_getVolume();
   int new_volume = current_volume;
   if (!isIncrease)
   {
@@ -358,7 +355,7 @@ void MenuManager_UpdateVolume(int changeSize, bool isIncrease)
       new_volume += changeSize;
     }
   }
-  AudioMixer_setVolume(new_volume);
+  AudioPlayer_setVolume(new_volume);
   pthread_mutex_unlock(&volumeMutex);
 }
 
@@ -366,7 +363,7 @@ int MenuManager_GetCurrentVolume(void)
 {
   int volume = -1;
   pthread_mutex_lock(&volumeMutex);
-  volume = AudioMixer_getVolume();
+  volume = AudioPlayer_getVolume();
   pthread_mutex_unlock(&volumeMutex);
   return volume;
 }

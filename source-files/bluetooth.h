@@ -9,9 +9,7 @@
 
 #define BT_MAX_DEV_RSP 255
 
-void Bluetooth_init(void);
 
-void Bluetooth_cleanup(void);
 
 /**
  * Iterates over a list of scanned devices, displaying each 
