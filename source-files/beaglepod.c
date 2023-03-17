@@ -47,12 +47,10 @@ int main(int argc, char const *argv[])
     AudioPlayer_readWaveFileIntoMemory(SONG , &song);
     AudioPlayer_playWAV(&song);
     sleep(100);
-    AudioPlayer_setVolume(0.9);
-    sleep(5);
-    AudioPlayer_setVolume(0.1);
 
-
-
+    // Following code should be moved to menu manager
+    // corresponding to the bluetooth option
+    /* 
     int selection;
     inquiry_info* devices;
     char input[15] = {0};
@@ -76,18 +74,6 @@ int main(int argc, char const *argv[])
     }
     else{
         printf("Connected!\n");
-    }
-
-    
-
-
-
-    sleep(30);
-
-    
-    
-    
-
-    Sleep_ms(10000000);
+    }*/
     return 0;
 }
