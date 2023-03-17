@@ -63,7 +63,7 @@ void* potentiometerThread(void* args){
         AudioPlayer_setVolume(volume);
 
         
-        Sleep_ms(200);
+        Sleep_ms(50);
 
     }
     return NULL;
