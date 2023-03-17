@@ -24,84 +24,23 @@
 // the duration of the bluetooth scan = 1.28s * SCAN_LENGTH
 #define SCAN_LENGTH 4
 
-// Bluetooth Module Threading
-//void *bluetoothThread(void *arg);
-//static bool stopping = false;
-//static pthread_t bluetooth_thread_id;
-pthread_mutex_t mtx_bluetooth = PTHREAD_MUTEX_INITIALIZER;
 
 // Bluetooth Info
 int bt_adapter_id;
 int bt_adapter_fd;
 
 // Private functions
+void openBT(void);
+void closeBT(void);
 void checkError(void);
 int runCommand(char* command);
 
 
 
-void Bluetooth_init(void)
-{
-    // get default bt adapter
-    bt_adapter_id = hci_get_route(NULL);
-    checkError();
-    bt_adapter_fd = hci_open_dev(bt_adapter_id);
-    checkError();
-
-    //pthread_create(&bluetooth_thread_id, NULL, bluetoothThread, NULL);
-}
-
-
-/*void *bluetoothThread(void *args)
-{
-    int selection;
-    inquiry_info* devices;
-    char input[15] = {0};
-    while (!stopping)
-    {
-        devices = malloc(MAX_DEV_RSP * sizeof(inquiry_info));
-        int num_scanned = Bluetooth_scan(devices, MAX_DEV_RSP);
-        Bluetooth_displayDevices(devices, num_scanned);
-
-        printf("Choose a device to connect to\n> ");
-        if (fgets(input, sizeof(input), stdin) == NULL)
-        {
-            fprintf(stderr, "error reading from stdin");
-        }
-        sscanf(input, "%d", &selection);
-
-
-
-        printf("connecting to device...\n");
-        if (Bluetooth_connect(&(devices + selection)->bdaddr) != 0)
-        {
-            printf("error connecting to device\n");
-        }
-        else{
-            printf("Connected!\n");
-        }
-        
-        wavedata_t song;
-        AudioPlayer_readWaveFileIntoMemory(SONG , &song);
-        AudioPlayer_playWAV(&song);
-        sleep(30);
-        printf("hey\n");
-        AudioMixer_setVolume(0.9);
-        sleep(100);
-        AudioMixer_setVolume(0.9);
-        sleep(10);
-        printf("disconnecting...\n");
-        Bluetooth_disconnect();
-        printf("disconnected!\n");
-
-        //memset(input, 0, sizeof(input));
-    }
-    return NULL;
-}
-*/
 
 void Bluetooth_displayDevices(inquiry_info *devices, int num_devices)
 {
+    openBT();
     char addr[19] = {0};
     char name[256] = {0};
     for (int i = 0; i < num_devices; i++)
@@ -117,10 +56,12 @@ void Bluetooth_displayDevices(inquiry_info *devices, int num_devices)
         }
         printf("[%d]: %s\n", i, name);
     }
+    closeBT();
 }
 
 
 int Bluetooth_pair(bdaddr_t *device_address){
+    openBT();
     char addr[19] = {0};
     ba2str(device_address, addr);
     char *tmp = "bluetoothctl pair ";
@@ -131,6 +72,7 @@ int Bluetooth_pair(bdaddr_t *device_address){
     int result = runCommand(bt_command);
     free(bt_command);
     bt_command = NULL;
+    closeBT();
 
     return result;
 }
@@ -138,10 +80,12 @@ int Bluetooth_pair(bdaddr_t *device_address){
 
 int Bluetooth_scan(inquiry_info *scanned_devices, int n)
 {
+    openBT();
     printf("Scanning for bluetooth devices...\n");
     if (scanned_devices == NULL)
     {
         fprintf(stderr, "failed to allocate memory for scanned devices\n");
+        closeBT();
         return(-1);
     }
 
@@ -151,6 +95,8 @@ int Bluetooth_scan(inquiry_info *scanned_devices, int n)
     {
         fprintf(stderr, "hci_inquiry: error scanning devices");
     }
+
+    closeBT();
     return(num_rsp);
 
 }
@@ -158,13 +104,15 @@ int Bluetooth_scan(inquiry_info *scanned_devices, int n)
 
 void Bluetooth_disconnect(void)
 {
+    openBT();
     runCommand("bluetoothctl disconnect");
+    closeBT();
 }
 
 
 int Bluetooth_connect(bdaddr_t *device_address)
 {
-
+    openBT();
     char addr[19] = {0};
     ba2str(device_address, addr);
     char *tmp = "bluetoothctl connect ";
@@ -176,12 +124,31 @@ int Bluetooth_connect(bdaddr_t *device_address)
     free(bt_command);
     bt_command = NULL;
 
+    closeBT();
     return result;
 }
 
 
 
+
+
+
 // Private Function Definitions
+void openBT(void){
+    // get default bt adapter
+    bt_adapter_id = hci_get_route(NULL);
+    checkError();
+    bt_adapter_fd = hci_open_dev(bt_adapter_id);
+    checkError();
+}
+
+void closeBT(void){
+    if(close(bt_adapter_fd) == -1){
+        fprintf(stderr, "failed to close bluetooth file descriptor\n");
+    }
+}
+
+
 int runCommand(char *command)
 {
     FILE *pipe = popen(command, "r");

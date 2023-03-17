@@ -8,8 +8,6 @@
 #include <alloca.h>
 
 
-static snd_pcm_t *handle;
-
 #define DEFAULT_VOLUME 0.8
 #define SAMPLE_RATE 48000
 #define NUM_CHANNELS 2
@@ -19,15 +17,12 @@ static snd_pcm_t *handle;
 // will consist of NUM_CHANNELS samples 
 #define SAMPLE_SIZE (sizeof(short))  
 
-#define AUDIO_PLAYER_MIN_VOLUME 0
-#define AUDIO_PLAYER_MAX_VOLUME 100
 
-
-
+// Global Variables
+static snd_pcm_t *handle;
 static unsigned long playbackBufferSize = 0;
 static short *playbackBuffer = NULL;
-
-
+static int volume = 0;
 
 typedef struct {
 	// a pointer to the raw PCM data
@@ -36,7 +31,7 @@ typedef struct {
 	// The offset into the pData of pSound. Indicates how much of the
 	// sound has already been played (and hence where to start playing next).
 	int location;
-} playbackSound_t;
+} playbackSong_t;
 
 
 // Playback threading
@@ -44,27 +39,14 @@ void* playbackThread(void* arg);
 static bool stopping = false;
 static pthread_t playbackThreadId;
 static pthread_mutex_t audioMutex = PTHREAD_MUTEX_INITIALIZER;
-static playbackSound_t current_sound;
+static playbackSong_t current_sound;
 
-static int volume = 0;
-
-
-/*int pa_simple_set_volume(pa_simple *s, const pa_cvolume *volume, pa_error_code_t *error) {
-    pa_operation *op;
-
-    op = pa_context_set_sink_volume_by_index(pa_simple_get_context(s), pa_simple_get_sink_info(s)->index, volume, NULL, NULL);
-    pa_operation_unref(op);
-
-    return 0;
-}
-
-*/
 
 
 void AudioPlayer_init(void)
 {
 	
-	//AudioMixer_setVolume(DEFAULT_VOLUME);
+	AudioPlayer_setVolume(DEFAULT_VOLUME);
 
 	// Open the PCM output
 	int err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
@@ -193,9 +175,7 @@ int AudioPlayer_getVolume()
 {
 	// Return the cached volume; good enough unless someone is changing
 	// the volume through other means and the cached value is out of date.
-	pthread_mutex_lock(&audioMutex);
 	int vol = volume;
-	pthread_mutex_unlock(&audioMutex);
 	return vol;
 
 }
@@ -250,10 +230,9 @@ static int getSinkIndexes(int* sink_indexes)
 }
 
 
-// Function copied from:
-// http://stackoverflow.com/questions/6787318/set-alsa-master-volume-from-c-code
-// Written by user "trenki".
-void AudioMixer_setVolume(double newVolume)
+
+
+void AudioPlayer_setVolume(double newVolume)
 {
 	//pthread_mutex_lock(&audioMutex);
 	{
@@ -262,26 +241,20 @@ void AudioMixer_setVolume(double newVolume)
 		char vol[16] = { 0 };
 		snprintf(vol, sizeof(vol), "%f", newVolume);
 		char sink_index[16] = { 0 };
-		for (int i =0; i < valid; i++){
-			snprintf(sink_index, sizeof(sink_index), "%d ", *(sinks+i));
 
-			char* tmp = "pactl set-sink-volume ";
-			char* command = calloc(strlen(tmp) + strlen(sink_index) + strlen(vol) + 1, sizeof(char));
-			command = strcat(strcat(strcat(command, tmp), sink_index), vol);	
-			if( i != 0){
-				runCommand(command);
-			}		
-			
+		snprintf(sink_index, sizeof(sink_index), "%d ", *(sinks+valid-1));
 
-
-
-			
-			printf("<%s>\n", command);
-		}
-		
-		
+		char* tmp = "pactl set-sink-volume ";
+		char* command = calloc(strlen(tmp) + strlen(sink_index) + strlen(vol) + 1, sizeof(char));
+		command = strcat(strcat(strcat(command, tmp), sink_index), vol);	
+	
+		runCommand(command);
+		volume = (int) (newVolume * 100);
 		
 		free(sinks);
+		sinks = NULL;
+		free(command);
+		command = NULL;
 	}
 	//pthread_mutex_unlock(&audioMutex);
 }

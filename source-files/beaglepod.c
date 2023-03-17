@@ -7,6 +7,8 @@ Date: 2023-03-04
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
+
+
 #include "sleep.h"
 #include "lcd_display.h"
 #include "bluetooth.h"
@@ -14,6 +16,7 @@ Date: 2023-03-04
 #include "gpio.h"
 #include "joystick.h"
 #include "menuManager.h"
+#include "pot.h"
 
 
 #define SONG "som-liveletlive.wav"
@@ -33,8 +36,21 @@ int main(int argc, char const *argv[])
 
     ////////////////////////////////////////////////////////////////////////////////////////////
 
-    Bluetooth_init();
+    AudioPlayer_init();
+    Potentiometer_init();
+
+
     
+    
+    
+    wavedata_t song;
+    AudioPlayer_readWaveFileIntoMemory(SONG , &song);
+    AudioPlayer_playWAV(&song);
+    sleep(100);
+
+    // Following code should be moved to menu manager
+    // corresponding to the bluetooth option
+    /* 
     int selection;
     inquiry_info* devices;
     char input[15] = {0};
@@ -58,17 +74,6 @@ int main(int argc, char const *argv[])
     }
     else{
         printf("Connected!\n");
-    }
-    
-    wavedata_t song;
-    AudioPlayer_readWaveFileIntoMemory(SONG , &song);
-    AudioPlayer_playWAV(&song);
-    sleep(30);
-
-    
-    
-    
-
-    Sleep_ms(10000000);
+    }*/
     return 0;
 }
