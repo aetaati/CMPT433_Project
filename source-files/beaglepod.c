@@ -7,6 +7,8 @@ Date: 2023-03-04
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
+
+
 #include "sleep.h"
 #include "lcd_display.h"
 #include "bluetooth.h"
@@ -14,6 +16,7 @@ Date: 2023-03-04
 #include "gpio.h"
 #include "joystick.h"
 #include "menuManager.h"
+#include "pot.h"
 
 
 #define SONG "som-liveletlive.wav"
@@ -34,6 +37,7 @@ int main(int argc, char const *argv[])
     ////////////////////////////////////////////////////////////////////////////////////////////
 
     AudioPlayer_init();
+    Potentiometer_init();
 
 
     
@@ -42,7 +46,7 @@ int main(int argc, char const *argv[])
     wavedata_t song;
     AudioPlayer_readWaveFileIntoMemory(SONG , &song);
     AudioPlayer_playWAV(&song);
-    sleep(4);
+    sleep(100);
     AudioPlayer_setVolume(0.9);
     sleep(5);
     AudioPlayer_setVolume(0.1);
@@ -74,8 +78,8 @@ int main(int argc, char const *argv[])
         printf("Connected!\n");
     }
 
-    sleep(5);
-    AudioPlayer_setVolume(0.1);
+    
+
 
 
     sleep(30);
