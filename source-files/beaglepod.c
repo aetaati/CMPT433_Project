@@ -51,6 +51,7 @@ int main(int argc, char const *argv[])
     // Following code should be moved to menu manager
     // corresponding to the bluetooth option
     
+    /*** UPDATE: CODE ADDED TO THE MENU MANAGER*/
     int selection;
     inquiry_info* devices;
     char input[15] = {0};

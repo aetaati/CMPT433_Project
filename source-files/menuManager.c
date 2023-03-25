@@ -21,30 +21,24 @@ Subject: Implementation of the MenuManager module
 #include "bluetooth.h"
 #include "sleep.h"
 
-// #include "accelerometer.h"
-
-
 static bool stoppingMenu = false;
 
 static pthread_t menuManagerThreadId;
-//static pthread_t showsongThreadId;
 
 static bool show_once_menu = false;
 
 static int current_song_number = 1;
 static bool show_display_songs = false;
 
-
 //////////////////////MIGHT USE
-//#define TEMPO_DEFAULT 120
-//static int currentTempo = TEMPO_DEFAULT;
+// #define TEMPO_DEFAULT 120
+// static int currentTempo = TEMPO_DEFAULT;
 
 wavedata_t *pSound_currentSong = NULL;
 
-//static pthread_mutex_t tempoMutex = PTHREAD_MUTEX_INITIALIZER;
+// static pthread_mutex_t tempoMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t volumeMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t currentModeMutex = PTHREAD_MUTEX_INITIALIZER;
-
 
 // Flags Used for switching to the playsong menu
 static bool display_mainMenu = true;
@@ -52,7 +46,6 @@ static bool display_mainMenu = true;
 /********************** Private/Helper functions**********************/
 
 ////////////////////////// Accelerometer and Joystick Input
-
 
 // Sets the timer for action related to idx
 // Done after the action gets triggered
@@ -96,7 +89,7 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
    * 3) If Joystick is pressed Left QUIT from the main menu
    * 4) If Joystick is pressed Right Connect to the Bluetooth
    * 5) If Joystick is pressed Center Go the songs menu
-  */
+   */
   if (currentJoyStickDirection == JOYSTICK_UP)
   {
     MenuManager_UpdateVolume(VOLUME_CHANGE_SIZE, true);
@@ -113,12 +106,34 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
   else if (currentJoyStickDirection == JOYSTICK_RIGHT)
   {
     //  Connect to the Bluetooth
+    int selection;
+    inquiry_info *devices;
+    char input[15] = {0};
+    devices = malloc(BT_MAX_DEV_RSP * sizeof(inquiry_info));
+    int num_scanned = Bluetooth_scan(devices, BT_MAX_DEV_RSP);
+    Bluetooth_displayDevices(devices, num_scanned);
+
+    printf("Choose a device to connect to\n> ");
+    if (fgets(input, sizeof(input), stdin) == NULL)
+    {
+      fprintf(stderr, "error reading from stdin");
+    }
+    sscanf(input, "%d", &selection);
+
+    printf("connecting to device...\n");
+    if (Bluetooth_connect(&(devices + selection)->bdaddr) != 0)
+    {
+      printf("error connecting to device\n");
+    }
+    else
+    {
+      printf("Connected!\n");
+    }
   }
   else if (currentJoyStickDirection == JOYSTICK_CENTER)
   {
     display_mainMenu = false;
     show_display_songs = false;
-    
   }
 }
 
@@ -129,35 +144,32 @@ static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
    * 2) If Pressed Joystick is down then play song #2
    * 3) If Pressed Joystick is right then play song #3
    * 4) If Pressed Joystick is left then go back to the main menu
-  */
-  
+   */
+
   if (currentJoyStickDirection == JOYSTICK_UP)
+  {
+    if (current_song_number - 1 >= 1)
     {
-      //MenuManager_StopSong();
-      //MenuManager_StartSong(SONG_NUM_ONE);
-       if(current_song_number-1 >= 1) {
-        current_song_number--;
-      }
+      current_song_number--;
     }
-    else if (currentJoyStickDirection == JOYSTICK_DOWN)
+  }
+  else if (currentJoyStickDirection == JOYSTICK_DOWN)
+  {
+    if (current_song_number + 1 <= (int)songManager_currentNumberSongs())
     {
-      //MenuManager_StopSong();
-      //MenuManager_StartSong(SONG_NUM_TWO);
-      if(current_song_number+1 <= (int) songManager_currentNumberSongs()) {
-        current_song_number++;
-      }
-      
+      current_song_number++;
     }
-    else if (currentJoyStickDirection == JOYSTICK_CENTER)
-    {
-      songManager_playSong(current_song_number);
-    }
-    else if (currentJoyStickDirection == JOYSTICK_LEFT)
-    {
-      current_song_number = 1;
-      display_mainMenu = true;
-      show_once_menu = false;
-    }
+  }
+  else if (currentJoyStickDirection == JOYSTICK_CENTER)
+  {
+    songManager_playSong(current_song_number);
+  }
+  else if (currentJoyStickDirection == JOYSTICK_LEFT)
+  {
+    current_song_number = 1;
+    display_mainMenu = true;
+    show_once_menu = false;
+  }
 }
 
 /**********************************FUNCTION WE MIGHT USE ******************************************************/
@@ -203,16 +215,16 @@ static void *MenuManagerThread(void *arg)
   {
     action_timers[i] = (long long)0;
   }
-  
 
   /*************************************************************************/
 
   while (!stoppingMenu && !Shutdown_isShutdown())
   {
-    if(display_mainMenu)
+    if (display_mainMenu)
     {
       // Display Menu
-      if(!show_once_menu) {
+      if (!show_once_menu)
+      {
         show_once_menu = true;
         display_menu_content();
       }
@@ -220,10 +232,11 @@ static void *MenuManagerThread(void *arg)
     else
     {
       // Display the songs menu
-       if(!show_display_songs) {
-          show_display_songs = true;
-          display_songs_in_menu();
-       }
+      if (!show_display_songs)
+      {
+        show_display_songs = true;
+        display_songs_in_menu();
+      }
     }
     // Read the Joystick
     enum eJoystickDirections currentJoyStickDirection = Joystick_process_direction();
@@ -232,11 +245,13 @@ static void *MenuManagerThread(void *arg)
     // Trigger action
     if (isActionTriggered(action_timers, currentJoyStickDirection))
     {
-      if(display_mainMenu) {
-          mainMenuJoystickAction(currentJoyStickDirection);
+      if (display_mainMenu)
+      {
+        mainMenuJoystickAction(currentJoyStickDirection);
       }
-      else {
-          songMenuJoystickAction(currentJoyStickDirection);
+      else
+      {
+        songMenuJoystickAction(currentJoyStickDirection);
       }
       // Update current direction time
       setTimers(action_timers, currentJoyStickDirection, DEBOUNCE_WAIT_TIME);
@@ -250,8 +265,6 @@ static void *MenuManagerThread(void *arg)
 
   return NULL;
 }
-
-///////////////////////// Sounds and Songs
 
 /********************** Public/Module functions**********************/
 
@@ -273,7 +286,7 @@ void MenuManager_init(void)
 void MenuManager_cleanup(void)
 {
   stoppingMenu = true;
-  
+
   pthread_join(menuManagerThreadId, NULL);
 
   // Joystick
@@ -286,7 +299,6 @@ void MenuManager_cleanup(void)
 
   songManager_cleanup();
 }
-
 
 void MenuManager_UpdateVolume(int changeSize, bool isIncrease)
 {
@@ -334,15 +346,14 @@ int MenuManager_GetCurrentVolume(void)
   return volume;
 }
 
-song_info* MenuManager_GetCurrentSongPlaying(void)
+song_info *MenuManager_GetCurrentSongPlaying(void)
 {
-  song_info * current_song = NULL;
+  song_info *current_song = NULL;
   pthread_mutex_lock(&currentModeMutex);
   current_song = songManager_getCurrentSongPlaying();
   pthread_mutex_unlock(&currentModeMutex);
   return current_song;
 }
-
 
 /////////////////////////////FUNCTIONS MIGHT USE//////////////////////////////////////////////////
 // void MenuManager_UpdateTempo(int changeSize, bool isIncrease)
@@ -351,19 +362,19 @@ song_info* MenuManager_GetCurrentSongPlaying(void)
 //   {
 //     return;
 //   }
-  // pthread_mutex_lock(&tempoMutex);
-  // if (!isIncrease)
-  // {
-  //   // decrease tempo
-  //   if ((currentTempo - changeSize) < MIN_TEMPO)
-  //   {
-  //     currentTempo = MIN_TEMPO;
-  //   }
-  //   else
-  //   {
-  //     currentTempo -= changeSize;
-  //   }
-  // }
+// pthread_mutex_lock(&tempoMutex);
+// if (!isIncrease)
+// {
+//   // decrease tempo
+//   if ((currentTempo - changeSize) < MIN_TEMPO)
+//   {
+//     currentTempo = MIN_TEMPO;
+//   }
+//   else
+//   {
+//     currentTempo -= changeSize;
+//   }
+// }
 //   else
 //   {
 //     // increase tempo
@@ -387,8 +398,6 @@ song_info* MenuManager_GetCurrentSongPlaying(void)
 //   pthread_mutex_unlock(&tempoMutex);
 //   return tempo;
 // }
-
-
 
 /////////////////////////////////////////////////////// For Testing ///////////////////////////////////////////////////////
 // int main(int argc, char

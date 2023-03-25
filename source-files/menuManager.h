@@ -22,25 +22,9 @@ Subject: Definition of the MenuManager module
 #include <stdbool.h>
 #include "songManager.h"
 
-// enum eCurrentSong
-// {
-//    NO_SONG = 0,
-//    SONG_NUM_ONE,
-//    SONG_NUM_TWO,
-//    SONG_NUM_THREE,
-//    MAX_NUM_SONGS
-// };
-
-// #define CYN_HARD_FILE "wave-files/100056__menegass__gui-drum-cyn-hard.wav"
-// #define TOM_LO_FILE "wave-files/100065__menegass__gui-drum-tom-lo-soft.wav"
-// #define CO_FILE "wave-files/100055__menegass__gui-drum-co.wav"
-
 
 // Initilaize all the modules used in the menu
 void MenuManager_init(void);
-
-// // Starts playing a song based on the passed "mode"
-// void MenuManager_StartSong(enum eCurrentSong mode);
 
 // Stops the playing the song
 void MenuManager_StopSong(void);
