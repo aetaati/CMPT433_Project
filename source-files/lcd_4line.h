@@ -79,6 +79,17 @@ typedef enum {
 
 
 /**
+ * Used to change direction 
+ * of cursor/display
+*/
+typedef enum {
+    LCD_LEFT,
+    LCD_RIGHT,
+    NUM_DIRECTIONS
+}LCD_DIRECTION;
+
+
+/**
  * initializes the LCD display to 
  * 4-bit, 2 line, 5x8 character mode
 */
@@ -101,6 +112,18 @@ void LCD_cleanup(void);
  * Sets the cursor direction to RIGHT
 */
 void LCD_setCursorDirection(void);
+
+
+/**
+ * Shifts the contents of a line
+ * 
+ * LCD_LINE_NUM: LCD_LINE1, LCD_LINE2, LCD_LINE3, LCD_LINE4
+ * LCD_DIRECTION: LCD_LEFT, LCD_RIGHT
+ * 
+ * @param line The LCD_LINE_NUM of the line to be shifted
+ * @param dir The LCD_DIRECTION to shift
+*/
+void LCD_shiftDisplay(LCD_LINE_NUM line, LCD_DIRECTION dir);
 
 
 /**

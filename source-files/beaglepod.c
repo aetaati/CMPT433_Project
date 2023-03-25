@@ -44,21 +44,26 @@ int main(int argc, char const *argv[])
     Potentiometer_init();
     LCD_init();
 
+
+
+    //LCD_shiftDisplay(LCD_LINE1, LCD_RIGHT);
+
+    //LCD_clear();
     LCD_writeChar(LCD_RIGHT_ARROW);
-    LCD_writeString("Select Song");
+    LCD_writeString("Select Song");    
     LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
-    LCD_writeStringAtLine("Settings", LCD_LINE3);
-
-    sleep(3);
-
-    LCD_clear();
-    LCD_writeString("Select Song");
-    LCD_writeStringAtLine("", LCD_LINE2);
-    LCD_writeChar(LCD_RIGHT_ARROW);
-    LCD_writeString("Bluetooth");
     LCD_writeStringAtLine("Settings", LCD_LINE3);
     
     sleep(3);
+
+    LCD_writeStringAtLine("                   ", LCD_LINE1);
+    LCD_writeStringAtLine("Select Song", LCD_LINE1);
+    LCD_writeStringAtLine("", LCD_LINE2);
+    LCD_writeChar(LCD_RIGHT_ARROW);
+    LCD_writeString("Bluetooth");
+    sleep(3);
+    
+    sleep(10);
 
     LCD_clear();
     LCD_writeString("Select Song");

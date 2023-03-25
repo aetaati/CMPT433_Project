@@ -72,6 +72,28 @@ void LCD_writeStringAtLine(char *string, LCD_LINE_NUM line_num)
     LCD_writeString(string);
 }
 
+void LCD_shiftDisplay(LCD_LINE_NUM line, LCD_DIRECTION dir){
+    switch(dir){
+        case LCD_LEFT:
+            I2C_sendByte(0b00010100);
+            I2C_sendByte(0b00000000);
+            I2C_sendByte(0b10000100);
+            I2C_sendByte(0b00000000);
+            break;
+        case LCD_RIGHT:
+            I2C_sendByte(0b00010100);
+            I2C_sendByte(0b00000000);
+            I2C_sendByte(0b11000100);
+            I2C_sendByte(0b00000000);
+            break;
+        default:
+            // invalid direction
+            break;
+        
+    }
+
+}
+
 void LCD_writeChar(unsigned char character)
 {
     unsigned char full = 0x00;
@@ -203,27 +225,28 @@ static void setLineNum(LCD_LINE_NUM line_num)
     switch (line_num)
     {
     case LCD_LINE1:
-        // 0x00
-        I2C_sendByte(0b00000100);
+        // 0x00 : 000 0000
+        I2C_sendByte(0b10000100);
         I2C_sendByte(0b00000000);
         I2C_sendByte(0b00000100);
         I2C_sendByte(0b00000000);
         break;
     case LCD_LINE2:
-        // 0x40
+        // 0x40 : 100 0000
         I2C_sendByte(0b11000100);
         I2C_sendByte(0b00000000);
         I2C_sendByte(0b00000100);
         I2C_sendByte(0b00000000);
         break;
     case LCD_LINE3:
-        // 0x14  1001 0100
+        // 0x14 : 001 0100
         I2C_sendByte(0b10010100);
         I2C_sendByte(0b00000000);
         I2C_sendByte(0b01000100);
         I2C_sendByte(0b00000000);
         break;
     case LCD_LINE4:
+        // 0x54  : 101 0100
         I2C_sendByte(0b11010100);
         I2C_sendByte(0b00000000);
         I2C_sendByte(0b01000100);
