@@ -7,9 +7,9 @@
 #include <bluetooth/sdp.h>
 #include <bluetooth/sdp_lib.h>
 
-void Bluetooth_init(void);
+#define BT_MAX_DEV_RSP 255
 
-void Bluetooth_cleanup(void);
+
 
 /**
  * Iterates over a list of scanned devices, displaying each 
