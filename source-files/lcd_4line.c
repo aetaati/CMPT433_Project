@@ -10,55 +10,50 @@
 #include "sleep.h"
 
 #define I2C_BUS "/dev/i2c-1"
-#define I2C_ADDR 0x27 // I2C slave address for the LCD module
-
+#define LCD_ADDR 0x27
 
 
 // GLOBALS
 static int i2cFd;
 
-// Private Functions
-void setLineNum(LCD_LINE_NUM line_num);
-void i2c_send_byte(unsigned char data);
+// Private Function Declarations
+static void setLineNum(LCD_LINE_NUM line_num);
+static void I2C_sendByte(unsigned char data);
+static void I2C_configPins(void);
+static void I2C_configBus(void);
+static int runCommand(char* command);
+
+
 
 void LCD_init(void)
 {
-    if ((i2cFd = open(I2C_BUS, O_RDWR)) < 0)
-    {
-        printf("Error failed to open I2C bus [%s].\n", I2C_BUS);
-        exit(-1);
-    }
-    // set the I2C slave address for all subsequent I2C device transfers
-    if (ioctl(i2cFd, I2C_SLAVE, I2C_ADDR) < 0)
-    {
-        printf("Error failed to set I2C address [%0x].\n", I2C_ADDR);
-        exit(-1);
-    }
+
+    I2C_configPins();
+    I2C_configBus();
 
     /* -------------------------------------------------------------------- *
      * Initialize the display, using the 4-bit mode initialization sequence *
      * -------------------------------------------------------------------- */
-           
-    i2c_send_byte(0b00110100);
-    i2c_send_byte(0b00110000); 
+    I2C_sendByte(0b00110100);
+    I2C_sendByte(0b00110000); 
     Sleep_ns(0 , 4100000);     // wait 4.1msec
-    i2c_send_byte(0b00110100); 
-    i2c_send_byte(0b00110000); 
+    I2C_sendByte(0b00110100); 
+    I2C_sendByte(0b00110000); 
     Sleep_ns(0 , 100000);      // wait 100usec
-    i2c_send_byte(0b00110100); //
-    i2c_send_byte(0b00110000);
+    I2C_sendByte(0b00110100); //
+    I2C_sendByte(0b00110000);
     Sleep_ns(0 , 4100000);     // wait 4.1msec
-    i2c_send_byte(0b00100100);
-    i2c_send_byte(0b00100000); // 4 bit mode
+    I2C_sendByte(0b00100100);
+    I2C_sendByte(0b00100000); // 4 bit mode
 
     /* -------------------------------------------------------------------- *
-     * 4-bit mode initialization complete. Now configuring the function set *
+     * Set 4-bt, 2 Line, 5x8 char mode                                      *
      * -------------------------------------------------------------------- */
-    Sleep_ns(0, 40000);        // wait 40usec
-    i2c_send_byte(0b00100100); 
-    i2c_send_byte(0b00100000); // keep 4-bit mode
-    i2c_send_byte(0b10000100); 
-    i2c_send_byte(0b10000000); // D3=2 lines, D2=char5x8
+    Sleep_ns(0, 40000);       // wait 40usec
+    I2C_sendByte(0b00100100); 
+    I2C_sendByte(0b00100000); // keep 4-bit mode
+    I2C_sendByte(0b10000100); 
+    I2C_sendByte(0b10000000); // D3=2 lines, D2=char5x8
 
     LCD_setCursorDirection();
 
@@ -73,10 +68,7 @@ void LCD_cleanup(void) { close(i2cFd); }
 void LCD_writeStringAtLine(char *string, LCD_LINE_NUM line_num)
 {
     setLineNum(line_num);
-    if (line_num == LCD_LINE1)
-    {
-        LCD_writeChar(LCD_RIGHT_ARROW);
-    }
+    
     LCD_writeString(string);
 }
 
@@ -88,42 +80,42 @@ void LCD_writeChar(unsigned char character)
     full = full | high;
     full = full | 0x05;
 
-    i2c_send_byte(full);
+    I2C_sendByte(full);
     printf("sent: %0x\n", full);
-    i2c_send_byte(0b00000000);
+    I2C_sendByte(0b00000000);
 
     full = 0x00;
     full = full | low;
     full = full | 0x05;
 
-    i2c_send_byte(full);
+    I2C_sendByte(full);
     printf("sent: %0x\n", full);
-    i2c_send_byte(0b00000000);
+    I2C_sendByte(0b00000000);
 }
 
 void LCD_clear(void)
 {
-    i2c_send_byte(0b00000100);
-    i2c_send_byte(0b00000000);
-    i2c_send_byte(0b00010100);
-    i2c_send_byte(0b00000000);
+    I2C_sendByte(0b00000100);
+    I2C_sendByte(0b00000000);
+    I2C_sendByte(0b00010100);
+    I2C_sendByte(0b00000000);
 }
 
 void LCD_turnOnDisplay(void)
 {
     Sleep_ns(0, 40000);        // wait 40usec
-    i2c_send_byte(0b00000100); 
-    i2c_send_byte(0b00000000); 
-    i2c_send_byte(0b11000100); 
-    i2c_send_byte(0b11000000); 
+    I2C_sendByte(0b00000100); 
+    I2C_sendByte(0b00000000); 
+    I2C_sendByte(0b11000100); 
+    I2C_sendByte(0b11000000); 
 }
 
 void LCD_setCursorDirection(void)
 {
-    i2c_send_byte(0b00000100);
-    i2c_send_byte(0b00000000);
-    i2c_send_byte(0b01100100);
-    i2c_send_byte(0b01100000); // print left to right
+    I2C_sendByte(0b00000100);
+    I2C_sendByte(0b00000000);
+    I2C_sendByte(0b01100100);
+    I2C_sendByte(0b01100000); // print left to right
 }
 
 void LCD_writeString(char *string)
@@ -135,9 +127,43 @@ void LCD_writeString(char *string)
     }
 }
 
+/* -------------------------------------------------------------------- *
+ * Private Functions                                                    *
+ * -------------------------------------------------------------------- */
+
+static void I2C_configPins(void)
+{
+    // configure I2C1 SDA pin
+    while (runCommand("config-pin P9_18 i2c") != 0)
+    {
+        printf("Attempting to reconfigure P9_18\n");
+        Sleep_ms(10);
+    }
+
+    // configure I2C1 SDA pin
+    while (runCommand("config-pin P9_17 i2c") != 0)
+    {
+        printf("Attempting to reconfigure P9_17\n");
+        Sleep_ms(10);
+    }
+}
+
+static void I2C_configBus(void){
+    if ((i2cFd = open(I2C_BUS, O_RDWR)) < 0)
+    {
+        printf("Error failed to open I2C bus [%s].\n", I2C_BUS);
+        exit(-1);
+    }
+    // set the I2C slave address for all subsequent I2C device transfers
+    if (ioctl(i2cFd, I2C_SLAVE, LCD_ADDR) < 0)
+    {
+        printf("Error failed to set I2C address [%0x].\n", LCD_ADDR);
+        exit(-1);
+    }
+}
 
 
-void i2c_send_byte(unsigned char data)
+static void I2C_sendByte(unsigned char data)
 {
     unsigned char byte[1];
     byte[0] = data;
@@ -148,37 +174,60 @@ void i2c_send_byte(unsigned char data)
     Sleep_ns(0, 1000000);
 }
 
-void setLineNum(LCD_LINE_NUM line_num)
+
+static int runCommand(char *command)
+{
+    FILE *pipe = popen(command, "r");
+
+    char buffer[1024];
+    while (!feof(pipe) && !ferror(pipe))
+    {
+        if (fgets(buffer, sizeof(buffer), pipe))
+        {
+            break;
+        }
+    }
+
+    int exit_code = WEXITSTATUS(pclose(pipe));
+    if (exit_code != 0)
+    {
+        return (-1);
+    }
+
+    return (0);
+}
+
+static void setLineNum(LCD_LINE_NUM line_num)
 {
 
     switch (line_num)
     {
     case LCD_LINE1:
         // 0x00
-        i2c_send_byte(0b00000100);
-        i2c_send_byte(0b00000000);
-        i2c_send_byte(0b00000100);
-        i2c_send_byte(0b00000000);
+        I2C_sendByte(0b00000100);
+        I2C_sendByte(0b00000000);
+        I2C_sendByte(0b00000100);
+        I2C_sendByte(0b00000000);
         break;
     case LCD_LINE2:
         // 0x40
-        i2c_send_byte(0b11000100);
-        i2c_send_byte(0b00000000);
-        i2c_send_byte(0b00000100);
-        i2c_send_byte(0b00000000);
+        I2C_sendByte(0b11000100);
+        I2C_sendByte(0b00000000);
+        I2C_sendByte(0b00000100);
+        I2C_sendByte(0b00000000);
         break;
     case LCD_LINE3:
         // 0x14  1001 0100
-        i2c_send_byte(0b10010100);
-        i2c_send_byte(0b00000000);
-        i2c_send_byte(0b01000100);
-        i2c_send_byte(0b00000000);
+        I2C_sendByte(0b10010100);
+        I2C_sendByte(0b00000000);
+        I2C_sendByte(0b01000100);
+        I2C_sendByte(0b00000000);
         break;
     case LCD_LINE4:
-        i2c_send_byte(0b11010100);
-        i2c_send_byte(0b00000000);
-        i2c_send_byte(0b01000100);
-        i2c_send_byte(0b00000000);
+        I2C_sendByte(0b11010100);
+        I2C_sendByte(0b00000000);
+        I2C_sendByte(0b01000100);
+        I2C_sendByte(0b00000000);
         break;
     default:
         // invalid line

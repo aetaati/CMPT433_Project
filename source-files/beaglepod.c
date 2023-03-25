@@ -21,7 +21,6 @@ Date: 2023-03-04
 
 
 #define SONG "songs/som-liveletlive.wav"
-#define SONG2 "songs/hairshop.wav"
 #define SONG3 "songs/hunnybee.wav"
 #define SONG4 "songs/moves.wav"
 #define SONG5 "songs/kiss-from-rose.wav"
@@ -59,6 +58,15 @@ int main(int argc, char const *argv[])
     LCD_writeString("Bluetooth");
     LCD_writeStringAtLine("Settings", LCD_LINE3);
     
+    sleep(3);
+
+    LCD_clear();
+    LCD_writeString("Select Song");
+    LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
+    LCD_writeStringAtLine("", LCD_LINE3);
+   
+    LCD_writeChar(LCD_RIGHT_ARROW);
+    LCD_writeString("Settings");
     
     
     wavedata_t song;

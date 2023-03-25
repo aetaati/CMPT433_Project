@@ -65,6 +65,10 @@
 #define LCD_RIGHT_ARROW 0x7E
 
 
+/**
+ * Used to specify the line number
+ * to print to
+*/
 typedef enum {
     LCD_LINE1,
     LCD_LINE2,
@@ -86,21 +90,24 @@ void LCD_init(void);
 */
 void LCD_turnOnDisplay(void);
 
+
 /**
  * closes I2C file descriptor
 */
 void LCD_cleanup(void);
+
 
 /**
  * Sets the cursor direction to RIGHT
 */
 void LCD_setCursorDirection(void);
 
+
 /**
  * Writes a string to the specified line of the LCD screen
  * 
- * @param string  : The string to be output to the LCD screen
- * @param line_num: The enum specifying which line to write to [LCD_LINE1, LCD_LINE2, LCD_LINE2, LCD_LINE4]
+ * @param string The string to be output to the LCD screen
+ * @param line_num The enum specifying which line to write to [LCD_LINE1, LCD_LINE2, LCD_LINE2, LCD_LINE4]
 */
 void LCD_writeStringAtLine(char* string, LCD_LINE_NUM line_num);
 
@@ -109,7 +116,7 @@ void LCD_writeStringAtLine(char* string, LCD_LINE_NUM line_num);
  * Writes a string, starting at the current cursor position,
  * to the LCD screen
  * 
- * @param string  : The string to be output to the LCD screen
+ * @param string The string to be output to the LCD screen
 */
 void LCD_writeString(char* string);
 
@@ -128,5 +135,7 @@ void LCD_writeChar(unsigned char character);
  * to start
 */
 void LCD_clear(void);
+
+
 
 #endif
