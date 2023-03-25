@@ -19,19 +19,19 @@ int main(int argc, char const *argv[])
 {
     /////////////////////////////////////// FOR TESTING ///////////////////////////////////////
 
-    /*LCD_display_Init();
+    LCD_display_Init();
 
     LCD_display_ShowText("Hello World! My name is Amir.", true);
 
     Sleep_ms(5000);
 
-    LCD_display_Cleanup();*/
+    LCD_display_Cleanup();
 
     ////////////////////////////////////////////////////////////////////////////////////////////
-    MenuManager_init();
-    Bluetooth_init();
+    // MenuManager_init();
+    // Bluetooth_init();
    
 
-    Sleep_ms(10000000);
+    // Sleep_ms(10000000);
     return 0;
 }

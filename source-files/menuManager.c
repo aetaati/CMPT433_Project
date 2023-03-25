@@ -12,7 +12,7 @@ Subject: Implementation of the MenuManager module
 #include <string.h>
 
 #include "menuManager.h"
-#include "../audioMixer.h"
+#include "audioMixer.h"
 #include "joystick.h"
 #include "lcd_display.h"
 #include "gpio.h"
@@ -38,7 +38,9 @@ const struct SongInfo songs[] = {
     {"DUMMY 5",},
 };
 static bool stoppingMenu = false;
+
 static pthread_t menuManagerThreadId;
+//static pthread_t showsongThreadId;
 
 
 
@@ -99,7 +101,6 @@ static bool isActionTriggered(long long *timers, int idx)
 
 static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection)
 {
-
   /***
    * 1) If Joystick is pressed Up Increase the Volume
    * 2) If Joystick is pressed Down Decrease the volume
@@ -107,7 +108,6 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
    * 4) If Joystick is pressed Right Connect to the Bluetooth
    * 5) If Joystick is pressed Center Go the songs menu
   */
-
   if (currentJoyStickDirection == JOYSTICK_UP)
   {
     MenuManager_UpdateVolume(VOLUME_CHANGE_SIZE, true);
@@ -317,7 +317,7 @@ void MenuManager_cleanup(void)
   // Joystick
   Joystick_cleanup();
 
-  Bluetooth_cleanup();
+  //Bluetooth_cleanup();
   // AudioMixer
   AudioMixer_cleanup();
 
