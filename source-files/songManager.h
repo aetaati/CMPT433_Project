@@ -7,8 +7,7 @@ typedef struct {
     char * album;
 }song_info;
 
-// Returns a pointer to the newly allocated empty list
-// Note: caller should call doublyLinkedList_cleanup() to free the memory
+
 void songManager_init(void);
 
 void songManager_playSong(int song_number);
@@ -23,7 +22,7 @@ size_t songManager_currentNumberSongs(void);
 // Gets current song_playing
 song_info *songManager_getCurrentSongPlaying(void);
 
-// Frees the memory for all nodes, the data, and the List struct
+// Frees the memory for all ndata
 void songManager_cleanup(void);
 
 #endif // SONG_MANAGER_H
