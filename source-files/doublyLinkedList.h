@@ -9,12 +9,22 @@ Date: 2023-03-16
 #if !defined(DOUBLY_LINKED_LIST_H)
 #define DOUBLY_LINKED_LIST_H
 
+struct Node
+{
+    void *data;
+    struct Node *next;
+    struct Node *prev;
+};
+
+
 // Returns a pointer to the newly allocated empty list
 // Note: caller should call doublyLinkedList_cleanup() to free the memory
 void doublyLinkedList_init(void);
 
 // Returns true if the list is empty
 bool doublyLinkedList_isEmpty(void);
+
+struct Node* doublyLinkedList_getHead(void);
 
 // Adds the item "src" with size of "size" to the head of the list
 void doublyLinkedList_prependItem(void *src, unsigned int size);

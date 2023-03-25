@@ -12,6 +12,7 @@ Subject: Implementation of the MenuManager module
 #include <string.h>
 
 #include "menuManager.h"
+#include "songManager.h"
 #include "audio_player.h"
 #include "joystick.h"
 #include "lcd_display.h"
@@ -24,24 +25,26 @@ Subject: Implementation of the MenuManager module
 // #include "shutdown.h"
 // #include "periodTimer.h"
 
-struct SongInfo
-{
-  char *path;
-};
+// struct SongInfo
+// {
+//   char *path;
+// };
 
-/***********TODO: FILL THIS WITH THE PATH OF .WAV FILES*****************/
-const struct SongInfo songs[] = {
-    {"DUMMY 1",},
-    {"DUMMY 2",},
-    {"DUMMY 3",},
-    {"DUMMY 4",},
-    {"DUMMY 5",},
-};
+// /***********TODO: FILL THIS WITH THE PATH OF .WAV FILES*****************/
+// const struct SongInfo songs[] = {
+//     {"DUMMY 1",},
+//     {"DUMMY 2",},
+//     {"DUMMY 3",},
+//     {"DUMMY 4",},
+//     {"DUMMY 5",},
+// };
 static bool stoppingMenu = false;
 
 static pthread_t menuManagerThreadId;
 //static pthread_t showsongThreadId;
 
+static bool show_once_menu = false;
+static bool show_display_songs = false;
 
 
 //////////////////////MIGHT USE
@@ -128,6 +131,8 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
   else if (currentJoyStickDirection == JOYSTICK_CENTER)
   {
     display_mainMenu = false;
+    show_display_songs = false;
+    
   }
 }
 
@@ -142,22 +147,23 @@ static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
   
   if (currentJoyStickDirection == JOYSTICK_UP)
     {
-      MenuManager_StopSong();
+      //MenuManager_StopSong();
       MenuManager_StartSong(SONG_NUM_ONE);
     }
     else if (currentJoyStickDirection == JOYSTICK_DOWN)
     {
-      MenuManager_StopSong();
+      //MenuManager_StopSong();
       MenuManager_StartSong(SONG_NUM_TWO);
     }
     else if (currentJoyStickDirection == JOYSTICK_RIGHT)
     {
-      MenuManager_StopSong();
+      //MenuManager_StopSong();
       MenuManager_StartSong(SONG_NUM_THREE);
     }
     else if (currentJoyStickDirection == JOYSTICK_LEFT)
     {
       display_mainMenu = true;
+      show_once_menu = false;
     }
 }
 
@@ -212,6 +218,7 @@ static void *MenuManagerThread(void *arg)
   {
     action_timers[i] = (long long)0;
   }
+  
 
   /*************************************************************************/
 
@@ -235,10 +242,18 @@ static void *MenuManagerThread(void *arg)
     if (isActionTriggered(action_timers, currentJoyStickDirection))
     {
       if(display_mainMenu) {
-        mainMenuJoystickAction(currentJoyStickDirection);
+        if(!show_once_menu) {
+          mainMenuJoystickAction(currentJoyStickDirection);
+          show_once_menu = true;
+        }
+        
       }
       else {
-        songMenuJoystickAction(currentJoyStickDirection);
+        if(!show_display_songs) {
+          show_display_songs = true;
+          songMenuJoystickAction(currentJoyStickDirection);
+        }
+        
       }
       // Update current direction time
       setTimers(action_timers, currentJoyStickDirection, DEBOUNCE_WAIT_TIME);
@@ -288,7 +303,7 @@ void MenuManager_StartSong(enum eCurrentSong mode)
 {
   pthread_mutex_lock(&currentModeMutex);
   currentSongPlaying = mode;
-  MenuManager_PlaySong(songs[mode].path);
+  //MenuManager_PlaySong(songs[mode].path);
   pthread_mutex_unlock(&currentModeMutex);
 }
 

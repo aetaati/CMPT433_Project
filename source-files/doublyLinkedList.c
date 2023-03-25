@@ -15,12 +15,6 @@ Date: 2023-03-16
 
 #include "doublyLinkedList.h"
 
-struct Node
-{
-    void *data;
-    struct Node *next;
-    struct Node *prev;
-};
 
 struct List
 {
@@ -121,6 +115,10 @@ void doublyLinkedList_init(void)
     list_ptr->current = NULL;
 
     is_module_initialized = true;
+}
+
+struct Node* doublyLinkedList_getHead(void) {
+    return list_ptr->head;
 }
 
 bool doublyLinkedList_isEmpty(void)
