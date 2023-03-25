@@ -23,6 +23,8 @@ Date: 2023-03-04
 #define SONG "songs/som-liveletlive.wav"
 #define SONG2 "songs/hairshop.wav"
 #define SONG3 "songs/hunnybee.wav"
+#define SONG4 "songs/moves.wav"
+#define SONG5 "songs/kiss-from-rose.wav"
 
 
 int main(int argc, char const *argv[])
@@ -60,7 +62,7 @@ int main(int argc, char const *argv[])
     
     
     wavedata_t song;
-    AudioPlayer_readWaveFileIntoMemory(SONG3 , &song);
+    AudioPlayer_readWaveFileIntoMemory(SONG5 , &song);
     AudioPlayer_playWAV(&song);
     //sleep(100);
 
@@ -93,6 +95,6 @@ int main(int argc, char const *argv[])
     }
 
 
-    sleep(40);
+    sleep(200);
     return 0;
 }
