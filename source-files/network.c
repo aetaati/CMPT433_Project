@@ -14,6 +14,7 @@
 #include <string.h> // for strncmp()
 #include <unistd.h> // for close()
 #include <ctype.h>
+#include <assert.h>
 
 #define MSG_MAX_LEN 1024
 #define MSG_ACK "ACK"
@@ -26,8 +27,10 @@
 
 static pthread_t thread_id;
 
+bool is_module_initialized = false;
+
 // to handle commands
-enum eWebCommands
+static enum eWebCommands
 {
     COMMAND_VOLUME_UP = 0,
     COMMAND_VOLUME_DOWN,
@@ -238,11 +241,14 @@ void Network_init()
 {
     // start network thread
     pthread_create(&thread_id, NULL, &network_thread, NULL);
+
+    is_module_initialized = true;
 }
 
 // stop network thread
 void Network_cleanup()
 {
+    assert(is_module_initialized);
     // wait for the thread to finish
     pthread_join(thread_id, NULL);
 }
