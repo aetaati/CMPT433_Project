@@ -38,28 +38,27 @@ void LCD_init(void)
     /* -------------------------------------------------------------------- *
      * Initialize the display, using the 4-bit mode initialization sequence *
      * -------------------------------------------------------------------- */
-
-    Sleep_ns(0 , 1500000);             // wait 15msec
-    i2c_send_byte(0b00110100); // D7=0, D6=0, D5=1, D4=1, RS,RW=0 EN=1
-    i2c_send_byte(0b00110000); // D7=0, D6=0, D5=1, D4=1, RS,RW=0 EN=0
-    Sleep_ns(0 , 4100000);               // wait 4.1msec
+           
+    i2c_send_byte(0b00110100);
+    i2c_send_byte(0b00110000); 
+    Sleep_ns(0 , 4100000);     // wait 4.1msec
+    i2c_send_byte(0b00110100); 
+    i2c_send_byte(0b00110000); 
+    Sleep_ns(0 , 100000);      // wait 100usec
     i2c_send_byte(0b00110100); //
-    i2c_send_byte(0b00110000); // same
-    Sleep_ns(0 , 100000);                // wait 100usec
-    i2c_send_byte(0b00110100); //
-    i2c_send_byte(0b00110000); // 8-bit mode init complete
-    Sleep_ns(0 , 4100000);              // wait 4.1msec
-    i2c_send_byte(0b00100100); //
-    i2c_send_byte(0b00100000); // switched now to 4-bit mode
+    i2c_send_byte(0b00110000);
+    Sleep_ns(0 , 4100000);     // wait 4.1msec
+    i2c_send_byte(0b00100100);
+    i2c_send_byte(0b00100000); // 4 bit mode
 
     /* -------------------------------------------------------------------- *
      * 4-bit mode initialization complete. Now configuring the function set *
      * -------------------------------------------------------------------- */
-    Sleep_ns(0, 40000);              // wait 40usec
-    i2c_send_byte(0b00100100); //
+    Sleep_ns(0, 40000);        // wait 40usec
+    i2c_send_byte(0b00100100); 
     i2c_send_byte(0b00100000); // keep 4-bit mode
-    i2c_send_byte(0b10000100); //
-    i2c_send_byte(0b10000000); // D3=1 line, D2=char5x8
+    i2c_send_byte(0b10000100); 
+    i2c_send_byte(0b10000000); // D3=2 lines, D2=char5x8
 
     LCD_setCursorDirection();
 
@@ -112,11 +111,11 @@ void LCD_clear(void)
 
 void LCD_turnOnDisplay(void)
 {
-    Sleep_ns(0, 40000);                // wait 40usec
-    i2c_send_byte(0b00000100); //
-    i2c_send_byte(0b00000000); // D7-D4=0
-    i2c_send_byte(0b11000100); //
-    i2c_send_byte(0b11000000); // D3=1 D2=display_on, D1=cursor_on, D0=cursor_blink
+    Sleep_ns(0, 40000);        // wait 40usec
+    i2c_send_byte(0b00000100); 
+    i2c_send_byte(0b00000000); 
+    i2c_send_byte(0b11000100); 
+    i2c_send_byte(0b11000000); 
 }
 
 void LCD_setCursorDirection(void)
@@ -135,6 +134,8 @@ void LCD_writeString(char *string)
         string++;
     }
 }
+
+
 
 void i2c_send_byte(unsigned char data)
 {
@@ -167,7 +168,7 @@ void setLineNum(LCD_LINE_NUM line_num)
         i2c_send_byte(0b00000000);
         break;
     case LCD_LINE3:
-        // 0x14
+        // 0x14  1001 0100
         i2c_send_byte(0b10010100);
         i2c_send_byte(0b00000000);
         i2c_send_byte(0b01000100);

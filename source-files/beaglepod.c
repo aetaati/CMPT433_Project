@@ -20,7 +20,9 @@ Date: 2023-03-04
 #include "lcd_4line.h"
 
 
-#define SONG "som-liveletlive.wav"
+#define SONG "songs/som-liveletlive.wav"
+#define SONG2 "songs/hairshop.wav"
+#define SONG3 "songs/hunnybee.wav"
 
 
 int main(int argc, char const *argv[])
@@ -39,7 +41,6 @@ int main(int argc, char const *argv[])
 
     AudioPlayer_init();
     Potentiometer_init();
-
     LCD_init();
 
     LCD_writeChar(LCD_RIGHT_ARROW);
@@ -47,15 +48,19 @@ int main(int argc, char const *argv[])
     LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
     LCD_writeStringAtLine("Settings", LCD_LINE3);
 
-    sleep(10);
+    sleep(3);
 
-
-
+    LCD_clear();
+    LCD_writeString("Select Song");
+    LCD_writeStringAtLine("", LCD_LINE2);
+    LCD_writeChar(LCD_RIGHT_ARROW);
+    LCD_writeString("Bluetooth");
+    LCD_writeStringAtLine("Settings", LCD_LINE3);
     
     
     
     wavedata_t song;
-    AudioPlayer_readWaveFileIntoMemory(SONG , &song);
+    AudioPlayer_readWaveFileIntoMemory(SONG3 , &song);
     AudioPlayer_playWAV(&song);
     //sleep(100);
 
