@@ -233,12 +233,18 @@ static void *MenuManagerThread(void *arg)
     if(display_mainMenu)
     {
       // Display Menu
-      display_menu_content();
+      if(!show_once_menu) {
+        show_once_menu = true;
+        display_menu_content();
+      }
     }
     else
     {
       // Display the songs menu
-      display_songs_in_menu();
+       if(!show_display_songs) {
+          show_display_songs = true;
+          display_songs_in_menu();
+       }
     }
     // Read the Joystick
     enum eJoystickDirections currentJoyStickDirection = Joystick_process_direction();
@@ -248,18 +254,10 @@ static void *MenuManagerThread(void *arg)
     if (isActionTriggered(action_timers, currentJoyStickDirection))
     {
       if(display_mainMenu) {
-        if(!show_once_menu) {
           mainMenuJoystickAction(currentJoyStickDirection);
-          show_once_menu = true;
-        }
-        
       }
       else {
-        if(!show_display_songs) {
-          show_display_songs = true;
           songMenuJoystickAction(currentJoyStickDirection);
-        }
-        
       }
       // Update current direction time
       setTimers(action_timers, currentJoyStickDirection, DEBOUNCE_WAIT_TIME);
@@ -276,14 +274,6 @@ static void *MenuManagerThread(void *arg)
 
 ///////////////////////// Sounds and Songs
 
-// Queues a song corresponding to soundPath
-static void playSong(char *soundPath)
-{
-  pSound_currentSong = malloc(sizeof(*pSound_currentSong));
-  AudioPlayer_readWaveFileIntoMemory(soundPath, pSound_currentSong);
-  AudioPlayer_playWAV(pSound_currentSong);
-}
-
 /********************** Public/Module functions**********************/
 
 void MenuManager_init(void)
@@ -299,33 +289,6 @@ void MenuManager_init(void)
 
   // Launch menu manager thread
   pthread_create(&menuManagerThreadId, NULL, MenuManagerThread, NULL);
-}
-
-static void MenuManager_PlaySong(char *soundPath)
-{
-  playSong(soundPath);
-}
-
-// Starts a new thread to play the song corresponding to mode
-void MenuManager_StartSong(enum eCurrentSong mode)
-{
-  pthread_mutex_lock(&currentModeMutex);
-  currentSongPlaying = mode;
-  //MenuManager_PlaySong(songs[mode].path);
-  pthread_mutex_unlock(&currentModeMutex);
-}
-
-// Stops the song plater thread
-void MenuManager_StopSong(void)
-{
-  pthread_mutex_lock(&currentModeMutex);
-  if (currentSongPlaying != NO_SONG)
-  {
-    AudioPlayer_freeWaveFileData(pSound_currentSong);
-  }
-  currentSongPlaying = NO_SONG;
-
-  pthread_mutex_unlock(&currentModeMutex);
 }
 
 void MenuManager_cleanup(void)
@@ -393,14 +356,13 @@ int MenuManager_GetCurrentVolume(void)
   return volume;
 }
 
-int MenuManager_GetCurrentSongPlaying(void)
+song_info* MenuManager_GetCurrentSongPlaying(void)
 {
-  int currentMode = -1;
+  song_info * current_song = NULL;
   pthread_mutex_lock(&currentModeMutex);
-  currentMode = (int)currentSongPlaying;
+  current_song = songManager_getCurrentSongPlaying();
   pthread_mutex_unlock(&currentModeMutex);
-
-  return currentMode;
+  return current_song;
 }
 
 
