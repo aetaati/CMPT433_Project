@@ -125,9 +125,8 @@ void doublyLinkedList_init(void)
 
 bool doublyLinkedList_isEmpty(void)
 {
-    bool result = (!list_ptr->head || !list_ptr->tail);
     assert(is_module_initialized);
-    return result;
+    return (!list_ptr->head || !list_ptr->tail);
 }
 
 void doublyLinkedList_appendItem(void *src, unsigned int size)

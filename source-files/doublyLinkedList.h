@@ -19,9 +19,8 @@ bool doublyLinkedList_isEmpty(void);
 // Adds the item "src" with size of "size" to the head of the list
 void doublyLinkedList_prependItem(void *src, unsigned int size);
 
-// TODO: FIX deifnition; doublyLinkedList_appendItem()?
 // Adds the item "src" with size of "size" to the tail of the list
-void doublyLinkedList_prependItem(void *src, unsigned int size);
+void doublyLinkedList_appendItem(void *src, unsigned int size);
 
 // Updates the "current" field of the list to the next node
 // Returns true if update is successful, false if the list is empty
