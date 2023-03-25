@@ -17,6 +17,7 @@ Date: 2023-03-04
 #include "joystick.h"
 #include "menuManager.h"
 #include "pot.h"
+#include "lcd_4line.h"
 
 
 #define SONG "som-liveletlive.wav"
@@ -38,6 +39,16 @@ int main(int argc, char const *argv[])
 
     AudioPlayer_init();
     Potentiometer_init();
+
+    LCD_init();
+
+    LCD_writeChar(LCD_RIGHT_ARROW);
+    LCD_writeString("Select Song");
+    LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
+    LCD_writeStringAtLine("Settings", LCD_LINE3);
+
+    sleep(10);
+
 
 
     
