@@ -50,6 +50,17 @@ void songManager_init(void) {
     doublyLinkedList_init();
 }
 
+size_t songManager_currentNumberSongs(void) {
+    int size = 0;
+    struct Node * temp = doublyLinkedList_getHead();
+    while(temp != NULL) {
+        size++;
+        temp = temp->next;
+    } 
+    return size;
+
+}
+
 void songManager_playSong(int song_number) {
     int n = song_number;
     struct Node * temp = doublyLinkedList_getHead();

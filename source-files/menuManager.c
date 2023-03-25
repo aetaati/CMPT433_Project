@@ -44,6 +44,8 @@ static pthread_t menuManagerThreadId;
 //static pthread_t showsongThreadId;
 
 static bool show_once_menu = false;
+
+static int current_song_number = 1;
 static bool show_display_songs = false;
 
 
@@ -148,20 +150,27 @@ static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
   if (currentJoyStickDirection == JOYSTICK_UP)
     {
       //MenuManager_StopSong();
-      MenuManager_StartSong(SONG_NUM_ONE);
+      //MenuManager_StartSong(SONG_NUM_ONE);
+       if(current_song_number-1 >= 1) {
+        current_song_number--;
+      }
     }
     else if (currentJoyStickDirection == JOYSTICK_DOWN)
     {
       //MenuManager_StopSong();
-      MenuManager_StartSong(SONG_NUM_TWO);
+      //MenuManager_StartSong(SONG_NUM_TWO);
+      if(current_song_number+1 <= (int) songManager_currentNumberSongs()) {
+        current_song_number++;
+      }
+      
     }
-    else if (currentJoyStickDirection == JOYSTICK_RIGHT)
+    else if (currentJoyStickDirection == JOYSTICK_CENTER)
     {
-      //MenuManager_StopSong();
-      MenuManager_StartSong(SONG_NUM_THREE);
+      songManager_playSong(current_song_number);
     }
     else if (currentJoyStickDirection == JOYSTICK_LEFT)
     {
+      current_song_number = 1;
       display_mainMenu = true;
       show_once_menu = false;
     }
@@ -187,23 +196,20 @@ static void display_menu_content()
   printf("Welcome to the BeaglePod Menu !\n");
   printf("1) Song Menu (Press Joystick Center)\n");
   printf("2) Connect to Bluetooth (Move Joystick Right)\n");
-  printf("3) Increase Volume (Move Joystickup) \n");
-  printf("4) Decrease Volume (Move Joystickdown) \n");
+  printf("3) Settings \n");
+  // printf("3) Increase Volume (Move Joystickup) \n");
+  // printf("4) Decrease Volume (Move Joystickdown) \n");
   printf("5) Quit(Move Joystickleft)\n");
 }
 
 static void display_songs_in_menu()
 {
-  /*******************************************/
-  // for(int i=0; i < MAX_NUM_SONGS; i++)
-  // {}
 
-  /*******************************************/
-
-  printf("1)Song #1 (Press Joystick Up)\n");
-  printf("2)Song #2 (Press Joystick Down)\n");
-  printf("3)Song #3 (Press Joystick Right)\n");
-  printf("Go back to the main menu (Press Joystick Left)\n");
+  songManager_displayAllSongs();
+  // printf("1)Song #1 (Press Joystick Up)\n");
+  // printf("2)Song #2 (Press Joystick Down)\n");
+  // printf("3)Song #3 (Press Joystick Right)\n");
+  printf("Go back to the main menu \n");
 }
 
 static void *MenuManagerThread(void *arg)
@@ -289,6 +295,8 @@ void MenuManager_init(void)
 
   LCD_display_Init();
 
+  songManager_init();
+
   // Launch menu manager thread
   pthread_create(&menuManagerThreadId, NULL, MenuManagerThread, NULL);
 }
@@ -334,6 +342,8 @@ void MenuManager_cleanup(void)
   AudioPlayer_cleanup();
 
   LCD_display_Cleanup();
+
+  songManager_cleanup();
 }
 
 

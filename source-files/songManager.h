@@ -14,9 +14,11 @@ void songManager_init(void);
 void songManager_playSong(int song_number);
 
 void songManager_addSongFront(song_info *);
-void songManager_addSongBack( song_info *);
+void songManager_addSongBack (song_info *);
 // Displays all the songs
 void songManager_displayAllSongs(void);
+
+size_t songManager_currentNumberSongs(void);
 
 // Gets current song_playing
 song_info *songManager_getCurrentSongPlaying(void);
