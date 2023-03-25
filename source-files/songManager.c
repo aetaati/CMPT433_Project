@@ -1,4 +1,10 @@
 
+/*
+Author: Mehdi Esmaeilzadeh
+Date: 2023-03-10
+Subject: Implementation of the SongManager module
+*/
+
 #include <stdio.h>
 #include <time.h>
 #include <sys/wait.h>
@@ -19,10 +25,12 @@ static void iterate_through_all_songs();
 
 static void iterate_through_all_songs() {
     struct Node * temp = doublyLinkedList_getHead();
+    int i =0;
     while(temp != NULL) {
         song_info* current_tmp_song = (song_info*) temp->data;
-        printf("Author:%s Album:%s ",current_tmp_song->author_name, current_tmp_song->album);
+        printf("%d), Author:%s Album:%s ",i,current_tmp_song->author_name, current_tmp_song->album);
         temp = temp->next;
+        i++;
     }
 }
 static void playSong(char *soundPath)
@@ -58,7 +66,6 @@ size_t songManager_currentNumberSongs(void) {
         temp = temp->next;
     } 
     return size;
-
 }
 
 void songManager_playSong(int song_number) {
@@ -84,7 +91,7 @@ void songManager_addSongFront(song_info *song){
     clean_passed_song(song);
 }
 void songManager_addSongBack( song_info * song) {
-    doublyLinkedList_appependItem(song, sizeof(song));
+    doublyLinkedList_appendItem(song, sizeof(song));
     clean_passed_song(song);
 }
 // Displays all the songs

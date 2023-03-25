@@ -22,22 +22,8 @@ Subject: Implementation of the MenuManager module
 #include "sleep.h"
 
 // #include "accelerometer.h"
-// #include "shutdown.h"
-// #include "periodTimer.h"
 
-// struct SongInfo
-// {
-//   char *path;
-// };
 
-// /***********TODO: FILL THIS WITH THE PATH OF .WAV FILES*****************/
-// const struct SongInfo songs[] = {
-//     {"DUMMY 1",},
-//     {"DUMMY 2",},
-//     {"DUMMY 3",},
-//     {"DUMMY 4",},
-//     {"DUMMY 5",},
-// };
 static bool stoppingMenu = false;
 
 static pthread_t menuManagerThreadId;
@@ -53,8 +39,6 @@ static bool show_display_songs = false;
 //#define TEMPO_DEFAULT 120
 //static int currentTempo = TEMPO_DEFAULT;
 
-static enum eCurrentSong currentSongPlaying = NO_SONG;
-
 wavedata_t *pSound_currentSong = NULL;
 
 //static pthread_mutex_t tempoMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -68,7 +52,7 @@ static bool display_mainMenu = true;
 /********************** Private/Helper functions**********************/
 
 ////////////////////////// Accelerometer and Joystick Input
-static void MenuManager_PlaySong(char *soundPath);
+
 
 // Sets the timer for action related to idx
 // Done after the action gets triggered
@@ -197,18 +181,13 @@ static void display_menu_content()
   printf("1) Song Menu (Press Joystick Center)\n");
   printf("2) Connect to Bluetooth (Move Joystick Right)\n");
   printf("3) Settings \n");
-  // printf("3) Increase Volume (Move Joystickup) \n");
-  // printf("4) Decrease Volume (Move Joystickdown) \n");
-  printf("5) Quit(Move Joystickleft)\n");
+  printf("4) Quit(Move Joystickleft)\n");
 }
 
 static void display_songs_in_menu()
 {
 
   songManager_displayAllSongs();
-  // printf("1)Song #1 (Press Joystick Up)\n");
-  // printf("2)Song #2 (Press Joystick Down)\n");
-  // printf("3)Song #3 (Press Joystick Right)\n");
   printf("Go back to the main menu \n");
 }
 
@@ -294,8 +273,7 @@ void MenuManager_init(void)
 void MenuManager_cleanup(void)
 {
   stoppingMenu = true;
-
-  MenuManager_StopSong();
+  
   pthread_join(menuManagerThreadId, NULL);
 
   // Joystick
