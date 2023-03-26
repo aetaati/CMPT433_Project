@@ -33,6 +33,7 @@ static bool show_once_menu = false;
 static int current_song_number = 1;
 static bool show_display_songs = false;
 
+
 typedef enum
 {
   MAIN,
@@ -55,6 +56,8 @@ typedef enum
 
 static MENU current_menu; // MAIN 
 static MAIN_OPTIONS current_main; 
+static void setArrow(MAIN_OPTIONS current_main);
+
 
 //////////////////////MIGHT USE
 // #define TEMPO_DEFAULT 120
@@ -126,57 +129,7 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
       current_main--;
     }
 
-    switch(current_main){
-      case LCD_LINE1:
-      // draw arrow on line 1
-        LCD_clear();
-        LCD_writeChar(LCD_RIGHT_ARROW);
-        LCD_writeString("Select Song");    
-        LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
-        LCD_writeStringAtLine("Settings", LCD_LINE3);
-        LCD_writeStringAtLine("Poweroff", LCD_LINE4);
-        
-        break;
-      case LCD_LINE2:
-       // draw arrow line 2
-        LCD_clear();
-        LCD_writeStringAtLine("                   ", LCD_LINE1);
-        LCD_writeStringAtLine("Select Song", LCD_LINE1);
-        LCD_writeStringAtLine("", LCD_LINE2);
-        LCD_writeChar(LCD_RIGHT_ARROW);
-        LCD_writeString("Bluetooth");
-        LCD_writeStringAtLine("Settings", LCD_LINE3);
-        LCD_writeStringAtLine("Poweroff", LCD_LINE4);
-        
-        break;
-      case LCD_LINE3:
-      // draw arrow line 3
-        LCD_clear();
-        LCD_writeString("Select Song");
-        LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
-        LCD_writeStringAtLine("", LCD_LINE3); // set cursor 
-        LCD_writeChar(LCD_RIGHT_ARROW);
-        LCD_writeString("Settings");
-        LCD_writeStringAtLine("Poweroff", LCD_LINE4);
-       
-        break;
-      case LCD_LINE4:
-      // draw arrow on line 4
-        LCD_clear();
-        LCD_writeString("Select Song");
-        LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
-        LCD_writeStringAtLine("Settings", LCD_LINE3); 
-        LCD_writeStringAtLine("", LCD_LINE4);
-        LCD_writeChar(LCD_RIGHT_ARROW);// set cursor 
-      
-        LCD_writeString("Poweroff");
-        
-        break;
-      default:
-        break;
-    }
-  
-
+    setArrow(current_main);
     printf("after joystick %d\n", current_main);
     
 
@@ -186,6 +139,8 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
     // scroll down
     printf("current option %d\n", current_main);
     current_main = (current_main + 1) % NUM_OPTIONS;
+
+    setArrow(current_main);
     printf("after joystick %d\n", current_main);
 
 
@@ -300,6 +255,59 @@ static void display_songs_in_menu()
   songManager_displayAllSongs();
   printf("Go back to the main menu \n");
 }
+
+static void setArrow(MAIN_OPTIONS current_main){
+  switch(current_main){
+      case LCD_LINE1:
+      // draw arrow on line 1
+        LCD_clear();
+        LCD_writeChar(LCD_RIGHT_ARROW);
+        LCD_writeString("Select Song");    
+        LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
+        LCD_writeStringAtLine("Settings", LCD_LINE3);
+        LCD_writeStringAtLine("Poweroff", LCD_LINE4);
+        
+        break;
+      case LCD_LINE2:
+       // draw arrow line 2
+        LCD_clear();
+        LCD_writeStringAtLine("                   ", LCD_LINE1);
+        LCD_writeStringAtLine("Select Song", LCD_LINE1);
+        LCD_writeStringAtLine("", LCD_LINE2);
+        LCD_writeChar(LCD_RIGHT_ARROW);
+        LCD_writeString("Bluetooth");
+        LCD_writeStringAtLine("Settings", LCD_LINE3);
+        LCD_writeStringAtLine("Poweroff", LCD_LINE4);
+        
+        break;
+      case LCD_LINE3:
+      // draw arrow line 3
+        LCD_clear();
+        LCD_writeString("Select Song");
+        LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
+        LCD_writeStringAtLine("", LCD_LINE3); // set cursor 
+        LCD_writeChar(LCD_RIGHT_ARROW);
+        LCD_writeString("Settings");
+        LCD_writeStringAtLine("Poweroff", LCD_LINE4);
+       
+        break;
+      case LCD_LINE4:
+      // draw arrow on line 4
+        LCD_clear();
+        LCD_writeString("Select Song");
+        LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
+        LCD_writeStringAtLine("Settings", LCD_LINE3); 
+        LCD_writeStringAtLine("", LCD_LINE4);
+        LCD_writeChar(LCD_RIGHT_ARROW);// set cursor 
+      
+        LCD_writeString("Poweroff");
+        
+        break;
+      default:
+        break;
+    }
+}
+
 
 static void *MenuManagerThread(void *arg)
 {
