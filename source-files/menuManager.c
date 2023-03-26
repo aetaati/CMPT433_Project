@@ -263,7 +263,15 @@ static void display_songs_in_menu()
 
   int song_cursor = current_song_number;
   if(song_cursor > 4) {
-    song_cursor -= 4 * (current_song_number / 4);
+    if(current_song_number % 4 != 0) {
+      
+      song_cursor -= 4 * (current_song_number / 4);
+    }
+    else {
+      song_cursor -= 4 * ((current_song_number / 4) - 1);
+      
+    }
+    
   }
   songManager_displaySongs(song_cursor, from_song);
 
@@ -272,7 +280,7 @@ static void display_songs_in_menu()
 
 static void setArrow(MAIN_OPTIONS current_main){
   switch(current_main){
-      case 1:
+      case 0:
       // draw arrow on line 1
         LCD_clear();
         LCD_writeChar(LCD_RIGHT_ARROW);
@@ -282,7 +290,7 @@ static void setArrow(MAIN_OPTIONS current_main){
         LCD_writeStringAtLine("Poweroff", LCD_LINE4);
         
         break;
-      case 2:
+      case 1:
        // draw arrow line 2
         LCD_clear();
         LCD_writeStringAtLine("                   ", LCD_LINE1);
@@ -294,7 +302,7 @@ static void setArrow(MAIN_OPTIONS current_main){
         LCD_writeStringAtLine("Poweroff", LCD_LINE4);
         
         break;
-      case 3:
+      case 2:
       // draw arrow line 3
         LCD_clear();
         LCD_writeString("Select Song");
@@ -305,7 +313,7 @@ static void setArrow(MAIN_OPTIONS current_main){
         LCD_writeStringAtLine("Poweroff", LCD_LINE4);
        
         break;
-      case 4:
+      case 3:
       // draw arrow on line 4
         LCD_clear();
         LCD_writeString("Select Song");
