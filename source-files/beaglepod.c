@@ -10,7 +10,7 @@ Date: 2023-03-04
 
 
 #include "sleep.h"
-#include "lcd_display.h"
+#include "shutdown.h"
 #include "bluetooth.h"
 #include "audio_player.h"
 #include "gpio.h"
@@ -30,7 +30,7 @@ int main(int argc, char const *argv[])
 {
     /////////////////////////////////////// FOR TESTING ///////////////////////////////////////
 
-    LCD_display_Init();
+    /*LCD_display_Init();
 
     LCD_display_ShowText("Hello World! My name is Amir.", true);
 
@@ -42,7 +42,27 @@ int main(int argc, char const *argv[])
 
     AudioPlayer_init();
     Potentiometer_init();
-    LCD_init();
+    MenuManager_init();
+
+    Shutdown_init();
+    Shutdown_waitForShutdown();
+
+    MenuManager_cleanup();
+    // Joystick
+    Joystick_cleanup();
+    // Volume
+    Potentiometer_cleanup();
+    // AudioPlayer
+    AudioPlayer_cleanup();*/
+
+    
+    
+    
+    
+
+    
+
+    
 
 
 
@@ -67,10 +87,12 @@ int main(int argc, char const *argv[])
     LCD_clear();
     LCD_writeString("Select Song");
     LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
-    LCD_writeStringAtLine("", LCD_LINE3);
+    LCD_writeStringAtLine("", LCD_LINE3); // set cursor 
    
     LCD_writeChar(LCD_RIGHT_ARROW);
     LCD_writeString("Settings");
+
+    sleep(10);
     
     
     wavedata_t song;

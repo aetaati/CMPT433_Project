@@ -20,6 +20,7 @@ Subject: Implementation of the MenuManager module
 #include "shutdown.h"
 #include "bluetooth.h"
 #include "sleep.h"
+#include "lcd_4line.h"
 
 static bool stoppingMenu = false;
 
@@ -194,6 +195,12 @@ static void display_menu_content()
   printf("2) Connect to Bluetooth (Move Joystick Right)\n");
   printf("3) Settings \n");
   printf("4) Quit(Move Joystickleft)\n");
+
+  LCD_writeChar(LCD_RIGHT_ARROW);
+  LCD_writeString("Select Song");    
+  LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
+  LCD_writeStringAtLine("Settings", LCD_LINE3);
+  LCD_writeStringAtLine("Poweroff", LCD_LINE4);
 }
 
 static void display_songs_in_menu()
@@ -270,15 +277,13 @@ static void *MenuManagerThread(void *arg)
 
 void MenuManager_init(void)
 {
-  // Joystick
-  Joystick_init();
-  // AudioPlayer
-  AudioPlayer_init();
-
-  LCD_display_Init();
-
   songManager_init();
 
+  Joystick_init();
+
+  LCD_init();
+
+  
   // Launch menu manager thread
   pthread_create(&menuManagerThreadId, NULL, MenuManagerThread, NULL);
 }
@@ -289,13 +294,11 @@ void MenuManager_cleanup(void)
 
   pthread_join(menuManagerThreadId, NULL);
 
-  // Joystick
+  
+  LCD_cleanup();
+
   Joystick_cleanup();
-
-  // AudioPlayer
-  AudioPlayer_cleanup();
-
-  LCD_display_Cleanup();
+  
 
   songManager_cleanup();
 }

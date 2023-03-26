@@ -103,7 +103,7 @@ void LCD_writeChar(unsigned char character)
     full = full | 0x05;
 
     I2C_sendByte(full);
-    printf("sent: %0x\n", full);
+    //printf("sent: %0x\n", full);
     I2C_sendByte(0b00000000);
 
     full = 0x00;
@@ -111,7 +111,7 @@ void LCD_writeChar(unsigned char character)
     full = full | 0x05;
 
     I2C_sendByte(full);
-    printf("sent: %0x\n", full);
+    //printf("sent: %0x\n", full);
     I2C_sendByte(0b00000000);
 }
 
