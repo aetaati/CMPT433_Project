@@ -7,20 +7,33 @@ Subject: Definition of the MenuManager module
 #if !defined(_MENUMANAGER_H)
 #define _MENUMANAGER_H
 
-#define VOLUME_CHANGE_SIZE 5
-#define TEMPO_CHANGE_SIZE 5
-
-#define MAX_VOLUME 100
-#define MIN_VOLUME 0
-
-#define MAX_TEMPO 300
-#define MIN_TEMPO 40
-
-#define INPUT_CHECK_WAIT_TIME 5
-#define DEBOUNCE_WAIT_TIME 100
 
 #include <stdbool.h>
 #include "songManager.h"
+
+/**
+ * Enum to keep track of current Menu to display
+*/
+typedef enum
+{
+  MAIN_MENU,
+  SONGS_MENU,
+  BLUETOOTH_MENU,
+  SETTINGS_MENU,
+  NUM_MENUS
+} MENU;
+
+/**
+ * Enum to keep track Main Menu Options
+*/
+typedef enum
+{
+  SONGS_OPT,
+  BLUETOOTH_OPT,
+  SETTINGS_OPT,
+  POWEROFF_OPT,
+  NUM_OPTIONS
+} MAIN_OPTIONS;
 
 
 // Initilaize all the modules used in the menu
@@ -51,10 +64,6 @@ void MenuManager_cleanup(void);
 //    from the web interface and the joyStick
 void MenuManager_UpdateVolume(int changeSize, bool isIncrease);
 
-
-// Get the current tempo
-// Note: this function is thread safe
-// int MenuManager_GetCurrentTempo(void);
 
 // Get the current volume
 // Note: this function is thread safe

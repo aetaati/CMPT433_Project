@@ -28,73 +28,25 @@ Date: 2023-03-04
 
 int main(int argc, char const *argv[])
 {
-    /////////////////////////////////////// FOR TESTING ///////////////////////////////////////
-
-    /*LCD_display_Init();
-
-    LCD_display_ShowText("Hello World! My name is Amir.", true);
-
-    Sleep_ms(5000);
-
-    LCD_display_Cleanup();*/
-
-    ////////////////////////////////////////////////////////////////////////////////////////////
 
     AudioPlayer_init();
     Potentiometer_init();
-    //MenuManager_init();
-
-    wavedata_t song;
-    AudioPlayer_readWaveFileIntoMemory(SONG5 , &song);
-    AudioPlayer_playWAV(&song);
-
-    sleep(10);
+    MenuManager_init();
 
     Shutdown_init();
     Shutdown_waitForShutdown();
 
     MenuManager_cleanup();
-    // Joystick
     Joystick_cleanup();
-    // Volume
     Potentiometer_cleanup();
-    // AudioPlayer
     AudioPlayer_cleanup();
-
-    
-    
-    
-    
-
-    
-
-    
 
 
 
     //LCD_shiftDisplay(LCD_LINE1, LCD_RIGHT);
 
-    //LCD_clear();
     
     
-    sleep(3);
-
-    LCD_writeStringAtLine("                   ", LCD_LINE1);
-    LCD_writeStringAtLine("Select Song", LCD_LINE1);
-    LCD_writeStringAtLine("", LCD_LINE2);
-    LCD_writeChar(LCD_RIGHT_ARROW);
-    LCD_writeString("Bluetooth");
-    
-    sleep(3);
-
-    
-
-    sleep(10);
-    
-    
-    
-    AudioPlayer_readWaveFileIntoMemory(SONG5 , &song);
-    AudioPlayer_playWAV(&song);
     //sleep(100);
 
     // Following code should be moved to menu manager

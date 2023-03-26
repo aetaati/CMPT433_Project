@@ -21,41 +21,23 @@ Subject: Implementation of the MenuManager module
 #include "sleep.h"
 #include "lcd_4line.h"
 
+#define INPUT_CHECK_WAIT_TIME 5
+#define DEBOUNCE_WAIT_TIME 100
 
 
+/**
+ * GLOBAL VARIABLES
+*/
 static bool stoppingMenu = false;
-
 static pthread_t menuManagerThreadId;
-
 static bool show_once_menu = false;
-
 static int current_song_number = 1;
 static bool show_display_songs = false;
+static MENU current_menu = MAIN_MENU; // MAIN 
+static MAIN_OPTIONS current_main = SONGS_OPT; 
 
-
-typedef enum
-{
-  MAIN,
-  SONGS,
-  BLUETOOTH,
-  SETTINGS,
-  NUM_MENUS
-} MENU;
-
-typedef enum
-{
-  SONGS_OPT,
-  BLUETOOTH_OPT,
-  SETTINGS_OPT,
-  POWEROFF_OPT,
-  NUM_OPTIONS
-} MAIN_OPTIONS;
-
-
-
-static MENU current_menu; // MAIN 
-static MAIN_OPTIONS current_main; 
-static void setArrow(MAIN_OPTIONS current_main);
+ 
+static void setMainArrow(MAIN_OPTIONS current_main);
 
 
 //////////////////////MIGHT USE
@@ -111,13 +93,6 @@ static bool isActionTriggered(long long *timers, int idx)
 
 static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection)
 {
-  /***
-   * 1) If Joystick is pressed Up Increase the Volume
-   * 2) If Joystick is pressed Down Decrease the volume
-   * 3) If Joystick is pressed Left QUIT from the main menu
-   * 4) If Joystick is pressed Right Connect to the Bluetooth
-   * 5) If Joystick is pressed Center Go the songs menu
-   */
   if (currentJoyStickDirection == JOYSTICK_UP)
   {
     printf("current option %d\n", current_main);
@@ -128,20 +103,17 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
       current_main--;
     }
 
-    setArrow(current_main);
+    setMainArrow(current_main);
     printf("after joystick %d\n", current_main);
-    
-
   }
   else if (currentJoyStickDirection == JOYSTICK_DOWN)
   {
     // scroll down
     printf("current option %d\n", current_main);
     current_main = (current_main + 1) % NUM_OPTIONS;
-
-    setArrow(current_main);
+    
+    setMainArrow(current_main);
     printf("after joystick %d\n", current_main);
-
 
   }
   else if (currentJoyStickDirection == JOYSTICK_LEFT)
@@ -218,34 +190,10 @@ static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
   }
 }
 
-/**********************************FUNCTION WE MIGHT USE ******************************************************/
-// static void triggerAccelerometerAction(enum eAccelerometerActions accelerometerAction)
-// {
-//   if (accelerometerAction == ACCELEROMETER_X) {
-//     playSingleSound(SNARE_FILE);
-//   }
-//   if (accelerometerAction == ACCELEROMETER_Y) {
-//     playSingleSound(HI_HAT_FILE);
-//   }
-//   if (accelerometerAction == ACCELEROMETER_Z) {
-//     playSingleSound(BASE_DRUM_FILE);
-//   }
-// }
-/**************************************************************************************************************/
 
 static void display_menu_content()
 {
-  printf("Welcome to the BeaglePod Menu !\n");
-  printf("1) Song Menu (Press Joystick Center)\n");
-  printf("2) Connect to Bluetooth (Move Joystick Right)\n");
-  printf("3) Settings \n");
-  printf("4) Quit(Move Joystickleft)\n");
-
-  LCD_writeChar(LCD_RIGHT_ARROW);
-  LCD_writeString("Select Song");
-  LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
-  LCD_writeStringAtLine("Settings", LCD_LINE3);
-  LCD_writeStringAtLine("Poweroff", LCD_LINE4);
+  setMainArrow(SONGS_OPT);
 }
 
 static void display_songs_in_menu()
@@ -255,7 +203,7 @@ static void display_songs_in_menu()
   printf("Go back to the main menu \n");
 }
 
-static void setArrow(MAIN_OPTIONS current_main){
+static void setMainArrow(MAIN_OPTIONS current_main){
   switch(current_main){
       case LCD_LINE1:
       // draw arrow on line 1
@@ -327,7 +275,7 @@ static void *MenuManagerThread(void *arg)
   {
     switch (current_menu)
     {
-    case MAIN:
+    case MAIN_MENU:
       // Display Menu
       if (!show_once_menu)
       {
@@ -335,7 +283,7 @@ static void *MenuManagerThread(void *arg)
         display_menu_content();
       }
       break;
-    case SONGS:
+    case SONGS_MENU:
       // Display the songs menu
       if (!show_display_songs)
       {
@@ -344,33 +292,15 @@ static void *MenuManagerThread(void *arg)
 
       }
       break;
-    case BLUETOOTH:
+    case BLUETOOTH_MENU:
       break;
-    case SETTINGS:
+    case SETTINGS_MENU:
       break;
     default:
       // invalid option
       break;
     }
 
-    /*if (display_mainMenu)
-    {
-      // Display Menu
-      if (!show_once_menu)
-      {
-        show_once_menu = true;
-        display_menu_content();
-      }
-    }
-    else
-    {
-      // Display the songs menu
-      if (!show_display_songs)
-      {
-        show_display_songs = true;
-        display_songs_in_menu();
-      }
-    }*/
     // Read the Joystick
     enum eJoystickDirections currentJoyStickDirection = Joystick_process_direction();
 
@@ -379,35 +309,29 @@ static void *MenuManagerThread(void *arg)
     if (isActionTriggered(action_timers, currentJoyStickDirection))
     {
       switch(current_menu){
-        case MAIN:
+        case MAIN_MENU:
           // Display Menu
           
           
           mainMenuJoystickAction(currentJoyStickDirection);
           
           break;
-        case SONGS:
+        case SONGS_MENU:
           // Display the songs menu
           
           songMenuJoystickAction(currentJoyStickDirection);
 
         
           break;
-        case BLUETOOTH:
+        case BLUETOOTH_MENU:
           break;
-        case SETTINGS:
+        case SETTINGS_MENU:
           break;
         default:
           // invalid option
           break;
       }
-      /*{
-        mainMenuJoystickAction(currentJoyStickDirection);
-      }
-      else
-      {
-        songMenuJoystickAction(currentJoyStickDirection);
-      }*/
+      
       // Update current direction time
       setTimers(action_timers, currentJoyStickDirection, DEBOUNCE_WAIT_TIME);
     }
@@ -431,9 +355,6 @@ void MenuManager_init(void)
 
   LCD_init();
 
-  current_menu = MAIN;
-  current_main = SONGS_OPT;
-
   // Launch menu manager thread
   pthread_create(&menuManagerThreadId, NULL, MenuManagerThread, NULL);
 }
@@ -451,42 +372,7 @@ void MenuManager_cleanup(void)
   songManager_cleanup();
 }
 
-void MenuManager_UpdateVolume(int changeSize, bool isIncrease)
-{
-  if (changeSize < 0)
-  {
-    return;
-  }
-  pthread_mutex_lock(&volumeMutex);
-  int current_volume = AudioPlayer_getVolume();
-  int new_volume = current_volume;
-  if (!isIncrease)
-  {
-    // decrease volume
-    if ((current_volume - changeSize) < MIN_VOLUME)
-    {
-      new_volume = MIN_VOLUME;
-    }
-    else
-    {
-      new_volume -= changeSize;
-    }
-  }
-  else
-  {
-    // increase volume
-    if ((current_volume + changeSize) > MAX_VOLUME)
-    {
-      new_volume = MAX_VOLUME;
-    }
-    else
-    {
-      new_volume += changeSize;
-    }
-  }
-  AudioPlayer_setVolume(new_volume);
-  pthread_mutex_unlock(&volumeMutex);
-}
+
 
 int MenuManager_GetCurrentVolume(void)
 {
@@ -505,64 +391,3 @@ song_info *MenuManager_GetCurrentSongPlaying(void)
   pthread_mutex_unlock(&currentModeMutex);
   return current_song;
 }
-
-/////////////////////////////FUNCTIONS MIGHT USE//////////////////////////////////////////////////
-// void MenuManager_UpdateTempo(int changeSize, bool isIncrease)
-// {
-//   if (changeSize < 0)
-//   {
-//     return;
-//   }
-// pthread_mutex_lock(&tempoMutex);
-// if (!isIncrease)
-// {
-//   // decrease tempo
-//   if ((currentTempo - changeSize) < MIN_TEMPO)
-//   {
-//     currentTempo = MIN_TEMPO;
-//   }
-//   else
-//   {
-//     currentTempo -= changeSize;
-//   }
-// }
-//   else
-//   {
-//     // increase tempo
-//     if ((currentTempo + changeSize) > MAX_TEMPO)
-//     {
-//       currentTempo = MAX_TEMPO;
-//     }
-//     else
-//     {
-//       currentTempo += changeSize;
-//     }
-//   }
-//   pthread_mutex_unlock(&tempoMutex);
-// }
-
-// int MenuManager_GetCurrentTempo(void)
-// {
-//   int tempo = -1;
-//   pthread_mutex_lock(&tempoMutex);
-//   tempo = currentTempo;
-//   pthread_mutex_unlock(&tempoMutex);
-//   return tempo;
-// }
-
-/////////////////////////////////////////////////////// For Testing ///////////////////////////////////////////////////////
-// int main(int argc, char
-//   const * argv[])
-//   {
-//   MenuManager_init();
-
-//   MenuManager_HandleInputs();
-
-//   while (1) {
-
-//   }
-
-//   MenuManager_cleanup();
-
-//   return 0;
-// }
