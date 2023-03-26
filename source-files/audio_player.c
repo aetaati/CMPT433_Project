@@ -77,6 +77,8 @@ void AudioPlayer_init(void)
 	// ..allocate playback buffer:
 	playbackBuffer = malloc(playbackBufferSize * sizeof(*playbackBuffer));
 
+	current_sound.pSound = NULL;
+
 	// Launch playback thread:
 	pthread_create(&playbackThreadId, NULL, playbackThread, NULL);
 }
@@ -157,6 +159,7 @@ void AudioPlayer_cleanup(void)
 	stopping = true;
 	pthread_join(playbackThreadId, NULL);
 
+
 	// Shutdown the PCM output, allowing any pending sound to play out (drain)
 	snd_pcm_drain(handle);
 	snd_pcm_close(handle);
@@ -165,6 +168,9 @@ void AudioPlayer_cleanup(void)
 	// (note that any wave files read into wavedata_t records must be freed
 	//  in addition to this by calling AudioMixer_freeWaveFileData() on that struct.)
 	free(playbackBuffer);
+	if(current_sound.pSound != NULL) {
+		free(current_sound.pSound);
+	}
 	playbackBuffer = NULL;
 
 	printf("Done stopping audio...\n");
@@ -270,6 +276,10 @@ static void fillPlaybackBuffer(short *buff, int size)
 
     pthread_mutex_lock(&audioMutex);
 	{
+		if(current_sound.pSound != NULL) {
+			free(current_sound.pSound);
+		}
+		
         wavedata_t* sound_data = current_sound.pSound;
         if(sound_data != NULL){
             
