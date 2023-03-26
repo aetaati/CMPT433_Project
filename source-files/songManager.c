@@ -28,7 +28,7 @@ static song_info* give_song(int song_number);
 
 static void setSongs(int current_song,char* song1, char* song2, char* song3, char* song4){
   switch(current_song){
-      case LCD_LINE1:
+      case 1:
       // draw arrow on line 1
         LCD_clear();
         LCD_writeChar(LCD_RIGHT_ARROW);
@@ -38,7 +38,7 @@ static void setSongs(int current_song,char* song1, char* song2, char* song3, cha
         LCD_writeStringAtLine(song4, LCD_LINE4);
         
         break;
-      case LCD_LINE2:
+      case 2:
        // draw arrow line 2
         LCD_clear();
         LCD_writeStringAtLine("                   ", LCD_LINE1);
@@ -50,7 +50,7 @@ static void setSongs(int current_song,char* song1, char* song2, char* song3, cha
         LCD_writeStringAtLine(song4, LCD_LINE4);
         
         break;
-      case LCD_LINE3:
+      case 3:
       // draw arrow line 3
         LCD_clear();
         LCD_writeString(song1);
@@ -61,7 +61,7 @@ static void setSongs(int current_song,char* song1, char* song2, char* song3, cha
         LCD_writeStringAtLine(song4, LCD_LINE4);
        
         break;
-      case LCD_LINE4:
+      case 4:
       // draw arrow on line 4
         LCD_clear();
         LCD_writeString(song1);
