@@ -15,7 +15,6 @@ Subject: Implementation of the MenuManager module
 #include "songManager.h"
 #include "audio_player.h"
 #include "joystick.h"
-#include "lcd_display.h"
 #include "gpio.h"
 #include "shutdown.h"
 #include "bluetooth.h"
