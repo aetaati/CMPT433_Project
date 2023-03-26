@@ -139,6 +139,9 @@ void AudioPlayer_playWAV(wavedata_t *pSound)
 	assert(pSound->pData);
     pthread_mutex_lock(&audioMutex);
 	{
+		if(current_sound.pSound != NULL) {
+			free(current_sound.pSound);
+		}
 		// sample to list of sound bites
 		current_sound.pSound = pSound;
 		current_sound.location = 0;
@@ -276,9 +279,7 @@ static void fillPlaybackBuffer(short *buff, int size)
 
     pthread_mutex_lock(&audioMutex);
 	{
-		if(current_sound.pSound != NULL) {
-			free(current_sound.pSound);
-		}
+		
 		
         wavedata_t* sound_data = current_sound.pSound;
         if(sound_data != NULL){

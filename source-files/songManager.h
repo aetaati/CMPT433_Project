@@ -15,8 +15,8 @@ void songManager_playSong(int song_number);
 void songManager_addSongFront(song_info *);
 /* Adds the song to the back of the list*/
 void songManager_addSongBack (song_info *);
-// Displays all the songs
-void songManager_displayAllSongs(void);
+// Displays four the songs
+void songManager_displaySongs(int current_song, int from_song_number);
 /* Returns current number of the songs that are currently in the list*/
 size_t songManager_currentNumberSongs(void);
 
