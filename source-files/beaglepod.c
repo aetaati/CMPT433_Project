@@ -17,9 +17,13 @@ Date: 2023-03-04
 #include "joystick.h"
 #include "menuManager.h"
 #include "pot.h"
+#include "lcd_4line.h"
 
 
-#define SONG "som-liveletlive.wav"
+#define SONG "songs/som-liveletlive.wav"
+#define SONG3 "songs/hunnybee.wav"
+#define SONG4 "songs/moves.wav"
+#define SONG5 "songs/kiss-from-rose.wav"
 
 
 int main(int argc, char const *argv[])
@@ -38,13 +42,39 @@ int main(int argc, char const *argv[])
 
     AudioPlayer_init();
     Potentiometer_init();
+    LCD_init();
 
 
+
+    //LCD_shiftDisplay(LCD_LINE1, LCD_RIGHT);
+
+    //LCD_clear();
+    LCD_writeChar(LCD_RIGHT_ARROW);
+    LCD_writeString("Select Song");    
+    LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
+    LCD_writeStringAtLine("Settings", LCD_LINE3);
     
+    sleep(3);
+
+    LCD_writeStringAtLine("                   ", LCD_LINE1);
+    LCD_writeStringAtLine("Select Song", LCD_LINE1);
+    LCD_writeStringAtLine("", LCD_LINE2);
+    LCD_writeChar(LCD_RIGHT_ARROW);
+    LCD_writeString("Bluetooth");
+    
+    sleep(3);
+
+    LCD_clear();
+    LCD_writeString("Select Song");
+    LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
+    LCD_writeStringAtLine("", LCD_LINE3);
+   
+    LCD_writeChar(LCD_RIGHT_ARROW);
+    LCD_writeString("Settings");
     
     
     wavedata_t song;
-    AudioPlayer_readWaveFileIntoMemory(SONG , &song);
+    AudioPlayer_readWaveFileIntoMemory(SONG5 , &song);
     AudioPlayer_playWAV(&song);
     //sleep(100);
 
@@ -78,6 +108,6 @@ int main(int argc, char const *argv[])
     }
 
 
-    sleep(40);
+    sleep(200);
     return 0;
 }
