@@ -36,7 +36,7 @@ int main(int argc, char const *argv[])
 
     Sleep_ms(5000);
 
-    LCD_display_Cleanup();
+    LCD_display_Cleanup();*/
 
     ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -53,7 +53,7 @@ int main(int argc, char const *argv[])
     // Volume
     Potentiometer_cleanup();
     // AudioPlayer
-    AudioPlayer_cleanup();*/
+    AudioPlayer_cleanup();
 
     
     
@@ -69,10 +69,7 @@ int main(int argc, char const *argv[])
     //LCD_shiftDisplay(LCD_LINE1, LCD_RIGHT);
 
     //LCD_clear();
-    LCD_writeChar(LCD_RIGHT_ARROW);
-    LCD_writeString("Select Song");    
-    LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
-    LCD_writeStringAtLine("Settings", LCD_LINE3);
+    
     
     sleep(3);
 
@@ -84,13 +81,7 @@ int main(int argc, char const *argv[])
     
     sleep(3);
 
-    LCD_clear();
-    LCD_writeString("Select Song");
-    LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
-    LCD_writeStringAtLine("", LCD_LINE3); // set cursor 
-   
-    LCD_writeChar(LCD_RIGHT_ARROW);
-    LCD_writeString("Settings");
+    
 
     sleep(10);
     
