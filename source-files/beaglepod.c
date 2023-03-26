@@ -16,7 +16,7 @@ Date: 2023-03-04
 #include "gpio.h"
 #include "joystick.h"
 #include "menuManager.h"
-#include "pot.h"
+#include "volume.h"
 #include "lcd_4line.h"
 
 
@@ -42,7 +42,13 @@ int main(int argc, char const *argv[])
 
     AudioPlayer_init();
     Potentiometer_init();
-    MenuManager_init();
+    //MenuManager_init();
+
+    wavedata_t song;
+    AudioPlayer_readWaveFileIntoMemory(SONG5 , &song);
+    AudioPlayer_playWAV(&song);
+
+    sleep(10);
 
     Shutdown_init();
     Shutdown_waitForShutdown();
@@ -86,7 +92,7 @@ int main(int argc, char const *argv[])
     sleep(10);
     
     
-    wavedata_t song;
+    
     AudioPlayer_readWaveFileIntoMemory(SONG5 , &song);
     AudioPlayer_playWAV(&song);
     //sleep(100);
