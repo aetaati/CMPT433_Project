@@ -61,9 +61,8 @@ int main(int argc, char const *argv[])
     LCD_writeStringAtLine("", LCD_LINE2);
     LCD_writeChar(LCD_RIGHT_ARROW);
     LCD_writeString("Bluetooth");
-    sleep(3);
     
-    sleep(10);
+    sleep(3);
 
     LCD_clear();
     LCD_writeString("Select Song");
