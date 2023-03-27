@@ -37,7 +37,6 @@ int main(int argc, char const *argv[])
     Shutdown_waitForShutdown();
 
     MenuManager_cleanup();
-    Joystick_cleanup();
     Potentiometer_cleanup();
     AudioPlayer_cleanup();
 

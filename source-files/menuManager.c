@@ -35,19 +35,11 @@ static int current_song_number = 1;
 static bool show_display_songs = false;
 static MENU current_menu = MAIN_MENU; // MAIN 
 static MAIN_OPTIONS current_main = SONGS_OPT; 
-
- 
-static void setMainArrow(MAIN_OPTIONS current_main);
-
-
-//////////////////////MIGHT USE
-// #define TEMPO_DEFAULT 120
-// static int currentTempo = TEMPO_DEFAULT;
-
 wavedata_t *pSound_currentSong = NULL;
 
-// static pthread_mutex_t tempoMutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t volumeMutex = PTHREAD_MUTEX_INITIALIZER;
+ 
+static void setArrowAtLine(LCD_LINE_NUM line);
+
 static pthread_mutex_t currentModeMutex = PTHREAD_MUTEX_INITIALIZER;
 
 // Flags Used for switching to the playsong menu
@@ -103,7 +95,7 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
       current_main--;
     }
 
-    setMainArrow(current_main);
+    setArrowAtLine(current_main);
     printf("after joystick %d\n", current_main);
   }
   else if (currentJoyStickDirection == JOYSTICK_DOWN)
@@ -112,7 +104,7 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
     printf("current option %d\n", current_main);
     current_main = (current_main + 1) % NUM_OPTIONS;
     
-    setMainArrow(current_main);
+    setArrowAtLine(current_main);
     printf("after joystick %d\n", current_main);
 
   }
@@ -157,12 +149,6 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
 
 static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection)
 {
-  /**
-   * 1) If Pressed Joystick is up then play song #1
-   * 2) If Pressed Joystick is down then play song #2
-   * 3) If Pressed Joystick is right then play song #3
-   * 4) If Pressed Joystick is left then go back to the main menu
-   */
 
   if (currentJoyStickDirection == JOYSTICK_UP)
   {
@@ -193,18 +179,17 @@ static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
 
 static void display_menu_content()
 {
-  setMainArrow(SONGS_OPT);
+  setArrowAtLine(SONGS_OPT);
 }
 
 static void display_songs_in_menu()
 {
-
   songManager_displayAllSongs();
   printf("Go back to the main menu \n");
 }
 
-static void setMainArrow(MAIN_OPTIONS current_main){
-  switch(current_main){
+static void setArrowAtLine(LCD_LINE_NUM line){
+  switch(line){
       case LCD_LINE1:
       // draw arrow on line 1
         LCD_clear();
@@ -269,48 +254,25 @@ static void *MenuManagerThread(void *arg)
     action_timers[i] = (long long)0;
   }
 
+  display_menu_content();
+
   /*************************************************************************/
 
   while (!stoppingMenu && !Shutdown_isShutdown())
   {
-    switch (current_menu)
-    {
-    case MAIN_MENU:
-      // Display Menu
-      if (!show_once_menu)
-      {
-        show_once_menu = true;
-        display_menu_content();
-      }
-      break;
-    case SONGS_MENU:
-      // Display the songs menu
-      if (!show_display_songs)
-      {
-        show_display_songs = true;
-        display_songs_in_menu();
-
-      }
-      break;
-    case BLUETOOTH_MENU:
-      break;
-    case SETTINGS_MENU:
-      break;
-    default:
-      // invalid option
-      break;
-    }
 
     // Read the Joystick
     enum eJoystickDirections currentJoyStickDirection = Joystick_process_direction();
 
+
     // Debouncing logic: Joystick
     // Trigger action
-    if (isActionTriggered(action_timers, currentJoyStickDirection))
+    if (isActionTriggered(action_timers, currentJoyStickDirection) && currentJoyStickDirection != JOYSTICK_NONE)
     {
       switch(current_menu){
         case MAIN_MENU:
           // Display Menu
+          //display_menu_content();
           
           
           mainMenuJoystickAction(currentJoyStickDirection);
@@ -318,7 +280,7 @@ static void *MenuManagerThread(void *arg)
           break;
         case SONGS_MENU:
           // Display the songs menu
-          
+          display_songs_in_menu();
           songMenuJoystickAction(currentJoyStickDirection);
 
         
@@ -373,15 +335,6 @@ void MenuManager_cleanup(void)
 }
 
 
-
-int MenuManager_GetCurrentVolume(void)
-{
-  int volume = -1;
-  pthread_mutex_lock(&volumeMutex);
-  volume = AudioPlayer_getVolume();
-  pthread_mutex_unlock(&volumeMutex);
-  return volume;
-}
 
 song_info *MenuManager_GetCurrentSongPlaying(void)
 {
