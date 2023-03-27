@@ -30,20 +30,31 @@ Subject: Implementation of the MenuManager module
 */
 static bool stoppingMenu = false;
 static pthread_t menuManagerThreadId;
-static bool show_once_menu = false;
 static int current_song_number = 1;
-static bool show_display_songs = false;
 static MENU current_menu = MAIN_MENU; // MAIN 
 static MAIN_OPTIONS current_main = SONGS_OPT; 
 wavedata_t *pSound_currentSong = NULL;
 
  
 static void setArrowAtLine(LCD_LINE_NUM line);
+static void mainMenuSwitch(MAIN_OPTIONS option);
+static void displayBluetoothMenu(){
+  LCD_clear();
+  LCD_writeStringAtLine("Bluetooth Menu", LCD_LINE1);
+}
+static void displaySettingsMenu(){
+  LCD_clear();
+  LCD_writeStringAtLine("Settings Menu", LCD_LINE1);
+}
+static void displaySongMenu()
+{
+  LCD_clear();
+  LCD_writeStringAtLine("Songs Menu", LCD_LINE1);
+}
+
+
 
 static pthread_mutex_t currentModeMutex = PTHREAD_MUTEX_INITIALIZER;
-
-// Flags Used for switching to the playsong menu
-static bool display_mainMenu = true;
 
 /********************** Private/Helper functions**********************/
 
@@ -83,6 +94,28 @@ static bool isActionTriggered(long long *timers, int idx)
   return false;
 }
 
+
+static void mainMenuSwitch(MAIN_OPTIONS option){
+  switch(option){
+    case SONGS_OPT:
+      displaySongMenu();
+      break;
+    case BLUETOOTH_OPT:
+      displayBluetoothMenu();
+      break;
+    case SETTINGS_OPT:
+      displaySettingsMenu();
+      break;
+    case POWEROFF_OPT:
+      Shutdown_triggerForShutdown();
+      break;
+    default:
+      // invalid option
+      break;
+  }
+}
+
+
 static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection)
 {
   if (currentJoyStickDirection == JOYSTICK_UP)
@@ -110,40 +143,15 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
   }
   else if (currentJoyStickDirection == JOYSTICK_LEFT)
   {
-    printf("Quiting from the Beaglepod !\n");
-    Shutdown_triggerForShutdown();
+  
   }
   else if (currentJoyStickDirection == JOYSTICK_RIGHT)
   {
-    //  Connect to the Bluetooth
-    int selection;
-    inquiry_info *devices;
-    char input[15] = {0};
-    devices = malloc(BT_MAX_DEV_RSP * sizeof(inquiry_info));
-    int num_scanned = Bluetooth_scan(devices, BT_MAX_DEV_RSP);
-    Bluetooth_displayDevices(devices, num_scanned);
-
-    printf("Choose a device to connect to\n> ");
-    if (fgets(input, sizeof(input), stdin) == NULL)
-    {
-      fprintf(stderr, "error reading from stdin");
-    }
-    sscanf(input, "%d", &selection);
-
-    printf("connecting to device...\n");
-    if (Bluetooth_connect(&(devices + selection)->bdaddr) != 0)
-    {
-      printf("error connecting to device\n");
-    }
-    else
-    {
-      printf("Connected!\n");
-    }
+   
   }
   else if (currentJoyStickDirection == JOYSTICK_CENTER)
   {
-    display_mainMenu = false;
-    show_display_songs = false;
+    mainMenuSwitch(current_main);
   }
 }
 
@@ -171,8 +179,6 @@ static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
   else if (currentJoyStickDirection == JOYSTICK_LEFT)
   {
     current_song_number = 1;
-    display_mainMenu = true;
-    show_once_menu = false;
   }
 }
 
@@ -182,11 +188,6 @@ static void display_menu_content()
   setArrowAtLine(SONGS_OPT);
 }
 
-static void display_songs_in_menu()
-{
-  songManager_displayAllSongs();
-  printf("Go back to the main menu \n");
-}
 
 static void setArrowAtLine(LCD_LINE_NUM line){
   switch(line){
@@ -272,15 +273,12 @@ static void *MenuManagerThread(void *arg)
       switch(current_menu){
         case MAIN_MENU:
           // Display Menu
-          //display_menu_content();
-          
           
           mainMenuJoystickAction(currentJoyStickDirection);
           
           break;
         case SONGS_MENU:
           // Display the songs menu
-          display_songs_in_menu();
           songMenuJoystickAction(currentJoyStickDirection);
 
         
