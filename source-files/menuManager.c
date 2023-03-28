@@ -126,7 +126,6 @@ static bool isActionTriggered(long long *timers, int idx)
 /* -------------------------------------------------------------------- *
  * BLUETOOTH MENU                                                       *
  * -------------------------------------------------------------------- */
-
 static void displayBluetoothMenu(void){
   current_menu = BLUETOOTH_MENU;
   LCD_clear();
@@ -309,7 +308,6 @@ static void BTMenu_setArrowAtLine(LCD_LINE_NUM line){
 /* -------------------------------------------------------------------- *
  * MAIN MENU                                                            *
  * -------------------------------------------------------------------- */
-
 static void displayMainMenu(void)
 {
   current_menu = MAIN_MENU;
@@ -428,7 +426,6 @@ static void MainMenu_setArrowAtLine(LCD_LINE_NUM line){
 /* -------------------------------------------------------------------- *
  * SONG MENU                                                            *
  * -------------------------------------------------------------------- */
-
 static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection)
 {
   switch(currentJoyStickDirection){
@@ -452,7 +449,6 @@ static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
 /* -------------------------------------------------------------------- *
  * Public Functions                                                     *
  * -------------------------------------------------------------------- */
-
 void MenuManager_init(void)
 {
   LCD_init();
@@ -493,7 +489,6 @@ song_info *MenuManager_GetCurrentSongPlaying(void)
 /* -------------------------------------------------------------------- *
  * MENU MANAGER THREAD                                                  *
  * -------------------------------------------------------------------- */
-
 static void *MenuManagerThread(void *arg)
 {
 

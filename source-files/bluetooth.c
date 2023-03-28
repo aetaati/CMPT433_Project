@@ -2,7 +2,6 @@
 #include "audio_player.h"
 
 #include <stdbool.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -33,7 +32,7 @@ int runCommand(char* command);
 
 
 
-void Bluetooth_displayDevices(inquiry_info *devices, int num_devices)
+void Bluetooth_printDevicesToConsole(inquiry_info *devices, int num_devices)
 {
     openBT();
     char addr[19] = {0};
@@ -53,6 +52,7 @@ void Bluetooth_displayDevices(inquiry_info *devices, int num_devices)
     }
     closeBT();
 }
+
 
 void Bluetooth_getHumanReadableNames(bluetooth_scan_t* scanned_devices, char* names[]){
     openBT();
@@ -86,8 +86,6 @@ int Bluetooth_pair(bdaddr_t *device_address){
 
     return result;
 }
-
-
 
 
 int Bluetooth_scan(bluetooth_scan_t* scanner)
