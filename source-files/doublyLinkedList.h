@@ -10,14 +10,6 @@ Date: 2023-03-16
 #define DOUBLY_LINKED_LIST_H
 #include <stdbool.h>
 
-struct Node
-{
-    void *data;
-    struct Node *next;
-    struct Node *prev;
-};
-
-
 // Returns a pointer to the newly allocated empty list
 // Note: caller should call doublyLinkedList_cleanup() to free the memory
 void doublyLinkedList_init(void);
@@ -25,7 +17,7 @@ void doublyLinkedList_init(void);
 // Returns true if the list is empty
 bool doublyLinkedList_isEmpty(void);
 
-struct Node* doublyLinkedList_getHead(void);
+// struct Node* doublyLinkedList_getHead(void);
 
 // Adds the item "src" with size of "size" to the head of the list
 void doublyLinkedList_prependItem(void *src, unsigned int size);
@@ -46,9 +38,22 @@ bool doublyLinkedList_prev(void);
 void *doublyLinkedList_getElementAtIndex(int idx);
 
 // Returns the data of the "current"
-void *doublyLinkedList_getCurrentData(void);
+void *doublyLinkedList_getCurrentElement(void);
 
 // Frees the memory for all nodes, the data, and the List struct
 void doublyLinkedList_cleanup(void);
+
+//////////// Extra functions to maintain the modularity according to songManager's needs ////////////
+
+// TODO: Resets the current pointer to point to the element
+// Returns false if idx is out of bounds or the list is empty
+bool doublyLinkedList_setCurrent(int idx);
+
+// TODO: Returns the index of the current element
+// Note: returns -1 if the list is empty
+int doublyLinkedList_getCurrentIdx();
+
+// TODO: Returns the number of elements currently in the list
+int doublyLinkedList_getSize();
 
 #endif // DOUBLY_LINKED_LIST_H

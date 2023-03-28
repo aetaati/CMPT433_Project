@@ -15,11 +15,20 @@ Date: 2023-03-16
 
 #include "doublyLinkedList.h"
 
+struct Node
+{
+    void *data;
+    struct Node *next;
+    struct Node *prev;
+};
+
 struct List
 {
     struct Node *head;
     struct Node *tail;
-    struct Node *current;
+
+    struct Node *current; // keeps track of the current element in the list
+    int curentIdx;        // TODO: -1 if there is no element in the list
 };
 
 static bool is_module_initialized = false;
@@ -53,6 +62,7 @@ static void push_to_head(void *src, unsigned int size)
     {
         // List was previously empty
         list_ptr->tail = list_ptr->head = list_ptr->current = new_node;
+        list_ptr->curentIdx = 0;
     }
 }
 
@@ -83,6 +93,7 @@ static void push_to_tail(void *src, unsigned int size)
     else
     {
         list_ptr->tail = list_ptr->head = list_ptr->current = new_node;
+        list_ptr->curentIdx = 0;
     }
 }
 
@@ -112,15 +123,16 @@ void doublyLinkedList_init(void)
     list_ptr->head = NULL;
     list_ptr->tail = NULL;
     list_ptr->current = NULL;
+    list_ptr->curentIdx = -1;
 
     is_module_initialized = true;
 }
 
-// TODO: remove
-struct Node *doublyLinkedList_getHead(void)
-{
-    return list_ptr->head;
-}
+// // TODO: remove
+// struct Node *doublyLinkedList_getHead(void)
+// {
+//     return list_ptr->head;
+// }
 
 bool doublyLinkedList_isEmpty(void)
 {
@@ -148,6 +160,7 @@ bool doublyLinkedList_next(void)
         return false;
     }
     list_ptr->current = list_ptr->current->next;
+    list_ptr->curentIdx += 1;
     return true;
 }
 
@@ -159,10 +172,11 @@ bool doublyLinkedList_prev(void)
         return false;
     }
     list_ptr->current = list_ptr->current->prev;
+    list_ptr->curentIdx -= 1;
     return true;
 }
 
-void *doublyLinkedList_getCurrentData(void)
+void *doublyLinkedList_getCurrentElement(void)
 {
     assert(is_module_initialized);
     if (!doublyLinkedList_isEmpty() && list_ptr->current != NULL)
@@ -182,10 +196,13 @@ void doublyLinkedList_cleanup(void)
     free(list_ptr);
 }
 
+//////////// Extra functions to maintain the modularity according to songManager's needs ////////////
+
 void *doublyLinkedList_getElementAtIndex(int idx)
 {
     assert(is_module_initialized);
-    if(idx<0) return NULL;
+    if (idx < 0)
+        return NULL;
 
     int counter = 0;
     struct Node *node = list_ptr->head;
@@ -195,38 +212,91 @@ void *doublyLinkedList_getElementAtIndex(int idx)
         node = node->next;
         counter++;
     }
-    if (node==NULL) return NULL;
+    if (node == NULL)
+        return NULL;
     return node->data;
 }
 
+// Sets the current pointer to point to the element at index "idx"
+// Returns false if idx is out of bounds or the list is empty, true if successful
+bool doublyLinkedList_setCurrent(int idx)
+{
+    assert(is_module_initialized);
+    if (idx < 0)
+        return false;
+
+    int counter = 0;
+    struct Node *node = list_ptr->head;
+
+    while (counter < idx && node != NULL)
+    {
+        node = node->next;
+        counter++;
+    }
+    if (node == NULL)
+        return false;
+
+    list_ptr->current = node;
+    list_ptr->curentIdx = idx;
+    return true;
+}
+
+// Returns the index of the current element
+// Note: returns -1 if the list is empty
+int doublyLinkedList_getCurrentIdx()
+{
+    assert(is_module_initialized);
+    if (list_ptr->head == NULL)
+    {
+        return -1;
+    }
+    return list_ptr->curentIdx;
+}
+
+// Returns the number of elements currently in the list
+int doublyLinkedList_getSize()
+{
+    assert(is_module_initialized);
+    return doublyLinkedList_getCurrentIdx() + 1;
+}
+
 /**********************************************************************/
-// int main(int argc, char const *argv[])
-// {
-//     doublyLinkedList_init();
+int main(int argc, char const *argv[])
+{
+    doublyLinkedList_init();
 
-//     doublyLinkedList_appendItem("Hello1", strlen("Hello1") + 1);
-//     doublyLinkedList_appendItem("Hello2", strlen("Hello2") + 1);
-//     doublyLinkedList_appendItem("Hello3", strlen("Hello3") + 1);
+    doublyLinkedList_appendItem("Hello1", strlen("Hello1") + 1);
+    doublyLinkedList_appendItem("Hello2", strlen("Hello2") + 1);
+    doublyLinkedList_appendItem("Hello3", strlen("Hello3") + 1);
 
-//     char *result = doublyLinkedList_getElementAtIndex(3);
-//     printf("==> the result is: %s\n", result);
+    char *result = doublyLinkedList_getElementAtIndex(3);
+    printf("==> the result is: %s\n", result);
 
-//     do
-//     {
-//         if (!doublyLinkedList_isEmpty())
-//         {
-//             printf("======> %s\n", (char *)doublyLinkedList_getCurrentData());
-//         }
-//     } while (doublyLinkedList_next());
+    if (doublyLinkedList_setCurrent(2)) {
+        printf("setCurrent was successful - current is: %s\n", doublyLinkedList_getCurrentElement());
+        
+    }
+    else {
+        printf("Error - setCurrent was unsuccessful - current is: %s\n", doublyLinkedList_getCurrentElement());
+    }
 
-//     do
-//     {
-//         if (!doublyLinkedList_isEmpty())
-//         {
-//             printf("======> %s\n", (char *)doublyLinkedList_getCurrentData());
-//         }
-//     } while (doublyLinkedList_prev());
 
-//     doublyLinkedList_cleanup();
-//     return 0;
-// }
+    do
+    {
+        if (!doublyLinkedList_isEmpty())
+        {
+            printf("======> %s\n", (char *)doublyLinkedList_getCurrentElement());
+        }
+    } while (doublyLinkedList_next());
+
+    do
+    {
+        if (!doublyLinkedList_isEmpty())
+        {
+            printf("======> %s\n", (char *)doublyLinkedList_getCurrentElement());
+        }
+    } while (doublyLinkedList_prev());
+
+    doublyLinkedList_cleanup();
+    return 0;
+}
