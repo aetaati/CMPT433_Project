@@ -261,42 +261,42 @@ int doublyLinkedList_getSize()
 }
 
 /**********************************************************************/
-int main(int argc, char const *argv[])
-{
-    doublyLinkedList_init();
+// int main(int argc, char const *argv[])
+// {
+//     doublyLinkedList_init();
 
-    doublyLinkedList_appendItem("Hello1", strlen("Hello1") + 1);
-    doublyLinkedList_appendItem("Hello2", strlen("Hello2") + 1);
-    doublyLinkedList_appendItem("Hello3", strlen("Hello3") + 1);
+//     doublyLinkedList_appendItem("Hello1", strlen("Hello1") + 1);
+//     doublyLinkedList_appendItem("Hello2", strlen("Hello2") + 1);
+//     doublyLinkedList_appendItem("Hello3", strlen("Hello3") + 1);
 
-    char *result = doublyLinkedList_getElementAtIndex(3);
-    printf("==> the result is: %s\n", result);
+//     char *result = doublyLinkedList_getElementAtIndex(3);
+//     printf("==> the result is: %s\n", result);
 
-    if (doublyLinkedList_setCurrent(2)) {
-        printf("setCurrent was successful - current is: %s\n", doublyLinkedList_getCurrentElement());
+//     if (doublyLinkedList_setCurrent(2)) {
+//         printf("setCurrent was successful - current is: %s\n", doublyLinkedList_getCurrentElement());
         
-    }
-    else {
-        printf("Error - setCurrent was unsuccessful - current is: %s\n", doublyLinkedList_getCurrentElement());
-    }
+//     }
+//     else {
+//         printf("Error - setCurrent was unsuccessful - current is: %s\n", doublyLinkedList_getCurrentElement());
+//     }
 
 
-    do
-    {
-        if (!doublyLinkedList_isEmpty())
-        {
-            printf("======> %s\n", (char *)doublyLinkedList_getCurrentElement());
-        }
-    } while (doublyLinkedList_next());
+//     do
+//     {
+//         if (!doublyLinkedList_isEmpty())
+//         {
+//             printf("======> %s\n", (char *)doublyLinkedList_getCurrentElement());
+//         }
+//     } while (doublyLinkedList_next());
 
-    do
-    {
-        if (!doublyLinkedList_isEmpty())
-        {
-            printf("======> %s\n", (char *)doublyLinkedList_getCurrentElement());
-        }
-    } while (doublyLinkedList_prev());
+//     do
+//     {
+//         if (!doublyLinkedList_isEmpty())
+//         {
+//             printf("======> %s\n", (char *)doublyLinkedList_getCurrentElement());
+//         }
+//     } while (doublyLinkedList_prev());
 
-    doublyLinkedList_cleanup();
-    return 0;
-}
+//     doublyLinkedList_cleanup();
+//     return 0;
+// }
