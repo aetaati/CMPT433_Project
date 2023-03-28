@@ -25,13 +25,13 @@ void songManager_playSong();
 void songManager_addSongFront(song_info *);
 /* Adds the song to the back of the list*/
 void songManager_addSongBack (song_info *);
-// Resets the songManager when user exits the song menu
+/*Resets the songManager when user exits the song menu */
 void songManager_reset(void);
-// Moves the cursor up
+/* Moves the cursor up */
 void songManager_moveCursorDown(void);
-// Moves the cursor down
+/* Moves the cursor down */
 void songManager_moveCursorUp(void);
-// Displays the songs
+/* Displays the songs */
 void songManager_displaySongs();
 
 /* Returns song_info struct to the user*/
