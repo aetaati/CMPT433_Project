@@ -1,9 +1,3 @@
-/*
-Author: Mehdi Esmaeilzadeh
-Date: 2023-03-12
-Subject: Implementation of the MenuManager module
-*/
-
 #include <pthread.h>
 #include <stdio.h>
 #include <time.h>
@@ -162,7 +156,7 @@ static bool isActionTriggered(long long *timers, int idx)
 }
 
 
-// Cursor wrapping is currently not active
+// Cursor scroll wrapping is currently not active
 static void bluetoothMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection){
   switch(currentJoyStickDirection){
     case JOYSTICK_UP:
