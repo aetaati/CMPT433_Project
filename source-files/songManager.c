@@ -30,14 +30,28 @@ static void playSong(char *soundPath);
 static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number);
 static bool previously_displayed(SONG_CURSOR_LINE current_song, int from_song_number);
 static void setSongs(SONG_CURSOR_LINE current_song, char *song1, char *song2, char *song3, char *song4);
-static song_info *give_song(int song_number);
 static SONG_CURSOR_LINE getsongCursor(int current_song_number);
 static int getfromSongForDisplay(int current_song_number);
 static bool previously_displayed(SONG_CURSOR_LINE current_song, int from_song_number);
 static int getCurrentSongNumber();
+static void moveCursorNextPage();
+static void moveCursorPreviousPage();
 // static void clean_passed_song(song_info* song);
 
-
+static void moveCursorNextPage()
+{
+    doublyLinkedList_iteratorNext(); // 2
+    doublyLinkedList_iteratorNext(); // 3
+    doublyLinkedList_iteratorNext(); // 4
+    doublyLinkedList_iteratorNext(); // 5
+}
+static void moveCursorPreviousPage()
+{
+    doublyLinkedList_iteratorPrev(); // 4
+    doublyLinkedList_iteratorPrev(); // 3
+    doublyLinkedList_iteratorPrev(); // 2
+    doublyLinkedList_iteratorPrev(); // 1
+}
 
 static void setSongs(SONG_CURSOR_LINE current_song, char *song1, char *song2, char *song3, char *song4)
 {
@@ -204,11 +218,29 @@ static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number)
     if(previously_displayed(current_song, from_song_number)) {
         return;
     }
+    song_info *temp1;
+    song_info *temp2;
+    song_info *temp3;
+    song_info *temp4;
 
-    song_info *temp1 = give_song(from_song_number);
-    song_info *temp2 = give_song(from_song_number + 1);
-    song_info *temp3 = give_song(from_song_number + 2);
-    song_info *temp4 = give_song(from_song_number + 3);
+    
+
+    temp1 = doublyLinkedList_getCurrentIteratorElement();
+    if(doublyLinkedList_iteratorNext()) {
+        temp2 = doublyLinkedList_getCurrentIteratorElement();
+    } else {
+        temp2 = NULL;
+    }
+    if(doublyLinkedList_iteratorNext()) {
+        temp3 = doublyLinkedList_getCurrentIteratorElement();
+    } else {
+        temp3 = NULL;
+    }
+    if(doublyLinkedList_iteratorNext()) {
+        temp4 = doublyLinkedList_getCurrentIteratorElement();
+    } else {
+        temp4 = NULL;
+    }
     // char songtemp1[strlen(temp1->author_name) + strlen(temp1->album) + 1];
     // char songtemp2[strlen(temp2->author_name) + strlen(temp2->album) + 1];
     // char songtemp3[strlen(temp3->author_name) + strlen(temp3->album) + 1];
@@ -264,6 +296,9 @@ static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number)
     setSongs(current_song, songtemp1, songtemp2, songtemp3, songtemp4);
     previous_song_cursor = current_song;
     previous_song_start_from = from_song_number;
+    doublyLinkedList_iteratorPrev(); // 3
+    doublyLinkedList_iteratorPrev(); // 2
+    doublyLinkedList_iteratorPrev(); // 1
     // iterate_through_all_songs();
 }
 
@@ -345,6 +380,11 @@ void songManager_addSongBack(song_info *song)
 void songManager_displaySongs() {
   int current_song_number = getCurrentSongNumber();
   int from_song = getfromSongForDisplay(current_song_number);
+  if(from_song > previous_song_start_from) {
+    moveCursorNextPage();
+  } else if (previous_song_start_from != -1 && from_song < previous_song_start_from) {
+    moveCursorPreviousPage();
+  }
   SONG_CURSOR_LINE song_cursor = getsongCursor(current_song_number);
   displaySongs(song_cursor, from_song);
 }
@@ -352,6 +392,7 @@ void songManager_displaySongs() {
 void songManager_reset() {
     //current_song_number = 1;
     doublyLinkedList_setCurrent(0);
+    doublyLinkedList_setIteratorStartPosition();
     previous_song_cursor = CURSOR_LINE_NOT_SET;
     previous_song_start_from = -1;
 }
