@@ -29,7 +29,7 @@ Date: 2023-03-04
 int main(int argc, char const *argv[])
 {
 
-    AudioPlayer_init();
+    /*AudioPlayer_init();
     Potentiometer_init();
     MenuManager_init();
 
@@ -38,7 +38,7 @@ int main(int argc, char const *argv[])
 
     MenuManager_cleanup();
     Potentiometer_cleanup();
-    AudioPlayer_cleanup();
+    AudioPlayer_cleanup();*/
 
 
 
@@ -53,11 +53,12 @@ int main(int argc, char const *argv[])
     
     /*** UPDATE: CODE ADDED TO THE MENU MANAGER*/
     int selection;
-    inquiry_info* devices;
     char input[15] = {0};
-    devices = malloc(BT_MAX_DEV_RSP * sizeof(inquiry_info));
-    int num_scanned = Bluetooth_scan(devices, BT_MAX_DEV_RSP);
-    Bluetooth_displayDevices(devices, num_scanned);
+    bluetooth_scan_t* scanner = malloc(sizeof(bluetooth_scan_t));
+    Bluetooth_scan(scanner);
+
+
+    Bluetooth_displayDevices(scanner->devices, scanner->num_devices);
 
     printf("Choose a device to connect to\n> ");
     if (fgets(input, sizeof(input), stdin) == NULL)
@@ -69,7 +70,7 @@ int main(int argc, char const *argv[])
 
 
     printf("connecting to device...\n");
-    if (Bluetooth_connect(&(devices + selection)->bdaddr) != 0)
+    if (Bluetooth_connect(&(scanner->devices + selection)->bdaddr) != 0)
     {
         printf("error connecting to device\n");
     }

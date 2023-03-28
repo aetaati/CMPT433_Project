@@ -16,11 +16,6 @@
 #include <bluetooth/sdp.h>
 #include <bluetooth/sdp_lib.h>
 
-
-
-// max number of devices that can respond to a bluetooth scan query
-
-
 // the duration of the bluetooth scan = 1.28s * SCAN_LENGTH
 #define SCAN_LENGTH 4
 
@@ -78,11 +73,12 @@ int Bluetooth_pair(bdaddr_t *device_address){
 }
 
 
-int Bluetooth_scan(inquiry_info *scanned_devices, int n)
+int Bluetooth_scan(bluetooth_scan_t* scanner)
 {
     openBT();
     printf("Scanning for bluetooth devices...\n");
-    if (scanned_devices == NULL)
+    scanner->devices = malloc(BT_MAX_DEV_RSP * sizeof(inquiry_info));
+    if (scanner->devices == NULL)
     {
         fprintf(stderr, "failed to allocate memory for scanned devices\n");
         closeBT();
@@ -90,14 +86,17 @@ int Bluetooth_scan(inquiry_info *scanned_devices, int n)
     }
 
     // scan for bluetooth devices
-    int num_rsp = hci_inquiry(bt_adapter_id, SCAN_LENGTH, n, NULL, &scanned_devices, IREQ_CACHE_FLUSH);
+    int num_rsp = hci_inquiry(bt_adapter_id, SCAN_LENGTH, BT_MAX_DEV_RSP, NULL, &scanner->devices, IREQ_CACHE_FLUSH);
     if (num_rsp < 0)
     {
         fprintf(stderr, "hci_inquiry: error scanning devices");
+        closeBT();
+        return (-1);
     }
 
+    scanner->num_devices = num_rsp;
     closeBT();
-    return(num_rsp);
+    return(1);
 
 }
 

@@ -7,8 +7,13 @@
 #include <bluetooth/sdp.h>
 #include <bluetooth/sdp_lib.h>
 
+// max number of devices that can respond to a bluetooth scan query
 #define BT_MAX_DEV_RSP 255
 
+typedef struct{
+    inquiry_info* devices;
+    int num_devices;
+}bluetooth_scan_t;
 
 
 /**
@@ -41,11 +46,12 @@ int Bluetooth_pair(bdaddr_t *device_address);
 /**
  * Scans for nearby bluetooth devices
  * 
- * @param devices list to be filled with scanned devices
- * @param max_rsvp the maximum amount of devices to be scanned
- * @return the actual number of devices scanned 
+ * @param scanner a bluetooth_scan_t strcut to hold the scanned 
+ * devices. ***Must Free scanner.devices before scanner
+ * 
+ * @return -1 if there is an error. 
  */
-int Bluetooth_scan(inquiry_info* devices, int max_rsvp);
+int Bluetooth_scan(bluetooth_scan_t* scanner);
 
 
 /**

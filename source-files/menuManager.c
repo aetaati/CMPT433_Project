@@ -280,15 +280,12 @@ static void *MenuManagerThread(void *arg)
       switch(current_menu){
         case MAIN_MENU:
           mainMenuJoystickAction(currentJoyStickDirection);
-          
           break;
         case SONGS_MENU:
           songMenuJoystickAction(currentJoyStickDirection);
-
-        
           break;
         case BLUETOOTH_MENU:
-
+          
           break;
         case SETTINGS_MENU:
           break;
