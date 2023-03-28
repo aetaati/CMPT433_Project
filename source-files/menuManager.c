@@ -1,9 +1,3 @@
-/*
-Author: Mehdi Esmaeilzadeh
-Date: 2023-03-12
-Subject: Implementation of the MenuManager module
-*/
-
 #include <pthread.h>
 #include <stdio.h>
 #include <time.h>
