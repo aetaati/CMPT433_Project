@@ -35,7 +35,6 @@ struct List
     int size;
 };
 
-
 static bool is_module_initialized = false;
 static struct List *list_ptr = NULL;
 
@@ -133,6 +132,27 @@ static void pop_from_head(void)
     free(first_node);
 
     list_ptr->size -= 0;
+}
+
+static bool set_ptr_to_idx(int idx, struct Node *ptr)
+{
+    int counter = 0;
+    struct Node *node = list_ptr->head;
+
+    while (counter < idx && node != NULL)
+    {
+        node = node->next;
+        counter++;
+    }
+    if (node == NULL)
+        return false;
+
+    if (ptr == list_ptr->current)
+    {
+        list_ptr->curentIdx = idx;
+    }
+    ptr = node;
+    return true;
 }
 
 ////////////////////////////////////////// Public Function //////////////////////////////////////////
@@ -236,23 +256,7 @@ void *doublyLinkedList_getElementAtIndex(int idx)
 bool doublyLinkedList_setCurrent(int idx)
 {
     assert(is_module_initialized);
-    if (idx < 0)
-        return false;
-
-    int counter = 0;
-    struct Node *node = list_ptr->head;
-
-    while (counter < idx && node != NULL)
-    {
-        node = node->next;
-        counter++;
-    }
-    if (node == NULL)
-        return false;
-
-    list_ptr->current = node;
-    list_ptr->curentIdx = idx;
-    return true;
+    return set_ptr_to_idx(idx, list_ptr->current);
 }
 
 // Returns the index of the current element
@@ -345,6 +349,12 @@ void *doublyLinkedList_getCurrentIteratorElement(void)
         return NULL;
     }
     return list_ptr->currentDisplay->data;
+}
+
+bool doublyLinkedList_setIterator(int idx)
+{
+    assert(is_module_initialized);
+    return set_ptr_to_idx(idx, list_ptr->currentDisplay);
 }
 
 /**********************************************************************/

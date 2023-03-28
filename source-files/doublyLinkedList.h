@@ -71,6 +71,10 @@ bool doublyLinkedList_iteratorNext(void);
 // Note: Returns false if the list is empty or there is no previous element
 bool doublyLinkedList_iteratorPrev(void);
 
+// Resets the current pointer to point to the element
+// Returns false if idx is out of bounds or the list is empty
+bool doublyLinkedList_setIterator(int idx);
+
 // Returns the data of the "currentDisplay"
 void *doublyLinkedList_getCurrentIteratorElement(void);
 
