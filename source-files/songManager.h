@@ -33,8 +33,6 @@ void songManager_moveCursorDown(void);
 void songManager_moveCursorUp(void);
 // Displays the songs
 void songManager_displaySongs();
-/* Returns current number of the songs that are currently in the list*/
-size_t songManager_currentNumberSongs(void);
 
 /* Returns song_info struct to the user*/
 // Gets current song_playing
