@@ -30,7 +30,6 @@ Subject: Implementation of the MenuManager module
 */
 static bool stoppingMenu = false;
 static pthread_t menuManagerThreadId;
-static int current_song_number = 1;
 static MENU current_menu = MAIN_MENU;
 static MAIN_OPTIONS current_main = SONGS_OPT; 
 wavedata_t *pSound_currentSong = NULL;
@@ -46,6 +45,17 @@ static char** bt_scan_option_strings;
 
  
 static void Main_setArrowAtLine(LCD_LINE_NUM line);
+
+
+static void displayMainMenu()
+{
+  current_menu = MAIN_MENU;
+  current_main = SONGS_OPT;
+  Main_setArrowAtLine(SONGS_OPT);
+}
+
+
+
 
 static void displayBluetoothMenu(){
   current_menu = BLUETOOTH_MENU;
@@ -65,27 +75,29 @@ static void displayBluetoothMenu(){
   LCD_writeStringAtLine("", LCD_LINE2);
   LCD_writeChar(LCD_RIGHT_ARROW);
 
+  // display up to the first 3 devices
   int index = 1;
   LCD_writeString(bt_scan_option_strings[0]);
-  while(index < 4 && index < scanner->num_devices){
+  while(index < 3 && index < scanner->num_devices){
     LCD_writeStringAtLine(bt_scan_option_strings[index], index + 1);
     printf("%s %d\n", bt_scan_option_strings[index], index + 1);
     index++;
   }
-  
-  
-  
-
 }
+
 static void displaySettingsMenu(){
   LCD_clear();
   LCD_writeStringAtLine("Settings Menu", LCD_LINE1);
 }
+
 static void displaySongMenu()
 {
   LCD_clear();
   LCD_writeStringAtLine("Songs Menu", LCD_LINE1);
 }
+
+
+
 static void mainMenuSwitch(MAIN_OPTIONS option){
   switch(option){
     case SONGS_OPT:
@@ -147,81 +159,88 @@ static bool isActionTriggered(long long *timers, int idx)
   return false;
 }
 
+static void bluetoothMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection){
+  switch(currentJoyStickDirection){
+    case JOYSTICK_UP:
+      // scroll up
+
+      break;
+
+    case JOYSTICK_DOWN:
+      // scroll down
+      
+      break;
+
+    case JOYSTICK_CENTER:
+      // connect to selected device
+
+      break;
+    case JOYSTICK_LEFT:
+      displayMainMenu();
+      
+    default:
+      // unsupported direction
+      break;
+  }
+  
+
+
+}
+
 
 static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection)
 {
-  if (currentJoyStickDirection == JOYSTICK_UP)
-  {
-    // scroll up
-    printf("current option %d\n", current_main);
-    if( current_main == SONGS_OPT){
-      current_main = POWEROFF_OPT;
-    }
-    else{
-      current_main--;
-    }
 
-    Main_setArrowAtLine(current_main);
-    printf("after joystick %d\n", current_main);
-  }
-  else if (currentJoyStickDirection == JOYSTICK_DOWN)
-  {
-    // scroll down
-    printf("current option %d\n", current_main);
-    current_main = (current_main + 1) % NUM_OPTIONS;
-    
-    Main_setArrowAtLine(current_main);
-    printf("after joystick %d\n", current_main);
 
-  }
-  else if (currentJoyStickDirection == JOYSTICK_LEFT)
-  {
-    // left does nothing in main menu
-  }
-  else if (currentJoyStickDirection == JOYSTICK_RIGHT)
-  {
-   // right does nothing in main menu
-  }
-  else if (currentJoyStickDirection == JOYSTICK_CENTER)
-  {
-    // drill into sub menu
-    mainMenuSwitch(current_main);
+  switch(currentJoyStickDirection){
+    case JOYSTICK_UP:
+      // scroll up
+      if( current_main == SONGS_OPT){
+        current_main = POWEROFF_OPT;
+      }
+      else{
+        current_main--;
+      }
+      Main_setArrowAtLine(current_main);
+      break;
+
+    case JOYSTICK_DOWN:
+      // scroll down
+      current_main = (current_main + 1) % NUM_OPTIONS;
+      Main_setArrowAtLine(current_main);
+      break;
+
+    case JOYSTICK_CENTER:
+      // drill into sub menu
+      mainMenuSwitch(current_main);
+      break;
+      
+    default:
+      // unsupported direction
+      break;
   }
 }
 
 
 static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection)
 {
-
-  if (currentJoyStickDirection == JOYSTICK_UP)
-  {
-    if (current_song_number - 1 >= 1)
-    {
-      current_song_number--;
-    }
-  }
-  else if (currentJoyStickDirection == JOYSTICK_DOWN)
-  {
-    if (current_song_number + 1 <= (int)songManager_currentNumberSongs())
-    {
-      current_song_number++;
-    }
-  }
-  else if (currentJoyStickDirection == JOYSTICK_CENTER)
-  {
-    songManager_playSong(current_song_number);
-  }
-  else if (currentJoyStickDirection == JOYSTICK_LEFT)
-  {
-    current_song_number = 1;
+  switch(currentJoyStickDirection){
+    case JOYSTICK_UP:
+      break;
+    case JOYSTICK_DOWN:
+      break;
+    case JOYSTICK_LEFT:
+      break;
+    case JOYSTICK_RIGHT:
+      break;
+    default:
+      // unsupported direction
+      break;
   }
 }
 
 
-static void display_menu_content()
-{
-  Main_setArrowAtLine(SONGS_OPT);
-}
+
 
 
 static void Main_setArrowAtLine(LCD_LINE_NUM line){
@@ -289,7 +308,7 @@ static void *MenuManagerThread(void *arg)
     action_timers[i] = (long long)0;
   }
 
-  display_menu_content();
+  displayMainMenu();
 
   /*************************************************************************/
 
@@ -312,7 +331,7 @@ static void *MenuManagerThread(void *arg)
           songMenuJoystickAction(currentJoyStickDirection);
           break;
         case BLUETOOTH_MENU:
-          
+          bluetoothMenuJoystickAction(currentJoyStickDirection);
           break;
         case SETTINGS_MENU:
           break;

@@ -42,12 +42,6 @@ int main(int argc, char const *argv[])
 
 
 
-    // LCD_shiftDisplay(LCD_LINE1, LCD_RIGHT);
-
-    
-    
-
-
 
 
     /*printf("connecting to device...\n");
