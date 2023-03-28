@@ -91,7 +91,6 @@ int Bluetooth_pair(bdaddr_t *device_address){
 int Bluetooth_scan(bluetooth_scan_t* scanner)
 {
     openBT();
-    printf("Scanning for bluetooth devices...\n");
     scanner->devices = malloc(BT_MAX_DEV_RSP * sizeof(inquiry_info));
     if (scanner->devices == NULL)
     {
