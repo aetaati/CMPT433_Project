@@ -58,13 +58,23 @@ static void displayBluetoothMenu(){
   Bluetooth_scan(scanner);
   char* names[scanner->num_devices];
   Bluetooth_getHumanReadableNames(scanner, names);
+  printf("num scanned: %d\n", scanner->num_devices);
   bt_scan_option_strings = names;
-  printf("%s\n", bt_scan_option_strings[0]);
-  printf("%s\n", bt_scan_option_strings[1]);
-  printf("%s\n", bt_scan_option_strings[2]);
-  LCD_writeStringAtLine(bt_scan_option_strings[0], LCD_LINE2);
-  LCD_writeStringAtLine(bt_scan_option_strings[1], LCD_LINE3);
-  LCD_writeStringAtLine(bt_scan_option_strings[2], LCD_LINE4);
+  LCD_clear();
+  LCD_writeStringAtLine("    Select Device", LCD_LINE1);
+  LCD_writeStringAtLine("", LCD_LINE2);
+  LCD_writeChar(LCD_RIGHT_ARROW);
+
+  int index = 1;
+  LCD_writeString(bt_scan_option_strings[0]);
+  while(index < 4 && index < scanner->num_devices){
+    LCD_writeStringAtLine(bt_scan_option_strings[index], index + 1);
+    printf("%s %d\n", bt_scan_option_strings[index], index + 1);
+    index++;
+  }
+  
+  
+  
 
 }
 static void displaySettingsMenu(){

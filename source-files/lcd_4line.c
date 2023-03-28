@@ -4,6 +4,7 @@
 #include <linux/i2c-dev.h>
 #include <fcntl.h>
 #include <time.h>
+#include <string.h>
 #include <sys/ioctl.h>
 
 #include "lcd_4line.h"
@@ -149,16 +150,21 @@ void LCD_setCursorDirection(void)
 
 void LCD_writeString(char *string)
 {   
-    int index = 0;
-    while (*string != '\0' && index < 17)
-    {
-        LCD_writeChar(*string);
-        string++;
-        index++;
-    }
-    if(*string != '\0'){
+    // add ... to long strings
+    if(strlen(string) > 20){
+        for(int i = 0; i < 16; i++){
+            LCD_writeChar(*string);
+            string++;
+        }
         for(int i = 0; i < 3; i++){
             LCD_writeChar('.');
+        }
+    }
+    else{
+        while (*string != '\0')
+        {
+            LCD_writeChar(*string);
+            string++;
         }
     }
 }
