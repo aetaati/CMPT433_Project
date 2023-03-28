@@ -43,7 +43,6 @@ void *doublyLinkedList_getCurrentElement(void);
 // Frees the memory for all nodes, the data, and the List struct
 void doublyLinkedList_cleanup(void);
 
-
 // TODO: Resets the current pointer to point to the element
 // Returns false if idx is out of bounds or the list is empty
 bool doublyLinkedList_setCurrent(int idx);
@@ -66,11 +65,11 @@ bool doublyLinkedList_setIteratorEndPosition(void);
 
 // Moves the display one position to the right
 // Note: Returns false if the list is empty or there is no next element
-bool doublyLinkedList_iterateNext(void);
+bool doublyLinkedList_iteratorNext(void);
 
 // Moves the display one position to the left and returns the data at the that position
 // Note: Returns false if the list is empty or there is no previous element
-bool doublyLinkedList_iteratePrev(void);
+bool doublyLinkedList_iteratorPrev(void);
 
 // Returns the data of the "currentDisplay"
 void *doublyLinkedList_getCurrentIteratorElement(void);

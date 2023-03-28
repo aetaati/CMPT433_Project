@@ -305,7 +305,7 @@ bool doublyLinkedList_setIteratorEndPosition(void)
 
 // Moves the display one position to the right
 // Note: Returns false if the list is empty or there is no next element
-bool doublyLinkedList_iterateNext(void)
+bool doublyLinkedList_iteratorNext(void)
 {
     assert(is_module_initialized);
     if (list_ptr->size == 0)
@@ -322,7 +322,7 @@ bool doublyLinkedList_iterateNext(void)
 
 // Moves the display one position to the left and returns the data at the that position
 // Note: Returns false if the list is empty or there is no previous element
-bool doublyLinkedList_iteratePrev(void)
+bool doublyLinkedList_iteratorPrev(void)
 {
     assert(is_module_initialized);
     if (list_ptr->size == 0)
