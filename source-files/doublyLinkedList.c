@@ -30,7 +30,7 @@ struct List
     struct Node *current; // keeps track of the current element in the list
     int curentIdx;        // -1 if there is no element in the list
 
-    struct Node *currentDisplay; // pointer to display the elements without changing "current"
+    struct Node *currentDisplay; // pointer to display the elements without changing "current" - TODO: change name to currentIterator
 
     int size;
 };
@@ -357,6 +357,34 @@ bool doublyLinkedList_setIterator(int idx)
     return set_ptr_to_idx(idx, list_ptr->currentDisplay);
 }
 
+bool doublyLinkedList_advanceIteratorNTimes(int n)
+{
+    if (n <= 0 || list_ptr->tail == list_ptr->currentDisplay)
+    {
+        return false;
+    }
+    int counter = 0;
+    while (counter < n && doublyLinkedList_iteratorNext())
+    {
+        counter++;
+    }
+    return true;
+}
+
+bool doublyLinkedList_rewindIteratorNTimes(int n)
+{
+    if (n <= 0 || list_ptr->head == list_ptr->currentDisplay)
+    {
+        return false;
+    }
+    int counter = 0;
+    while (counter < n && doublyLinkedList_iteratorPrev())
+    {
+        counter++;
+    }
+    return true;
+}
+
 /**********************************************************************/
 // int main(int argc, char const *argv[])
 // {
@@ -368,8 +396,18 @@ bool doublyLinkedList_setIterator(int idx)
 
 //     // printf("current size if %d\n", doublyLinkedList_getSize());
 
-//     char *result = doublyLinkedList_getElementAtIndex(3);
-//     printf("==> the result is: %s\n", result);
+//     // char *result = doublyLinkedList_getElementAtIndex(3);
+//     // printf("==> the result is: %s\n", result);
+
+//     doublyLinkedList_advanceIteratorNTimes(3);
+//     if (doublyLinkedList_rewindIteratorNTimes(300))
+//     {
+//         printf("==> current iterator element is: %s\n", doublyLinkedList_getCurrentIteratorElement());
+//     }
+//     else
+//     {
+//         printf("doublyLinkedList_advanceIteratorNTimes() failed\n");
+//     }
 
 //     do
 //     {
