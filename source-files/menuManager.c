@@ -234,6 +234,7 @@ static void bluetoothMenuJoystickAction(enum eJoystickDirections currentJoyStick
       else{
           LCD_clearLine(LCD_LINE1);
           LCD_writeStringAtLine("Connected to: ", LCD_LINE1);
+          Sleep_ms(750);
           LCD_writeStringAtLine(bt_scan_option_strings[current_bt_device], LCD_LINE2);
       }
 
