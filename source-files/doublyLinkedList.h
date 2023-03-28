@@ -43,7 +43,6 @@ void *doublyLinkedList_getCurrentElement(void);
 // Frees the memory for all nodes, the data, and the List struct
 void doublyLinkedList_cleanup(void);
 
-//////////// Extra functions to maintain the modularity according to songManager's needs ////////////
 
 // TODO: Resets the current pointer to point to the element
 // Returns false if idx is out of bounds or the list is empty
@@ -51,9 +50,30 @@ bool doublyLinkedList_setCurrent(int idx);
 
 // TODO: Returns the index of the current element
 // Note: returns -1 if the list is empty
-int doublyLinkedList_getCurrentIdx();
+int doublyLinkedList_getCurrentIdx(void);
 
 // TODO: Returns the number of elements currently in the list
-int doublyLinkedList_getSize();
+int doublyLinkedList_getSize(void);
+
+//////////// Extra functions to maintain the modularity according to songManager's needs ////////////
+
+// Sets list's position to be displayed from to the Head
+// Note: Returns false if the list is empty
+bool doublyLinkedList_setIteratorStartPosition(void);
+
+// Sets list's position to be displayed from to the Tail
+bool doublyLinkedList_setIteratorEndPosition(void);
+
+// Moves the display one position to the right
+// Note: Returns false if the list is empty or there is no next element
+bool doublyLinkedList_iterateNext(void);
+
+// Moves the display one position to the left and returns the data at the that position
+// Note: Returns false if the list is empty or there is no previous element
+bool doublyLinkedList_iteratePrev(void);
+
+// Returns the data of the "currentDisplay"
+void *doublyLinkedList_getCurrentIteratorElement(void);
+
 
 #endif // DOUBLY_LINKED_LIST_H
