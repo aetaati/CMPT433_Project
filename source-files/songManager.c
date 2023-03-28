@@ -20,7 +20,6 @@ static wavedata_t *pSound_currentSong = NULL;
 
 static song_info *current_song_playing = NULL;
 
-static int current_song_number = 1;
 static SONG_CURSOR_LINE previous_song_cursor = CURSOR_LINE_NOT_SET;
 static int previous_song_start_from = -1;
 
@@ -35,6 +34,7 @@ static song_info *give_song(int song_number);
 static SONG_CURSOR_LINE getsongCursor(int current_song_number);
 static int getfromSongForDisplay(int current_song_number);
 static bool previously_displayed(SONG_CURSOR_LINE current_song, int from_song_number);
+static int getCurrentSongNumber();
 // static void clean_passed_song(song_info* song);
 
 
@@ -89,20 +89,25 @@ static void setSongs(SONG_CURSOR_LINE current_song, char *song1, char *song2, ch
     }
 }
 
-static song_info *give_song(int song_number)
+static int getCurrentSongNumber()
 {
-    int n = song_number - 1;
-    struct Node *temp = doublyLinkedList_getHead();
-    for (int i = 0; i < n; i++)
-    {
-        if (temp == NULL)
-        {
-            break;
-        }
-        temp = temp->next;
-    }
-    return temp->data;
+    return doublyLinkedList_getCurrentIdx() + 1;
 }
+
+// static song_info *give_song(int song_number)
+// {
+//     int n = song_number - 1;
+//     struct Node *temp = doublyLinkedList_getHead();
+//     for (int i = 0; i < n; i++)
+//     {
+//         if (temp == NULL)
+//         {
+//             break;
+//         }
+//         temp = temp->next;
+//     }
+//     return temp->data;
+// }
 
 static void playSong(char *soundPath)
 {
@@ -300,21 +305,21 @@ void songManager_init()
     songManager_addSongBack(song5);
 }
 
-size_t songManager_currentNumberSongs()
-{
-    int size = 0;
-    struct Node *temp = doublyLinkedList_getHead();
-    while (temp != NULL)
-    {
-        size++;
-        temp = temp->next;
-    }
-    return size;
-}
+// size_t songManager_currentNumberSongs()
+// {
+//     int size = 0;
+//     struct Node *temp = doublyLinkedList_getHead();
+//     while (temp != NULL)
+//     {
+//         size++;
+//         temp = temp->next;
+//     }
+//     return size;
+// }
 
 void songManager_playSong()
 {
-    song_info *temp = give_song(current_song_number);
+    song_info *temp = doublyLinkedList_getCurrentElement();
     if (temp == NULL)
     {
         printf("Song is not Existed ! \n");
@@ -338,31 +343,39 @@ void songManager_addSongBack(song_info *song)
 }
 
 void songManager_displaySongs() {
+  int current_song_number = getCurrentSongNumber();
   int from_song = getfromSongForDisplay(current_song_number);
   SONG_CURSOR_LINE song_cursor = getsongCursor(current_song_number);
   displaySongs(song_cursor, from_song);
 }
 
 void songManager_reset() {
-    current_song_number = 1;
+    //current_song_number = 1;
+    doublyLinkedList_setCurrent(0);
     previous_song_cursor = CURSOR_LINE_NOT_SET;
     previous_song_start_from = -1;
 }
 void songManager_moveCursorDown()
 {
-    if (current_song_number - 1 > 1)
-    {
-      current_song_number--;
-    }
+    // if (current_song_number - 1 > 1)
+    // {
+    //   current_song_number--;
+    //   //doublyLinkedList_setCurrent(current_song_number-1);
+      
+    // }
+    doublyLinkedList_prev();
     songManager_displaySongs();
 }
 
 void songManager_moveCursorUp()
 {
-    if (current_song_number + 1 < (int)songManager_currentNumberSongs())
-    {
-        current_song_number++;
-    }
+    // if (current_song_number + 1 < doublyLinkedList_getSize())
+    // {
+    //     current_song_number++;
+        
+    //     //doublyLinkedList_setCurrent(current_song_number-1);
+    // }
+    doublyLinkedList_next();
     songManager_displaySongs();
 }
 
