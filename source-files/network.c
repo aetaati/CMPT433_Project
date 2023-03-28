@@ -1,9 +1,11 @@
-//
-// Created by: Amirhossein Etaati
-// Date: 2023-02-07
-// Purpose: Declarations of the network module to send and respond to the user commands across the network using UPD packets
-// Note: Some parts of this code is adapted from: UDP Listening program on port 22110 * By Brian Fraser, Modified from Linux Programming Unleashed (book)
-//
+
+/*
+Subject: CMPT433 (Embedded Systems) - BeablePod Project
+Purpose: Declarations of the network module to handle UDP messages se
+Use cases: To respond to the web interface requests
+Author: Amirhossein Etaati
+Date: 2023-03-16
+*/
 
 #include "network.h"
 #include <stdio.h>
@@ -30,9 +32,11 @@ static pthread_t thread_id;
 bool is_module_initialized = false;
 
 // to handle commands
-static enum eWebCommands
+enum eWebCommands
 {
-    COMMAND_VOLUME_UP = 0,
+    COMMAND_ADD_SONG = 0,
+    COMMAND_REMOVE_SONG,
+    COMMAND_VOLUME_UP,
     COMMAND_VOLUME_DOWN,
     COMMAND_SONG_NEXT,
     COMMAND_SONG_PREVIOUS,
@@ -41,10 +45,18 @@ static enum eWebCommands
     COMMAND_TOTAL_COUNT // Total number of available commands ??
 };
 
-// parse the received command
+// parse the received command and return the appropriate eWebCommands enum value
 static enum eWebCommands parse_command(char messageRx[MSG_MAX_LEN])
 {
-    if (strncmp(messageRx, "volume_up", strlen("volume_up")) == 0)
+    if (strncmp(messageRx, "add_song", strlen("add_song")) == 0)
+    {
+        return COMMAND_ADD_SONG;
+    }
+    else if (strncmp(messageRx, "remove_song", strlen("remove_song")) == 0)
+    {
+        return COMMAND_REMOVE_SONG;
+    }
+    else if (strncmp(messageRx, "volume_up", strlen("volume_up")) == 0)
     {
         return COMMAND_VOLUME_UP;
     }
@@ -75,75 +87,67 @@ static enum eWebCommands parse_command(char messageRx[MSG_MAX_LEN])
 // the caller should call free()
 static char *run_command(enum eWebCommands cur_command)
 {
+    // TODO: consider using an array of function pointers to respond to each command
+    // The array will be initialized in network_init ??
+    // The indices of the array will be the values of eWebCommands enum ??
     char *result = NULL;
     result = malloc(MSG_ACK_LEN * sizeof(char));
     snprintf(result, MSG_ACK_LEN, MSG_ACK);
-    if (cur_command == COMMAND_VOLUME_UP)
+    if (cur_command == COMMAND_ADD_SONG)
+    {
+        // TODO call the call songManager module to add the new song
+        // TODO: SOS - need the path of the song ??
+        printf("DEBUG: add song\n");
+        return result;
+    }
+    else if (cur_command == COMMAND_REMOVE_SONG)
+    {
+        // TODO call the call songManager module to remove the song
+        // TODO: SOS - need the path of the song ??
+        printf("DEBUG: remove song\n");
+        return result;
+    }
+    else if (cur_command == COMMAND_VOLUME_UP)
     {
         // TODO call the volume module to increase the volume
+        printf("DEBUG: volume up\n");
         return result;
     }
     else if (cur_command == COMMAND_VOLUME_DOWN)
     {
         // TODO call the volume module to decrease the volume
+        printf("DEBUG: volume down\n");
         return result;
     }
     else if (cur_command == COMMAND_SONG_NEXT)
     {
         // TODO call the song module to go to the next song
+        printf("DEBUG: next song\n");
         return result;
     }
     else if (cur_command == COMMAND_SONG_PREVIOUS)
     {
         // TODO call the song module to the previous song
-        return result;
-    }
-    else if (cur_command == COMMAND_SONG_PREVIOUS)
-    {
-        // TODO stop all the other threads and modules
+        printf("DEBUG: previous song\n");
         return result;
     }
     else if (cur_command == COMMAND_STOP)
     {
         // TODO stop all the other threads and modules
+        printf("DEBUG: stop\n");
         return result;
     }
     else
     {
+        printf("DEBUG: unkown command\n");
         return NULL; // TODO: ??
     }
 }
 
-// thread function to manage networking logics
-static void *network_thread(void *params)
+static void network_logic(int socketDescriptor)
 {
-
-    // UPD setups (server/receiver side)
-
-    // initialize Address
-    struct sockaddr_in sin;
-    memset(&sin, 0, sizeof(sin));
-    sin.sin_family = AF_INET;                // connection may be from network
-    sin.sin_addr.s_addr = htonl(INADDR_ANY); // host to network long
-    sin.sin_port = htons(PORT);              // host to network short
-
-    // create the socket for UDP
-    int socketDescriptor = socket(PF_INET, SOCK_DGRAM, 0);
-
-    // bind the specified port (PORT)
-    bind(socketDescriptor, (struct sockaddr *)&sin, sizeof(sin));
-
-    // check for errors
-    if (socketDescriptor == -1)
-    {
-        printf("ERROR: Failed to create the socket\n");
-        exit(-1);
-    }
-
-    int n = -1;
-
-    bool local_network_cond = true;
-    while (local_network_cond)
+    bool network_cond = true;
+    while (network_cond)
     {
 
         // create variables required for receiving
@@ -186,6 +190,11 @@ static void *network_thread(void *params)
 
         // compose the response message
 
+        if (curr_command == UNKNOWN_COMMAND)
+        {
+            // unknown command
+            continue;
+        }
         char *response = run_command(curr_command);
 
         // TODO: for now all the replies are ACK; Kept for potential later use
@@ -226,9 +235,40 @@ static void *network_thread(void *params)
         // check termination condition
         if (curr_command == COMMAND_STOP)
         {
-            local_network_cond = false;
+            network_cond = false;
         }
     }
+}
+
+// thread function to manage networking logics
+static void *network_thread(void *params)
+{
+
+    // UPD setups (server/receiver side)
+
+    // initialize Address
+    struct sockaddr_in sin;
+    memset(&sin, 0, sizeof(sin));
+    sin.sin_family = AF_INET;                // connection may be from network
+    sin.sin_addr.s_addr = htonl(INADDR_ANY); // host to network long
+    sin.sin_port = htons(PORT);              // host to network short
+
+    // create the socket for UDP
+    int socketDescriptor = socket(PF_INET, SOCK_DGRAM, 0);
+
+    // bind the specified port (PORT)
+    bind(socketDescriptor, (struct sockaddr *)&sin, sizeof(sin));
+
+    // check for errors
+    if (socketDescriptor == -1)
+    {
+        printf("ERROR: Failed to create the socket\n");
+        exit(-1);
+    }
+
+    // int n = -1;
+
+    network_logic(socketDescriptor);
 
     // close the socket
     close(socketDescriptor);
@@ -249,6 +289,23 @@ void Network_init()
 void Network_cleanup()
 {
     assert(is_module_initialized);
+
+    // TODO: init function pointers of the commands
     // wait for the thread to finish
     pthread_join(thread_id, NULL);
 }
+
+
+// #include "sleep.h"
+// int main(int argc, char const *argv[])
+// {
+//     Network_init();
+
+//     printf("debug: test main\n");
+
+//     Sleep_ms(5000);
+
+//     Network_cleanup();
+
+//     return 0;
+// }
