@@ -41,7 +41,11 @@ bool doublyLinkedList_next(void);
 // Returns true if update is successful, false if the list is empty
 bool doublyLinkedList_prev(void);
 
-// Gets the data of the "current"
+// Returns the element at index "idx" or NULL if idx is out of bounds
+// Note: the list is zero-indexed
+void *doublyLinkedList_getElementAtIndex(int idx);
+
+// Returns the data of the "current"
 void *doublyLinkedList_getCurrentData(void);
 
 // Frees the memory for all nodes, the data, and the List struct

@@ -15,7 +15,6 @@ Date: 2023-03-16
 
 #include "doublyLinkedList.h"
 
-
 struct List
 {
     struct Node *head;
@@ -117,7 +116,9 @@ void doublyLinkedList_init(void)
     is_module_initialized = true;
 }
 
-struct Node* doublyLinkedList_getHead(void) {
+// TODO: remove
+struct Node *doublyLinkedList_getHead(void)
+{
     return list_ptr->head;
 }
 
@@ -181,6 +182,23 @@ void doublyLinkedList_cleanup(void)
     free(list_ptr);
 }
 
+void *doublyLinkedList_getElementAtIndex(int idx)
+{
+    assert(is_module_initialized);
+    if(idx<0) return NULL;
+
+    int counter = 0;
+    struct Node *node = list_ptr->head;
+
+    while (counter < idx && node != NULL)
+    {
+        node = node->next;
+        counter++;
+    }
+    if (node==NULL) return NULL;
+    return node->data;
+}
+
 /**********************************************************************/
 // int main(int argc, char const *argv[])
 // {
@@ -189,6 +207,9 @@ void doublyLinkedList_cleanup(void)
 //     doublyLinkedList_appendItem("Hello1", strlen("Hello1") + 1);
 //     doublyLinkedList_appendItem("Hello2", strlen("Hello2") + 1);
 //     doublyLinkedList_appendItem("Hello3", strlen("Hello3") + 1);
+
+//     char *result = doublyLinkedList_getElementAtIndex(3);
+//     printf("==> the result is: %s\n", result);
 
 //     do
 //     {
