@@ -40,18 +40,5 @@ int main(int argc, char const *argv[])
     Potentiometer_cleanup();
     AudioPlayer_cleanup();
 
-
-
-
-
-    /*printf("connecting to device...\n");
-    if (Bluetooth_connect(&(scanner->devices + selection)->bdaddr) != 0)
-    {
-        printf("error connecting to device\n");
-    }
-    else{
-        printf("Connected!\n");
-    }*/
-
     return 0;
 }

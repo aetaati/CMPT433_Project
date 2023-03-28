@@ -32,7 +32,12 @@ static bool stoppingMenu = false;
 static pthread_t menuManagerThreadId;
 static MENU current_menu = MAIN_MENU;
 static MAIN_OPTIONS current_main = SONGS_OPT; 
-wavedata_t *pSound_currentSong = NULL;
+static LCD_LINE_NUM current_arrow_line; 
+
+static bluetooth_scan_t* scanner;
+static char** bt_scan_option_strings;
+static char* display_array[4] = {"", "", "", ""};
+int current_bt_device = 0;
 
 static char* main_menu_option_strings[NUM_OPTIONS] = {
   "Select Song",
@@ -40,11 +45,9 @@ static char* main_menu_option_strings[NUM_OPTIONS] = {
   "Settings",
   "Poweroff"
 };
-
-static char** bt_scan_option_strings;
-
  
 static void Main_setArrowAtLine(LCD_LINE_NUM line);
+static void bt_menu_setArrowAtLine(LCD_LINE_NUM line);
 
 
 static void displayMainMenu()
@@ -54,9 +57,6 @@ static void displayMainMenu()
   Main_setArrowAtLine(SONGS_OPT);
 }
 
-
-
-
 static void displayBluetoothMenu(){
   current_menu = BLUETOOTH_MENU;
   LCD_clear();
@@ -64,25 +64,27 @@ static void displayBluetoothMenu(){
 
   // scan
   LCD_writeStringAtLine("Scanning for Devices", LCD_LINE1);
-  bluetooth_scan_t* scanner = malloc(sizeof(bluetooth_scan_t));
+  scanner = malloc(sizeof(bluetooth_scan_t));
   Bluetooth_scan(scanner);
-  char* names[scanner->num_devices];
-  Bluetooth_getHumanReadableNames(scanner, names);
+  bt_scan_option_strings = malloc(sizeof(char*) * scanner->num_devices);
+  Bluetooth_getHumanReadableNames(scanner, bt_scan_option_strings);
   printf("num scanned: %d\n", scanner->num_devices);
-  bt_scan_option_strings = names;
   LCD_clear();
+ 
+
+  // display up to the first 3 devices
   LCD_writeStringAtLine("    Select Device", LCD_LINE1);
   LCD_writeStringAtLine("", LCD_LINE2);
   LCD_writeChar(LCD_RIGHT_ARROW);
-
-  // display up to the first 3 devices
   int index = 1;
   LCD_writeString(bt_scan_option_strings[0]);
+  display_array[1] = bt_scan_option_strings[0];
   while(index < 3 && index < scanner->num_devices){
     LCD_writeStringAtLine(bt_scan_option_strings[index], index + 1);
-    printf("%s %d\n", bt_scan_option_strings[index], index + 1);
+    display_array[index + 1] = bt_scan_option_strings[index];
     index++;
   }
+  current_arrow_line = LCD_LINE2;
 }
 
 static void displaySettingsMenu(){
@@ -159,23 +161,102 @@ static bool isActionTriggered(long long *timers, int idx)
   return false;
 }
 
+
+// Cursor wrapping is currently not active
 static void bluetoothMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection){
   switch(currentJoyStickDirection){
     case JOYSTICK_UP:
       // scroll up
+      if(current_bt_device == 0){
+        // top of list -> do nothing
+      }
+      else if(current_arrow_line == LCD_LINE2){
+        // top of displayed options -> shift options back by 1 leave arrow at line 2
+        current_bt_device--;
+        for(int i = 1; i < 4; i++){
+          display_array[i] = bt_scan_option_strings[current_bt_device - 1 + i];
+        }
 
+        LCD_clearLine(LCD_LINE2);
+        LCD_clearLine(LCD_LINE3);
+        LCD_clearLine(LCD_LINE4);
+        bt_menu_setArrowAtLine(LCD_LINE2);
+      }
+      else if(current_arrow_line == LCD_LINE3){
+        current_bt_device--;
+        LCD_clearLine(LCD_LINE3);
+        bt_menu_setArrowAtLine(LCD_LINE2);
+      }
+      else if(current_arrow_line == LCD_LINE4){
+        current_bt_device--;
+        LCD_clearLine(LCD_LINE4);
+        bt_menu_setArrowAtLine(LCD_LINE3);
+      }
       break;
 
     case JOYSTICK_DOWN:
       // scroll down
-      
+      if(current_bt_device == scanner->num_devices - 1){
+        // bottom of list -> do nothing
+      }
+      else if(current_arrow_line == LCD_LINE4){
+        // bottom of displayed options -> shift options forward by 1 leave arrow at line 4
+        current_bt_device++;
+        for(int i = 3; i > 0; i--){
+          display_array[i] = bt_scan_option_strings[current_bt_device  + i - 3];
+        }
+        LCD_clearLine(LCD_LINE2);
+        LCD_clearLine(LCD_LINE3);
+        LCD_clearLine(LCD_LINE4);
+        bt_menu_setArrowAtLine(LCD_LINE4);
+      }
+      else if(current_arrow_line == LCD_LINE3){
+        current_bt_device++;
+        LCD_clearLine(LCD_LINE3);
+        bt_menu_setArrowAtLine(LCD_LINE4);
+      }
+      else if(current_arrow_line == LCD_LINE2){
+        current_bt_device++;
+        LCD_clearLine(LCD_LINE2);
+        bt_menu_setArrowAtLine(LCD_LINE3);
+      }
       break;
 
     case JOYSTICK_CENTER:
       // connect to selected device
+      LCD_clear();
+      LCD_writeStringAtLine("Connecting...", LCD_LINE1);
+      if (Bluetooth_connect(&(scanner->devices + current_bt_device)->bdaddr) != 0)
+      {
+          LCD_clearLine(LCD_LINE1);
+          LCD_writeStringAtLine("Connection Error", LCD_LINE1);
+      }
+      else{
+          LCD_clearLine(LCD_LINE1);
+          LCD_writeStringAtLine("Connected to: ", LCD_LINE1);
+          LCD_writeStringAtLine(bt_scan_option_strings[current_bt_device], LCD_LINE2);
+      }
+
+      // cleanup memory used for bluetooth scan
+      for(int i =0; i < scanner->num_devices; i++){
+        free(bt_scan_option_strings[i]);
+        bt_scan_option_strings[i] = NULL;
+      }
+      free(bt_scan_option_strings);
+      bt_scan_option_strings = NULL;
+
+      free(scanner->devices);
+      scanner->devices = NULL;
+
+      free(scanner);
+      scanner = NULL;
+
+      displayMainMenu();
 
       break;
     case JOYSTICK_LEFT:
+      // ***NEED to cleanup before going back to main***
+
       displayMainMenu();
       
     default:
@@ -241,6 +322,45 @@ static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
 
 
 
+static void bt_menu_setArrowAtLine(LCD_LINE_NUM line){
+  switch(line){
+    
+      case LCD_LINE2:
+        // draw arrow line 2
+        LCD_clearLine(LCD_LINE2);
+        LCD_writeChar(LCD_RIGHT_ARROW);
+        LCD_writeString(display_array[1]);
+        LCD_writeStringAtLine(display_array[2], LCD_LINE3);
+        LCD_writeStringAtLine(display_array[3], LCD_LINE4);
+        current_arrow_line = LCD_LINE2;
+        break;
+
+      case LCD_LINE3:
+        // draw arrow line 3
+        LCD_writeStringAtLine(display_array[1], LCD_LINE2);
+        LCD_clearLine(LCD_LINE3);
+        LCD_writeChar(LCD_RIGHT_ARROW);
+        LCD_writeString(display_array[2]);
+        LCD_writeStringAtLine(display_array[3], LCD_LINE4);
+        current_arrow_line = LCD_LINE3;
+        break;
+
+      case LCD_LINE4:
+        // draw arrow on line 4
+        LCD_writeStringAtLine(display_array[1], LCD_LINE2);
+        LCD_writeStringAtLine(display_array[2], LCD_LINE3); 
+        LCD_clearLine(LCD_LINE4);
+        LCD_writeChar(LCD_RIGHT_ARROW);
+        LCD_writeString(display_array[3]);
+        current_arrow_line = LCD_LINE4;
+        break;
+
+      default:
+        break;
+    }
+}
+
+
 
 
 static void Main_setArrowAtLine(LCD_LINE_NUM line){
@@ -295,6 +415,11 @@ static void Main_setArrowAtLine(LCD_LINE_NUM line){
 }
 
 
+
+
+
+
+
 static void *MenuManagerThread(void *arg)
 {
   // int timer_size = JOYSTICK_MAX_NUMBER_DIRECTIONS + ACCELEROMETER_MAX_NUMBER_ACTIONS;
@@ -308,10 +433,8 @@ static void *MenuManagerThread(void *arg)
     action_timers[i] = (long long)0;
   }
 
+  
   displayMainMenu();
-
-  /*************************************************************************/
-
   while (!stoppingMenu && !Shutdown_isShutdown())
   {
 
@@ -366,6 +489,7 @@ void MenuManager_init(void)
   pthread_create(&menuManagerThreadId, NULL, MenuManagerThread, NULL);
 }
 
+
 void MenuManager_cleanup(void)
 {
   stoppingMenu = true;
@@ -378,7 +502,6 @@ void MenuManager_cleanup(void)
 
   LCD_cleanup();
 }
-
 
 
 song_info *MenuManager_GetCurrentSongPlaying(void)

@@ -131,6 +131,14 @@ void LCD_clear(void)
     I2C_sendByte(0b00000000);
 }
 
+void LCD_clearLine(LCD_LINE_NUM line){
+    // clear
+    LCD_writeStringAtLine("                    ", line);
+
+    // rest cursor to beginning of line
+    LCD_writeStringAtLine("", line);
+}
+
 void LCD_turnOnDisplay(void)
 {
     Sleep_ns(0, 40000);        // wait 40usec

@@ -125,6 +125,14 @@ void LCD_setCursorDirection(void);
 */
 void LCD_shiftDisplay(LCD_LINE_NUM line, LCD_DIRECTION dir);
 
+/**
+ * Clears the specified line number and 
+ * returns the sets the cursor to the beginning of the line
+ * 
+ * @param line The line number to be cleared
+*/
+void LCD_clearLine(LCD_LINE_NUM line);
+
 
 /**
  * Writes a string to the specified line of the LCD screen
