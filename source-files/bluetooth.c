@@ -54,6 +54,21 @@ void Bluetooth_displayDevices(inquiry_info *devices, int num_devices)
     closeBT();
 }
 
+void Bluetooth_getHumanReadableNames(bluetooth_scan_t* scanned_devices, char* names[]){
+    openBT();
+    for (int i = 0; i < scanned_devices->num_devices ;i++)
+    {
+
+        names[i] = calloc(256, sizeof(char));
+        // send request to device with address equal to bdaddr, for human readable name
+        if (hci_read_remote_name(bt_adapter_fd, &(scanned_devices->devices + i)->bdaddr, 255, names[i], 0) < 0)
+        {
+            strcpy(names[i], "[unknown]");
+        }
+    }
+    closeBT();
+}
+
 
 int Bluetooth_pair(bdaddr_t *device_address){
     openBT();
@@ -71,6 +86,8 @@ int Bluetooth_pair(bdaddr_t *device_address){
 
     return result;
 }
+
+
 
 
 int Bluetooth_scan(bluetooth_scan_t* scanner)

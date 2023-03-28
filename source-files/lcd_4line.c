@@ -63,7 +63,14 @@ void LCD_init(void)
 }
 
 
-void LCD_cleanup(void) { close(i2cFd); }
+void LCD_cleanup(void)
+{ 
+    LCD_clear();
+    LCD_writeStringAtLine("Shutting Down...", LCD_LINE1);
+    Sleep_ms(1000);
+    LCD_clear();
+    close(i2cFd); 
+}
 
 void LCD_writeStringAtLine(char *string, LCD_LINE_NUM line_num)
 {
@@ -141,11 +148,18 @@ void LCD_setCursorDirection(void)
 }
 
 void LCD_writeString(char *string)
-{
-    while (*string != '\0')
+{   
+    int index = 0;
+    while (*string != '\0' && index < 17)
     {
         LCD_writeChar(*string);
         string++;
+        index++;
+    }
+    if(*string != '\0'){
+        for(int i = 0; i < 3; i++){
+            LCD_writeChar('.');
+        }
     }
 }
 

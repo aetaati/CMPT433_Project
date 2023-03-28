@@ -42,12 +42,30 @@ static char* main_menu_option_strings[NUM_OPTIONS] = {
   "Poweroff"
 };
 
+static char** bt_scan_option_strings;
+
  
-static void setArrowAtLine(LCD_LINE_NUM line);
+static void Main_setArrowAtLine(LCD_LINE_NUM line);
 
 static void displayBluetoothMenu(){
+  current_menu = BLUETOOTH_MENU;
   LCD_clear();
-  LCD_writeStringAtLine("Bluetooth Menu", LCD_LINE1);
+ 
+
+  // scan
+  LCD_writeStringAtLine("Scanning for Devices", LCD_LINE1);
+  bluetooth_scan_t* scanner = malloc(sizeof(bluetooth_scan_t));
+  Bluetooth_scan(scanner);
+  char* names[scanner->num_devices];
+  Bluetooth_getHumanReadableNames(scanner, names);
+  bt_scan_option_strings = names;
+  printf("%s\n", bt_scan_option_strings[0]);
+  printf("%s\n", bt_scan_option_strings[1]);
+  printf("%s\n", bt_scan_option_strings[2]);
+  LCD_writeStringAtLine(bt_scan_option_strings[0], LCD_LINE2);
+  LCD_writeStringAtLine(bt_scan_option_strings[1], LCD_LINE3);
+  LCD_writeStringAtLine(bt_scan_option_strings[2], LCD_LINE4);
+
 }
 static void displaySettingsMenu(){
   LCD_clear();
@@ -133,7 +151,7 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
       current_main--;
     }
 
-    setArrowAtLine(current_main);
+    Main_setArrowAtLine(current_main);
     printf("after joystick %d\n", current_main);
   }
   else if (currentJoyStickDirection == JOYSTICK_DOWN)
@@ -142,7 +160,7 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
     printf("current option %d\n", current_main);
     current_main = (current_main + 1) % NUM_OPTIONS;
     
-    setArrowAtLine(current_main);
+    Main_setArrowAtLine(current_main);
     printf("after joystick %d\n", current_main);
 
   }
@@ -192,11 +210,11 @@ static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
 
 static void display_menu_content()
 {
-  setArrowAtLine(SONGS_OPT);
+  Main_setArrowAtLine(SONGS_OPT);
 }
 
 
-static void setArrowAtLine(LCD_LINE_NUM line){
+static void Main_setArrowAtLine(LCD_LINE_NUM line){
   switch(line){
       case LCD_LINE1:
       // draw arrow on line 1
@@ -211,7 +229,6 @@ static void setArrowAtLine(LCD_LINE_NUM line){
       case LCD_LINE2:
        // draw arrow line 2
         LCD_clear();
-        LCD_writeStringAtLine("                   ", LCD_LINE1);
         LCD_writeStringAtLine(main_menu_option_strings[0], LCD_LINE1);
         LCD_writeStringAtLine("", LCD_LINE2);
         LCD_writeChar(LCD_RIGHT_ARROW);
@@ -311,13 +328,12 @@ static void *MenuManagerThread(void *arg)
 
 void MenuManager_init(void)
 {
+  LCD_init();
+
   songManager_init();
 
   Joystick_init();
 
-  LCD_init();
-
-  // Launch menu manager thread
   pthread_create(&menuManagerThreadId, NULL, MenuManagerThread, NULL);
 }
 
@@ -327,11 +343,11 @@ void MenuManager_cleanup(void)
 
   pthread_join(menuManagerThreadId, NULL);
 
-  LCD_cleanup();
-
   Joystick_cleanup();
 
   songManager_cleanup();
+
+  LCD_cleanup();
 }
 
 

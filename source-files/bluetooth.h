@@ -25,6 +25,8 @@ typedef struct{
 */
 void Bluetooth_displayDevices(inquiry_info *devices, int num_devices);
 
+void Bluetooth_getHumanReadableNames(bluetooth_scan_t* scanned_devices, char* names[]);
+
 
 /**
  * Connects to the bluetooth device with address device_address
@@ -46,8 +48,8 @@ int Bluetooth_pair(bdaddr_t *device_address);
 /**
  * Scans for nearby bluetooth devices
  * 
- * @param scanner a bluetooth_scan_t strcut to hold the scanned 
- * devices. ***Must Free scanner.devices before scanner
+ * @param scanner a pointe to a bluetooth_scan_t strcut to hold the scanned 
+ * devices. ***Must Free scanner->devices before scanner***
  * 
  * @return -1 if there is an error. 
  */
