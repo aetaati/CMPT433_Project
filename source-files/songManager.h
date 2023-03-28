@@ -7,16 +7,32 @@ typedef struct {
     char * album;
 }song_info;
 
+typedef enum
+{
+  CURSOR_LINE_ONE,
+  CURSOR_LINE_TWO,
+  CURSOR_LINE_THREE,
+  CURSOR_LINE_FOUR,
+  CURSOR_LINE_NOT_SET,
+  NUM_CURSOR_POSITIONS
+} SONG_CURSOR_LINE;
+
 
 void songManager_init(void);
-/* Plays the song based on the passed song #*/
-void songManager_playSong(int song_number);
+/* Plays the song that the cursor is pointing at */
+void songManager_playSong();
 /* Adds the song to the front of the list*/
 void songManager_addSongFront(song_info *);
 /* Adds the song to the back of the list*/
 void songManager_addSongBack (song_info *);
-// Displays four the songs
-void songManager_displaySongs(int current_song, int from_song_number);
+// Resets the songManager when user exits the song menu
+void songManager_reset(void);
+// Moves the cursor up
+void songManager_moveCursorDown(void);
+// Moves the cursor down
+void songManager_moveCursorUp(void);
+// Displays the songs
+void songManager_displaySongs();
 /* Returns current number of the songs that are currently in the list*/
 size_t songManager_currentNumberSongs(void);
 

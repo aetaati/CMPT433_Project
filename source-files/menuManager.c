@@ -30,7 +30,10 @@ static pthread_t menuManagerThreadId;
 
 static bool show_once_menu = false;
 
-static int current_song_number = 1;
+// static int current_song_number = 1;
+
+// static int previous_song_cursor = -1;
+// static int previous_song_start_from = -1;
 //static bool show_display_songs = false;
 
 
@@ -196,25 +199,19 @@ static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
 
   if (currentJoyStickDirection == JOYSTICK_UP)
   {
-    if (current_song_number - 1 > 1)
-    {
-      current_song_number--;
-    }
+    songManager_moveCursorUp();
   }
   else if (currentJoyStickDirection == JOYSTICK_DOWN)
   {
-    if (current_song_number + 1 < (int)songManager_currentNumberSongs())
-    {
-      current_song_number++;
-    }
+    songManager_moveCursorDown();
   }
   else if (currentJoyStickDirection == JOYSTICK_CENTER)
   {
-    songManager_playSong(current_song_number);
+    songManager_playSong();
   }
   else if (currentJoyStickDirection == JOYSTICK_LEFT)
   {
-    current_song_number = 1;
+    songManager_reset();
     current_menu = MAIN;
     show_once_menu = false;
   }
@@ -252,20 +249,8 @@ static void display_menu_content()
 
 static void display_songs_in_menu()
 {
-  int from_song = -1;
-  if(current_song_number < 4 || current_song_number % 4 == 1) {
-    from_song = current_song_number;
-  } else if(current_song_number % 4 == 0) {
-    from_song = current_song_number - 3;
-  } else if(current_song_number % 4 != 0) {
-    from_song = current_song_number - ((current_song_number % 4) - 1);
-  }
 
-  int song_cursor = current_song_number;
-  if(song_cursor > 4) {
-    song_cursor -= 4 * (current_song_number / 4);
-  }
-  songManager_displaySongs(song_cursor, from_song);
+  songManager_displaySongs();
 
   //printf("Go back to the main menu \n");
 }
