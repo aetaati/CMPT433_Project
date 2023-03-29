@@ -77,7 +77,7 @@ void AudioPlayer_init(void)
 	// ..allocate playback buffer:
 	playbackBuffer = malloc(playbackBufferSize * sizeof(*playbackBuffer));
 
-	current_sound.pSound = NULL;
+	
 
 	// Launch playback thread:
 	pthread_create(&playbackThreadId, NULL, playbackThread, NULL);
@@ -139,9 +139,6 @@ void AudioPlayer_playWAV(wavedata_t *pSound)
 	assert(pSound->pData);
     pthread_mutex_lock(&audioMutex);
 	{
-		if(current_sound.pSound != NULL) {
-			free(current_sound.pSound);
-		}
 		// sample to list of sound bites
 		current_sound.pSound = pSound;
 		current_sound.location = 0;
@@ -171,9 +168,9 @@ void AudioPlayer_cleanup(void)
 	// (note that any wave files read into wavedata_t records must be freed
 	//  in addition to this by calling AudioMixer_freeWaveFileData() on that struct.)
 	free(playbackBuffer);
-	if(current_sound.pSound != NULL) {
-		free(current_sound.pSound);
-	}
+	// if(current_sound.pSound != NULL) {
+	// 	free(current_sound.pSound);
+	// }
 	playbackBuffer = NULL;
 
 	printf("Done stopping audio...\n");
