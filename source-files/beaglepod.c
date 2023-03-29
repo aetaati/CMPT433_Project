@@ -1,9 +1,3 @@
-/*
-Subject: CMPT433 (Embedded Systems) - BeablePod Project
-Purpose: The main program to start and terminate all the modules
-Author: Amirhossein Etaati
-Date: 2023-03-04
-*/
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
