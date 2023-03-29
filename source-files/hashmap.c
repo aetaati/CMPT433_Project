@@ -1,19 +1,12 @@
 
-/*
-Subject: CMPT433 (Embedded Systems) - BeablePod Project
-Purpose: Declarations of a general doublyLinkedList
-Use cases: 1) Store the name of the songs
-Author: Amirhossein Etaati
-Date: 2023-03-16
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
 
-#include "doublyLinkedList.h"
+#include "hashmap.h"
+#define MAX_NUM_BUCKETS 3
 
 struct Node
 {
@@ -35,10 +28,16 @@ struct List
     int size;
 };
 
-static bool is_module_initialized = false;
-static struct List *list_ptr = NULL;
+struct HashMap
+{
+    struct List* list_ptr;
+    HASH_MAP_KEY key;
+};
 
-static void push_to_head(void *src, unsigned int size)
+static bool is_module_initialized = false;
+//static struct List *list_ptr = NULL;
+
+static void push_to_head(struct List *list_ptr, void *src, unsigned int size)
 {
     struct Node *new_node = malloc(sizeof(struct Node));
     if (new_node == NULL)
@@ -72,7 +71,7 @@ static void push_to_head(void *src, unsigned int size)
     list_ptr->size += 1;
 }
 
-static void push_to_tail(void *src, unsigned int size)
+static void push_to_tail(struct List *list_ptr, void *src, unsigned int size)
 {
     struct Node *new_node = malloc(sizeof(struct Node));
     if (new_node == NULL)
@@ -105,7 +104,7 @@ static void push_to_tail(void *src, unsigned int size)
     list_ptr->size += 1;
 }
 
-static void pop_from_head(void)
+static void pop_from_head(struct List *list_ptr)
 {
     if ((list_ptr->head) == NULL)
     {
@@ -134,7 +133,7 @@ static void pop_from_head(void)
     list_ptr->size -= 0;
 }
 
-static bool set_ptr_to_idx(int idx, struct Node *ptr)
+static bool set_ptr_to_idx(struct List *list_ptr, int idx, struct Node *ptr)
 {
     int counter = 0;
     struct Node *node = list_ptr->head;
@@ -157,7 +156,7 @@ static bool set_ptr_to_idx(int idx, struct Node *ptr)
 
 ////////////////////////////////////////// Public Function //////////////////////////////////////////
 
-void doublyLinkedList_init(void)
+void hashMap_init(void)
 {
     list_ptr = (struct List *)malloc(sizeof(struct List));
     list_ptr->head = NULL;
@@ -170,25 +169,25 @@ void doublyLinkedList_init(void)
     is_module_initialized = true;
 }
 
-bool doublyLinkedList_isEmpty(void)
+static bool doublyLinkedList_isEmpty(struct List *list_ptr)
 {
     assert(is_module_initialized);
     return (!list_ptr->head || !list_ptr->tail);
 }
 
-void doublyLinkedList_appendItem(void *src, unsigned int size)
+static void doublyLinkedList_appendItem(struct List *list_ptr, void *src, unsigned int size)
 {
     assert(is_module_initialized);
     push_to_tail(src, size);
 }
 
-void doublyLinkedList_prependItem(void *src, unsigned int size)
+static void doublyLinkedList_prependItem(struct List *list_ptr, void *src, unsigned int size)
 {
     assert(is_module_initialized);
     push_to_head(src, size);
 }
 
-bool doublyLinkedList_next(void)
+static bool doublyLinkedList_next(struct List *list_ptr)
 {
     assert(is_module_initialized);
     if (list_ptr->current == NULL || list_ptr->current->next == NULL)
@@ -200,7 +199,7 @@ bool doublyLinkedList_next(void)
     return true;
 }
 
-bool doublyLinkedList_prev(void)
+static bool doublyLinkedList_prev(struct List *list_ptr)
 {
     assert(is_module_initialized);
     if (list_ptr->current == NULL || list_ptr->current->prev == NULL)
@@ -212,7 +211,7 @@ bool doublyLinkedList_prev(void)
     return true;
 }
 
-void *doublyLinkedList_getCurrentElement(void)
+static void *doublyLinkedList_getCurrentElement(struct List *list_ptr)
 {
     assert(is_module_initialized);
     if (!doublyLinkedList_isEmpty() && list_ptr->current != NULL)
@@ -222,17 +221,17 @@ void *doublyLinkedList_getCurrentElement(void)
     return NULL;
 }
 
-void doublyLinkedList_cleanup(void)
+static void doublyLinkedList_cleanup(struct List *list_ptr)
 {
     assert(is_module_initialized);
-    while (!doublyLinkedList_isEmpty())
+    while (!doublyLinkedList_isEmpty(list_ptr))
     {
-        pop_from_head();
+        pop_from_head(list_ptr);
     }
     free(list_ptr);
 }
 
-void *doublyLinkedList_getElementAtIndex(int idx)
+static void *doublyLinkedList_getElementAtIndex(struct List *list_ptr, int idx)
 {
     assert(is_module_initialized);
     if (idx < 0)
@@ -253,7 +252,7 @@ void *doublyLinkedList_getElementAtIndex(int idx)
 
 // Sets the current pointer to point to the element at index "idx"
 // Returns false if idx is out of bounds or the list is empty, true if successful
-bool doublyLinkedList_setCurrent(int idx)
+static bool doublyLinkedList_setCurrent(struct List *list_ptr, int idx)
 {
     assert(is_module_initialized);
     return set_ptr_to_idx(idx, list_ptr->current);
@@ -261,7 +260,7 @@ bool doublyLinkedList_setCurrent(int idx)
 
 // Returns the index of the current element
 // Note: returns -1 if the list is empty
-int doublyLinkedList_getCurrentIdx(void)
+static int doublyLinkedList_getCurrentIdx(struct List *list_ptr)
 {
     assert(is_module_initialized);
     if (list_ptr->head == NULL)
@@ -272,7 +271,7 @@ int doublyLinkedList_getCurrentIdx(void)
 }
 
 // Returns the number of elements currently in the list
-int doublyLinkedList_getSize(void)
+static int doublyLinkedList_getSize(struct List *list_ptr)
 {
     assert(is_module_initialized);
     return list_ptr->size;
@@ -283,7 +282,7 @@ int doublyLinkedList_getSize(void)
 
 // Sets list's position to be displayed from to the Head
 // Note: Returns false if the list is empty
-bool doublyLinkedList_setIteratorStartPosition(void)
+static bool doublyLinkedList_setIteratorStartPosition(struct List *list_ptr)
 {
     assert(is_module_initialized);
     if (list_ptr->head == NULL)
@@ -295,7 +294,7 @@ bool doublyLinkedList_setIteratorStartPosition(void)
 }
 
 // Sets list's position to be displayed from to the Tail
-bool doublyLinkedList_setIteratorEndPosition(void)
+static bool doublyLinkedList_setIteratorEndPosition(struct List *list_ptr)
 {
     assert(is_module_initialized);
     if (list_ptr->tail == NULL)
@@ -308,7 +307,7 @@ bool doublyLinkedList_setIteratorEndPosition(void)
 
 // Moves the display one position to the right
 // Note: Returns false if the list is empty or there is no next element
-bool doublyLinkedList_iteratorNext(void)
+static bool doublyLinkedList_iteratorNext(struct List *list_ptr)
 {
     assert(is_module_initialized);
     if (list_ptr->size == 0)
@@ -325,7 +324,7 @@ bool doublyLinkedList_iteratorNext(void)
 
 // Moves the display one position to the left and returns the data at the that position
 // Note: Returns false if the list is empty or there is no previous element
-bool doublyLinkedList_iteratorPrev(void)
+static bool doublyLinkedList_iteratorPrev(struct List *list_ptr)
 {
     assert(is_module_initialized);
     if (list_ptr->size == 0)
@@ -341,7 +340,7 @@ bool doublyLinkedList_iteratorPrev(void)
 }
 
 // Returns the data of the "currentDisplay"
-void *doublyLinkedList_getCurrentIteratorElement(void)
+static void *doublyLinkedList_getCurrentIteratorElement(struct List *list_ptr)
 {
     assert(is_module_initialized);
     if (list_ptr->currentDisplay == NULL)
@@ -351,34 +350,34 @@ void *doublyLinkedList_getCurrentIteratorElement(void)
     return list_ptr->currentDisplay->data;
 }
 
-bool doublyLinkedList_setIterator(int idx)
+static bool doublyLinkedList_setIterator(struct List *list_ptr, int idx)
 {
     assert(is_module_initialized);
     return set_ptr_to_idx(idx, list_ptr->currentDisplay);
 }
 
-bool doublyLinkedList_advanceIteratorNTimes(int n)
+static bool doublyLinkedList_advanceIteratorNTimes(struct List *list_ptr, int n)
 {
     if (n <= 0 || list_ptr->tail == list_ptr->currentDisplay)
     {
         return false;
     }
     int counter = 0;
-    while (counter < n && doublyLinkedList_iteratorNext())
+    while (counter < n && doublyLinkedList_iteratorNext(list_ptr))
     {
         counter++;
     }
     return true;
 }
 
-bool doublyLinkedList_rewindIteratorNTimes(int n)
+static bool doublyLinkedList_rewindIteratorNTimes(struct List *list_ptr, int n)
 {
     if (n <= 0 || list_ptr->head == list_ptr->currentDisplay)
     {
         return false;
     }
     int counter = 0;
-    while (counter < n && doublyLinkedList_iteratorPrev())
+    while (counter < n && doublyLinkedList_iteratorPrev(list_ptr))
     {
         counter++;
     }
