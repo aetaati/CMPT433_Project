@@ -4,6 +4,7 @@
 #include <linux/i2c-dev.h>
 #include <fcntl.h>
 #include <time.h>
+#include <string.h>
 #include <sys/ioctl.h>
 
 #include "lcd_4line.h"
@@ -63,7 +64,14 @@ void LCD_init(void)
 }
 
 
-void LCD_cleanup(void) { close(i2cFd); }
+void LCD_cleanup(void)
+{ 
+    LCD_clear();
+    LCD_writeStringAtLine("Shutting Down...", LCD_LINE1);
+    Sleep_ms(1000);
+    LCD_clear();
+    close(i2cFd); 
+}
 
 void LCD_writeStringAtLine(char *string, LCD_LINE_NUM line_num)
 {
@@ -123,6 +131,14 @@ void LCD_clear(void)
     I2C_sendByte(0b00000000);
 }
 
+void LCD_clearLine(LCD_LINE_NUM line){
+    // clear
+    LCD_writeStringAtLine("                    ", line);
+
+    // rest cursor to beginning of line
+    LCD_writeStringAtLine("", line);
+}
+
 void LCD_turnOnDisplay(void)
 {
     Sleep_ns(0, 40000);        // wait 40usec
@@ -141,11 +157,23 @@ void LCD_setCursorDirection(void)
 }
 
 void LCD_writeString(char *string)
-{
-    while (*string != '\0')
-    {
-        LCD_writeChar(*string);
-        string++;
+{   
+    // add ... to long strings
+    if(strlen(string) > 20){
+        for(int i = 0; i < 16; i++){
+            LCD_writeChar(*string);
+            string++;
+        }
+        for(int i = 0; i < 3; i++){
+            LCD_writeChar('.');
+        }
+    }
+    else{
+        while (*string != '\0')
+        {
+            LCD_writeChar(*string);
+            string++;
+        }
     }
 }
 

@@ -168,7 +168,6 @@ void AudioPlayer_cleanup(void)
 	// (note that any wave files read into wavedata_t records must be freed
 	//  in addition to this by calling AudioMixer_freeWaveFileData() on that struct.)
 	free(playbackBuffer);
-	
 	playbackBuffer = NULL;
 
 	printf("Done stopping audio...\n");
@@ -274,7 +273,6 @@ static void fillPlaybackBuffer(short *buff, int size)
 
     pthread_mutex_lock(&audioMutex);
 	{
-		
 		
         wavedata_t* sound_data = current_sound.pSound;
         if(sound_data != NULL){

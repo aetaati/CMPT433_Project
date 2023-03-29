@@ -7,7 +7,7 @@
 
 #include "sleep.h"
 #include "audio_player.h"
-
+#include "volume.h"
 
 #define A2D_FILE_POT "/sys/bus/iio/devices/iio:device0/in_voltage0_raw"
 #define A2D_MAX_READING 4095
