@@ -19,6 +19,7 @@ typedef enum
   MAIN_MENU,
   SONGS_MENU,
   BLUETOOTH_MENU,
+  BTSCAN_MENU,
   SETTINGS_MENU,
   NUM_MENUS
 } MENU;
@@ -32,8 +33,18 @@ typedef enum
   BLUETOOTH_OPT,
   SETTINGS_OPT,
   POWEROFF_OPT,
-  NUM_OPTIONS
+  NUM_MAIN_OPTIONS
 } MAIN_OPTIONS;
+
+
+/**
+ * Enum to keep track of Bluetooth menu options
+*/
+typedef enum{
+  BTMENU_CONNECT,
+  BTMENU_DISCONNECT,
+  NUM_BT_OPTIONS
+} BLUETOOTH_OPTIONS;
 
 
 // Initilaize all the modules used in the menu

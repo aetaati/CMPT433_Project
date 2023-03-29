@@ -42,7 +42,7 @@ static char* display_array[4] = {"", "", "", ""};
  * Main Menu
 */
 static MAIN_OPTIONS MainMenu_currentOpt = SONGS_OPT; 
-static char* MainMenu_option_strings[NUM_OPTIONS] = {
+static char* MainMenu_option_strings[NUM_MAIN_OPTIONS] = {
   "Select Song",
   "Bluetooth",
   "Settings",
@@ -53,15 +53,30 @@ static void displayMainMenu(void);
 static void MainMenu_changeMenu(MAIN_OPTIONS option);
 static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection);
 
-/**
+
+/** 
  * Bluetooth Menu
+*/
+static BLUETOOTH_OPTIONS bluetoothMenu_currentOption;
+static char* BluetoothMenu_options_strings[NUM_BT_OPTIONS] = {
+  "Connect to Device",
+  "Disconnect Device"
+};
+static void BluetoothMenu_joystickAction(enum eJoystickDirections currentJoyStickDirection);
+static void displayBluetoothMenu(void);
+static void BluetoothMenu_setArrowAtLine(LCD_LINE_NUM line);
+
+
+/**
+ * Bluetooth Scan Menu
 */
 static bluetooth_scan_t* scanner;
 static char** bt_scan_option_strings;
 int current_bt_device = 0;
-static void BTMenu_setArrowAtLine(LCD_LINE_NUM line);
-static void displayBluetoothMenu(void);
-static void BTMenu_joystickAction(enum eJoystickDirections currentJoyStickDirection);
+static void BTScanMenu_setArrowAtLine(LCD_LINE_NUM line);
+static void displayBTScanMenu(void);
+static void BTScanMenu_joystickAction(enum eJoystickDirections currentJoyStickDirection);
+
 
 /**
  * Settings Menu
@@ -122,12 +137,104 @@ static bool isActionTriggered(long long *timers, int idx)
 
 
 
+static void BluetoothMenu_joystickAction(enum eJoystickDirections currentJoyStickDirection){
+  switch(currentJoyStickDirection){
+    case JOYSTICK_UP:
+      // scroll up
+      if(bluetoothMenu_currentOption == BTMENU_CONNECT){
+        // do nothing
+      }
+      else{
+        // set to line 1
+        BluetoothMenu_setArrowAtLine(LCD_LINE1);
+        bluetoothMenu_currentOption--;
+      }
+      break;
 
-/* -------------------------------------------------------------------- *
- * BLUETOOTH MENU                                                       *
- * -------------------------------------------------------------------- */
+    case JOYSTICK_DOWN:
+      // scroll down
+      if(bluetoothMenu_currentOption == BTMENU_DISCONNECT){
+        // do nothing
+      }
+      else{
+        // set to line 2
+        BluetoothMenu_setArrowAtLine(LCD_LINE2);
+        bluetoothMenu_currentOption++;
+      }
+      break;
+
+    case JOYSTICK_CENTER:
+      if(bluetoothMenu_currentOption == BTMENU_CONNECT){
+        displayBTScanMenu();
+      }
+      else if(bluetoothMenu_currentOption == BTMENU_DISCONNECT){
+        LCD_clear();
+        LCD_writeStringAtLine("Disconnecting...", LCD_LINE1);
+        Bluetooth_disconnect();
+        LCD_clearLine(LCD_LINE1);
+        LCD_writeStringAtLine("Disconnected!", LCD_LINE1);
+        Sleep_ms(1000);
+        displayBluetoothMenu();
+      }
+      break;
+
+    case JOYSTICK_LEFT:
+      displayMainMenu();
+      break;
+      
+    default:
+      // unsupported direction
+      break;
+  }
+
+}
+
+
 static void displayBluetoothMenu(void){
   current_menu = BLUETOOTH_MENU;
+  LCD_clear();
+  LCD_writeChar(LCD_RIGHT_ARROW);
+  LCD_writeString(BluetoothMenu_options_strings[0]);
+  LCD_writeStringAtLine(BluetoothMenu_options_strings[1], LCD_LINE2);
+  current_arrow_line = LCD_LINE1;
+  bluetoothMenu_currentOption = BTMENU_CONNECT;
+}
+
+
+static void BluetoothMenu_setArrowAtLine(LCD_LINE_NUM line){
+  switch(line){
+      case LCD_LINE1:
+        // draw arrow line 1
+        LCD_clearLine(LCD_LINE1);
+        LCD_writeChar(LCD_RIGHT_ARROW);
+        LCD_writeString(BluetoothMenu_options_strings[0]);
+        LCD_clearLine(LCD_LINE2);
+        LCD_writeStringAtLine(BluetoothMenu_options_strings[1], LCD_LINE2);
+        break;
+
+      case LCD_LINE2:
+        // draw arrow line 2
+        LCD_clearLine(LCD_LINE1);
+        LCD_writeStringAtLine(BluetoothMenu_options_strings[0], LCD_LINE1);
+        LCD_clearLine(LCD_LINE2);
+        LCD_writeChar(LCD_RIGHT_ARROW);
+        LCD_writeString(BluetoothMenu_options_strings[1]);
+        break;
+
+      default:
+        break;
+    }
+}
+
+
+
+
+
+/* -------------------------------------------------------------------- *
+ * BLUETOOTH Scan MENU                                                       *
+ * -------------------------------------------------------------------- */
+static void displayBTScanMenu(void){
+  current_menu = BTSCAN_MENU;
   LCD_clear();
  
 
@@ -157,7 +264,7 @@ static void displayBluetoothMenu(void){
 }
 
 // Cursor scroll wrapping is currently not active
-static void BTMenu_joystickAction(enum eJoystickDirections currentJoyStickDirection){
+static void BTScanMenu_joystickAction(enum eJoystickDirections currentJoyStickDirection){
   switch(currentJoyStickDirection){
     case JOYSTICK_UP:
       // scroll up
@@ -174,19 +281,19 @@ static void BTMenu_joystickAction(enum eJoystickDirections currentJoyStickDirect
         LCD_clearLine(LCD_LINE2);
         LCD_clearLine(LCD_LINE3);
         LCD_clearLine(LCD_LINE4);
-        BTMenu_setArrowAtLine(LCD_LINE2);
+        BTScanMenu_setArrowAtLine(LCD_LINE2);
       }
       else if(current_arrow_line == LCD_LINE3){
         // arrow line 3 -> move to line 2
         current_bt_device--;
         LCD_clearLine(LCD_LINE3);
-        BTMenu_setArrowAtLine(LCD_LINE2);
+        BTScanMenu_setArrowAtLine(LCD_LINE2);
       }
       else if(current_arrow_line == LCD_LINE4){
         // arrow line 4 -> move to line 3
         current_bt_device--;
         LCD_clearLine(LCD_LINE4);
-        BTMenu_setArrowAtLine(LCD_LINE3);
+        BTScanMenu_setArrowAtLine(LCD_LINE3);
       }
       break;
 
@@ -204,19 +311,19 @@ static void BTMenu_joystickAction(enum eJoystickDirections currentJoyStickDirect
         LCD_clearLine(LCD_LINE2);
         LCD_clearLine(LCD_LINE3);
         LCD_clearLine(LCD_LINE4);
-        BTMenu_setArrowAtLine(LCD_LINE4);
+        BTScanMenu_setArrowAtLine(LCD_LINE4);
       }
       else if(current_arrow_line == LCD_LINE3){
         // arrow at line 3 -> move to line 4
         current_bt_device++;
         LCD_clearLine(LCD_LINE3);
-        BTMenu_setArrowAtLine(LCD_LINE4);
+        BTScanMenu_setArrowAtLine(LCD_LINE4);
       }
       else if(current_arrow_line == LCD_LINE2){
         // arrow at line 2 -> move to line 3
         current_bt_device++;
         LCD_clearLine(LCD_LINE2);
-        BTMenu_setArrowAtLine(LCD_LINE3);
+        BTScanMenu_setArrowAtLine(LCD_LINE3);
       }
       break;
 
@@ -249,13 +356,12 @@ static void BTMenu_joystickAction(enum eJoystickDirections currentJoyStickDirect
 
       free(scanner);
       scanner = NULL;
-
       displayMainMenu();
 
       break;
     case JOYSTICK_LEFT:
       // ***NEED to cleanup before going back to main***
-      displayMainMenu();
+      displayBluetoothMenu();
       
     default:
       // unsupported direction
@@ -264,7 +370,7 @@ static void BTMenu_joystickAction(enum eJoystickDirections currentJoyStickDirect
 }
 
 
-static void BTMenu_setArrowAtLine(LCD_LINE_NUM line){
+static void BTScanMenu_setArrowAtLine(LCD_LINE_NUM line){
   switch(line){
     
       case LCD_LINE2:
@@ -340,8 +446,10 @@ static void MainMenu_changeMenu(MAIN_OPTIONS option){
 // arrow will wrap around display at when moving off screen
 static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection)
 {
+  
   switch(currentJoyStickDirection){
     case JOYSTICK_UP:
+      printf("main menu joytsick up\n");
       // scroll up
       if( MainMenu_currentOpt == SONGS_OPT){
         MainMenu_currentOpt = POWEROFF_OPT;
@@ -354,7 +462,7 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
 
     case JOYSTICK_DOWN:
       // scroll down
-      MainMenu_currentOpt = (MainMenu_currentOpt + 1) % NUM_OPTIONS;
+      MainMenu_currentOpt = (MainMenu_currentOpt + 1) % NUM_MAIN_OPTIONS;
       MainMenu_setArrowAtLine(MainMenu_currentOpt);
       break;
 
@@ -516,7 +624,10 @@ static void *MenuManagerThread(void *arg)
           songMenuJoystickAction(currentJoyStickDirection);
           break;
         case BLUETOOTH_MENU:
-          BTMenu_joystickAction(currentJoyStickDirection);
+          BluetoothMenu_joystickAction(currentJoyStickDirection);
+          break;
+        case BTSCAN_MENU:
+          BTScanMenu_joystickAction(currentJoyStickDirection);
           break;
         case SETTINGS_MENU:
           break;
