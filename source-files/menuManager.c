@@ -335,6 +335,7 @@ static void BTScanMenu_joystickAction(enum eJoystickDirections currentJoyStickDi
       {
           LCD_clearLine(LCD_LINE1);
           LCD_writeStringAtLine("Connection Error", LCD_LINE1);
+          Sleep_ms(1000);
       }
       else{
           LCD_clearLine(LCD_LINE1);
@@ -425,6 +426,7 @@ static void displayMainMenu(void)
 static void MainMenu_changeMenu(MAIN_OPTIONS option){
   switch(option){
     case SONGS_OPT:
+      // song manager
       displaySongMenu();
       break;
     case BLUETOOTH_OPT:
