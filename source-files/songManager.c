@@ -296,9 +296,15 @@ static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number)
     setSongs(current_song, songtemp1, songtemp2, songtemp3, songtemp4);
     previous_song_cursor = current_song;
     previous_song_start_from = from_song_number;
-    doublyLinkedList_iteratorPrev(); // 3
-    doublyLinkedList_iteratorPrev(); // 2
-    doublyLinkedList_iteratorPrev(); // 1
+    if(temp2 != NULL) {
+        doublyLinkedList_iteratorPrev(); // 3
+    }
+    if(temp3 != NULL) {
+        doublyLinkedList_iteratorPrev(); // 2
+    }
+    if(temp4 != NULL) {
+        doublyLinkedList_iteratorPrev(); // 1
+    }
     // iterate_through_all_songs();
 }
 
