@@ -1,9 +1,3 @@
-/*
-Author: Mehdi Esmaeilzadeh
-Date: 2023-03-12
-Subject: Definition of the MenuManager module
-*/
-
 #if !defined(_MENUMANAGER_H)
 #define _MENUMANAGER_H
 

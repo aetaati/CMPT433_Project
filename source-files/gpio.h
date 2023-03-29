@@ -1,8 +1,5 @@
 /*
-Subject: CMPT433 (Embedded Systems) - BeablePod Project
 Purpose: Declaration of the GPIO module functions to manage bus and pin configuration
-Author: Amirhossein Etaati
-Date: 2023-03-04
 */
 
 #if !defined(EXPORT_PINT_H)

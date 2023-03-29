@@ -29,7 +29,7 @@ int main(int argc, char const *argv[])
 
     wavedata_t song;
     AudioPlayer_readWaveFileIntoMemory(SONG, &song);
-    AudioPlayer_playWAV(&song);
+    AudioPlayer_playWAV(&song);*/
 
     Shutdown_init();
     Shutdown_waitForShutdown();
