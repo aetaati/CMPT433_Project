@@ -380,7 +380,7 @@ void songManager_addSongBack(song_info *song)
 void songManager_displaySongs() {
   int current_song_number = getCurrentSongNumber();
   int from_song = getfromSongForDisplay(current_song_number);
-  if(from_song > previous_song_start_from) {
+  if(from_song > previous_song_start_from && previous_song_start_from != -1) {
     moveCursorNextPage();
   } else if (previous_song_start_from != -1 && from_song < previous_song_start_from) {
     moveCursorPreviousPage();
