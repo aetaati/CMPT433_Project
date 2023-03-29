@@ -168,9 +168,7 @@ void AudioPlayer_cleanup(void)
 	// (note that any wave files read into wavedata_t records must be freed
 	//  in addition to this by calling AudioMixer_freeWaveFileData() on that struct.)
 	free(playbackBuffer);
-	// if(current_sound.pSound != NULL) {
-	// 	free(current_sound.pSound);
-	// }
+	
 	playbackBuffer = NULL;
 
 	printf("Done stopping audio...\n");
