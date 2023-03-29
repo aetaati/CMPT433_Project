@@ -36,6 +36,7 @@ struct HashMap
 
 static bool is_module_initialized = false;
 //static struct List *list_ptr = NULL;
+static struct HashMap hash_map[MAX_NUM_BUCKETS];
 
 static void push_to_head(struct List *list_ptr, void *src, unsigned int size)
 {
@@ -158,13 +159,16 @@ static bool set_ptr_to_idx(struct List *list_ptr, int idx, struct Node *ptr)
 
 void hashMap_init(void)
 {
-    list_ptr = (struct List *)malloc(sizeof(struct List));
-    list_ptr->head = NULL;
-    list_ptr->tail = NULL;
-    list_ptr->current = NULL;
-    list_ptr->curentIdx = -1;
-    list_ptr->currentDisplay = NULL;
-    list_ptr->size = 0;
+
+    for(int i=0; i < NUM_KEYS_LIST; i++) {
+        hash_map[i].list_ptr = (struct List *)malloc(sizeof(struct List));
+        hash_map[i].list_ptr->head = NULL;
+        hash_map[i].list_ptr->tail = NULL;
+        hash_map[i].list_ptr->current = NULL;
+        hash_map[i].list_ptr->curentIdx = -1;
+        hash_map[i].list_ptr->currentDisplay = NULL;
+        hash_map[i].list_ptr->size = 0;
+    }
 
     is_module_initialized = true;
 }
@@ -178,13 +182,13 @@ static bool doublyLinkedList_isEmpty(struct List *list_ptr)
 static void doublyLinkedList_appendItem(struct List *list_ptr, void *src, unsigned int size)
 {
     assert(is_module_initialized);
-    push_to_tail(src, size);
+    push_to_tail(list_ptr,src, size);
 }
 
 static void doublyLinkedList_prependItem(struct List *list_ptr, void *src, unsigned int size)
 {
     assert(is_module_initialized);
-    push_to_head(src, size);
+    push_to_head(list_ptr, src, size);
 }
 
 static bool doublyLinkedList_next(struct List *list_ptr)
@@ -214,7 +218,7 @@ static bool doublyLinkedList_prev(struct List *list_ptr)
 static void *doublyLinkedList_getCurrentElement(struct List *list_ptr)
 {
     assert(is_module_initialized);
-    if (!doublyLinkedList_isEmpty() && list_ptr->current != NULL)
+    if (!doublyLinkedList_isEmpty(list_ptr) && list_ptr->current != NULL)
     {
         return list_ptr->current->data;
     }
@@ -255,7 +259,7 @@ static void *doublyLinkedList_getElementAtIndex(struct List *list_ptr, int idx)
 static bool doublyLinkedList_setCurrent(struct List *list_ptr, int idx)
 {
     assert(is_module_initialized);
-    return set_ptr_to_idx(idx, list_ptr->current);
+    return set_ptr_to_idx(list_ptr, idx, list_ptr->current);
 }
 
 // Returns the index of the current element
@@ -353,7 +357,7 @@ static void *doublyLinkedList_getCurrentIteratorElement(struct List *list_ptr)
 static bool doublyLinkedList_setIterator(struct List *list_ptr, int idx)
 {
     assert(is_module_initialized);
-    return set_ptr_to_idx(idx, list_ptr->currentDisplay);
+    return set_ptr_to_idx(list_ptr, idx, list_ptr->currentDisplay);
 }
 
 static bool doublyLinkedList_advanceIteratorNTimes(struct List *list_ptr, int n)
@@ -383,6 +387,119 @@ static bool doublyLinkedList_rewindIteratorNTimes(struct List *list_ptr, int n)
     }
     return true;
 }
+
+
+bool hashMap_isEmpty(HASH_MAP_KEY key)
+{
+    return doublyLinkedList_isEmpty(hash_map[key].list_ptr);
+}
+
+
+void hashMap_prependItem(HASH_MAP_KEY key,void *src, unsigned int size)
+{
+    doublyLinkedList_prependItem(hash_map[key].list_ptr, src, size);
+}
+
+void hashMap_appendItem(HASH_MAP_KEY key,void *src, unsigned int size)
+{
+    doublyLinkedList_appendItem(hash_map[key].list_ptr, src, size);
+}
+
+
+bool hashMap_next(HASH_MAP_KEY key)
+{
+    return doublyLinkedList_next(hash_map[key].list_ptr);
+}
+
+
+bool hashMap_prev(HASH_MAP_KEY key){
+    return doublyLinkedList_prev(hash_map[key].list_ptr);
+}
+
+
+
+void *hashMap_getElementAtIndex(HASH_MAP_KEY key,int idx)
+{
+   return doublyLinkedList_getElementAtIndex(hash_map[key].list_ptr, idx);
+}
+
+
+void *hashMap_getCurrentElement(HASH_MAP_KEY key)
+{
+    return doublyLinkedList_getCurrentElement(hash_map[key].list_ptr);
+
+}
+
+void hashMap_cleanup(void)
+{
+    for(int i=0; i < NUM_KEYS_LIST; i++) {
+        doublyLinkedList_cleanup(hash_map[i].list_ptr);
+    }
+}
+
+bool hashMap_setCurrent(HASH_MAP_KEY key,int idx)
+{
+    return doublyLinkedList_setCurrent(hash_map[key].list_ptr, idx);
+
+}
+
+int hashMap_getCurrentIdx(HASH_MAP_KEY key)
+{
+    return doublyLinkedList_getCurrentIdx(hash_map[key].list_ptr);
+}
+
+int hashMap_getSize(HASH_MAP_KEY key)
+{
+    return doublyLinkedList_getSize(hash_map[key].list_ptr);
+}
+
+bool hashMap_setIteratorStartPosition(HASH_MAP_KEY key)
+{
+    return doublyLinkedList_setIteratorStartPosition(hash_map[key].list_ptr);
+}
+
+
+bool hashMap_setIteratorEndPosition(HASH_MAP_KEY key)
+{
+    return doublyLinkedList_setIteratorEndPosition(hash_map[key].list_ptr);
+}
+
+
+bool hashMap_iteratorNext(HASH_MAP_KEY key)
+{
+    return doublyLinkedList_iteratorNext(hash_map[key].list_ptr);
+}
+
+
+bool hashMap_iteratorPrev(HASH_MAP_KEY key)
+{
+    return doublyLinkedList_iteratorPrev(hash_map[key].list_ptr);
+}
+
+
+bool hashMap_setIterator(HASH_MAP_KEY key,int idx)
+{
+    return doublyLinkedList_setIterator(hash_map[key].list_ptr, idx);
+}
+
+
+void *hashMap_getCurrentIteratorElement(HASH_MAP_KEY key)
+{
+    return doublyLinkedList_getCurrentIteratorElement(hash_map[key].list_ptr);
+}
+
+
+bool hashMap_advanceIteratorNTimes(HASH_MAP_KEY key, int n)
+{
+    return doublyLinkedList_advanceIteratorNTimes(hash_map[key].list_ptr, n);
+}
+
+
+bool hashMap_rewindIteratorNTimes(HASH_MAP_KEY key,int n)
+{
+    return doublyLinkedList_rewindIteratorNTimes(hash_map[key].list_ptr, n);
+}
+
 
 /**********************************************************************/
 // int main(int argc, char const *argv[])
