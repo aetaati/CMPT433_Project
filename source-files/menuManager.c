@@ -92,8 +92,7 @@ static void displaySettingsMenu(void){
 */
 static void displaySongMenu(void)
 {
-  LCD_clear();
-  LCD_writeStringAtLine("Songs Menu", LCD_LINE1);
+  songManager_displaySongs();
 }
 static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection);
 
@@ -538,12 +537,16 @@ static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
 {
   switch(currentJoyStickDirection){
     case JOYSTICK_UP:
+      songManager_moveCursorUp();
       break;
     case JOYSTICK_DOWN:
+      songManager_moveCursorDown();
       break;
     case JOYSTICK_LEFT:
+      songManager_reset();
       break;
-    case JOYSTICK_RIGHT:
+    case JOYSTICK_CENTER:
+      songManager_playSong();
       break;
     default:
       // unsupported direction
