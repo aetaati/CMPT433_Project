@@ -1,13 +1,18 @@
 const express = require('express');
 const fileUpload = require('express-fileupload');
-const Mp32Wav = require('mp3-to-wav')
 const fs = require('fs');
 var path = require('path')
-
-
-
-
 const app = express();
+
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+const ffmpeg = require('fluent-ffmpeg');
+ffmpeg.setFfmpegPath(ffmpegPath);
+
+const uploadDirectory = getUserHome()
+
+function getUserHome() {
+    return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
+  }
 
 app.use(fileUpload());
 
@@ -34,8 +39,7 @@ app.post('/upload', (req, res) => {
             }
             res.json({ fileName: file.name, filePath: `/uploads/${file.name}`}); 
             // convert the file into wav.
-            console.log(`${__dirname}/client/public/uploads/${file.name}`)
-            const mp32Wav = new Mp32Wav(`${__dirname}/client/public/uploads/${file.name}`)
+            ffmpeg(`${__dirname}/client/public/uploads/${file.name}`).toFormat('wav').save(`${__dirname}/../songs/${file.name.slice(0, -4)}.wav`);
         });
     }
 });
