@@ -26,11 +26,7 @@ int main(int argc, char const *argv[])
     AudioPlayer_init();
     Potentiometer_init();
     MenuManager_init();
-
-    wavedata_t song;
-    AudioPlayer_readWaveFileIntoMemory(SONG, &song);
-    AudioPlayer_playWAV(&song);*/
-
+    
     Shutdown_init();
     Shutdown_waitForShutdown();
 

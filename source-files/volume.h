@@ -2,10 +2,8 @@
  * This module responsible for reading the potentiometer,
  * and setting the volume accordingly
 */
-
-
-#ifndef POT_H
-#define POT_H
+#ifndef VOLUME_H
+#define VOLUME_H
 
 
 // begins the thread that reads the potentiometer
