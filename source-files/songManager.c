@@ -245,11 +245,42 @@ static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number)
     // char songtemp2[strlen(temp2->author_name) + strlen(temp2->album) + 1];
     // char songtemp3[strlen(temp3->author_name) + strlen(temp3->album) + 1];
     // char songtemp4[strlen(temp4->author_name) + strlen(temp4->album) + 1];
-
-    char songtemp1[strlen(temp1->author_name) + 1];
-    char songtemp2[strlen(temp2->author_name) + 1];
-    char songtemp3[strlen(temp3->author_name) + 1];
-    char songtemp4[strlen(temp4->author_name) + 1];
+    
+    char* songtemp1 = NULL;
+    char* songtemp2 = NULL;
+    char* songtemp3 = NULL;
+    char* songtemp4 = NULL;
+    if(temp1 != NULL) {
+        songtemp1 = (char *)malloc(strlen(temp1->author_name) + 1);
+        
+    } else {
+        songtemp1 = (char *)malloc(3);
+    }
+    if(temp2 != NULL) {
+        songtemp2 = (char *)malloc(strlen(temp2->author_name) + 1);
+        
+    } else {
+        songtemp2 = (char *)malloc(3);
+        
+    }
+    if(temp3 != NULL) {
+        songtemp3 = (char *)malloc(strlen(temp3->author_name) + 1);
+        
+    } else {
+        songtemp3 = (char *)malloc(3);
+        
+    }
+    if(temp4 != NULL) {
+        songtemp4 = (char *)malloc(strlen(temp4->author_name) + 1);
+        
+    } else {
+        songtemp4 = (char *)malloc(3);
+    }
+    
+//     char songtemp1[strlen(temp1->author_name) + 1];
+//     char songtemp2[strlen(temp2->author_name) + 1];
+//     char songtemp3[strlen(temp3->author_name) + 1];
+//     char songtemp4[strlen(temp4->author_name) + 1];
 
     if (temp1 != NULL)
     {
@@ -296,6 +327,11 @@ static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number)
     setSongs(current_song, songtemp1, songtemp2, songtemp3, songtemp4);
     previous_song_cursor = current_song;
     previous_song_start_from = from_song_number;
+    free(songtemp1);
+    free(songtemp2);
+    free(songtemp3);
+    free(songtemp4);
+    
     if(temp2 != NULL) {
         doublyLinkedList_iteratorPrev(); // 3
     }
