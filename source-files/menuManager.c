@@ -490,7 +490,7 @@ static void MainMenu_setArrowAtLine(LCD_LINE_NUM line){
         LCD_writeStringAtLine(MainMenu_option_strings[3],  LCD_LINE4);
         
         break;
-      case LCD_LINE2:
+      case 1:
        // draw arrow line 2
         LCD_clear();
         LCD_writeStringAtLine(MainMenu_option_strings[0], LCD_LINE1);
@@ -501,7 +501,7 @@ static void MainMenu_setArrowAtLine(LCD_LINE_NUM line){
         LCD_writeStringAtLine(MainMenu_option_strings[3], LCD_LINE4);
         
         break;
-      case LCD_LINE3:
+      case 2:
       // draw arrow line 3
         LCD_clear();
         LCD_writeString(MainMenu_option_strings[0]);
@@ -512,7 +512,7 @@ static void MainMenu_setArrowAtLine(LCD_LINE_NUM line){
         LCD_writeStringAtLine(MainMenu_option_strings[3], LCD_LINE4);
        
         break;
-      case LCD_LINE4:
+      case 3:
       // draw arrow on line 4
         LCD_clear();
         LCD_writeString(MainMenu_option_strings[0]);

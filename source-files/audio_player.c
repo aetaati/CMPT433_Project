@@ -77,7 +77,7 @@ void AudioPlayer_init(void)
 	// ..allocate playback buffer:
 	playbackBuffer = malloc(playbackBufferSize * sizeof(*playbackBuffer));
 
-	//current_sound.pSound = NULL;
+	
 
 	// Launch playback thread:
 	pthread_create(&playbackThreadId, NULL, playbackThread, NULL);
