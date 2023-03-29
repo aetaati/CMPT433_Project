@@ -16,6 +16,8 @@ function getUserHome() {
 
 app.use(fileUpload());
 
+// TODO keep track of all the songs added to be displayed and deleted
+
 // function to send udp message to C with the new file name to be added to the list
 // TODO
 
@@ -26,8 +28,7 @@ app.post('/upload', (req, res) => {
     }
     const file = req.files.file;
     if (fs.existsSync(`${__dirname}/client/public/uploads/${file.name}`)) {
-        console.log('file exists');
-        res.status(400).json({msg: 'The file is already uploaded!'})
+        res.status(400).json({msg: 'No file uploaded - The file is already uploaded!'})
     }
     else if (path.extname(file.name) != '.mp3') {
         return res.status(400).json({msg: 'No file uploaded - The file should be mp3'});
@@ -40,6 +41,7 @@ app.post('/upload', (req, res) => {
             res.json({ fileName: file.name, filePath: `/uploads/${file.name}`}); 
             // convert the file into wav.
             ffmpeg(`${__dirname}/client/public/uploads/${file.name}`).toFormat('wav').save(`${__dirname}/../songs/${file.name.slice(0, -4)}.wav`);
+            // Call the UDP message handler here TODO
         });
     }
 });
