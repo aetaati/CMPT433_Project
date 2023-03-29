@@ -404,7 +404,8 @@ void songManager_moveCursorDown()
     //   //doublyLinkedList_setCurrent(current_song_number-1);
       
     // }
-    doublyLinkedList_prev();
+  
+    doublyLinkedList_next();
     songManager_displaySongs();
 }
 
@@ -416,7 +417,8 @@ void songManager_moveCursorUp()
         
     //     //doublyLinkedList_setCurrent(current_song_number-1);
     // }
-    doublyLinkedList_next();
+    
+    doublyLinkedList_prev();
     songManager_displaySongs();
 }
 
