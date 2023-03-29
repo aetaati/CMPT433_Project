@@ -14,7 +14,8 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.2",
-    "express-fileupload": "^1.4.0"
+    "express-fileupload": "^1.4.0",
+    "mp3-to-wav": "^0.1.11"
   },
   "devDependencies": {
     "concurrently": "^7.6.0",

@@ -35,7 +35,7 @@ bool is_module_initialized = false;
 enum eWebCommands
 {
     COMMAND_ADD_SONG = 0,
-    COMMAND_REMOVE_SONG,
+    COMMAND_REMOVE_SONG, 
     COMMAND_VOLUME_UP,
     COMMAND_VOLUME_DOWN,
     COMMAND_SONG_NEXT,
