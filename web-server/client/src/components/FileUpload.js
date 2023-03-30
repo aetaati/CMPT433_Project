@@ -2,11 +2,10 @@ import React, { Fragment, useState } from "react";
 import axios from "axios";
 import Message from "./Message";
 
-const FileUpload = () => {
+const FileUpload = ({files, setFiles, removeFile}) => {
   // Hooks
-  const [file, setFile] = useState("");
-  const [fileName, setFileName] = useState("Choose File");
-  const [uploadedFile, setUploadedFile] = useState({}); // TODO: add another hook to keep the array of all files stored - maybe in server??
+  const [fileLocal, setFileLocal] = useState("");
+  const [fileNameLocal, setFileNameLocal] = useState("Choose File");
   const [message, setMessage] = useState("");
   const [singerName, setSingerName] = useState("Enter singer name here...");
   const [albumName, setAlbumName] = useState("Enter album name here...");
@@ -20,8 +19,13 @@ const FileUpload = () => {
   };
 
   const onFileChange = (e) => {
-    setFile(e.target.files[0]);
-    setFileName(e.target.files[0].name);
+    const file = e.target.files[0];
+    if(!file) return;
+    file.isUploading = true;
+    setFileLocal(file);
+    setFileNameLocal(file.name);
+
+    // setFiles([...files], fileLocal)
   };
 
   const onFileSubmit = async (e) => {
@@ -34,26 +38,30 @@ const FileUpload = () => {
     ) {
       setMessage("No file uploaded - All fields should be provided");
     } else {
+      
+      
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append('file', fileLocal, fileLocal.name);
       // TODO: maybe add other information here to the formData - i.e. singer, album, etc.
 
       try {
-        const res = await axios.post("/upload", formData, {
+        await axios.post("/upload", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         });
-        const { fileName, filePath } = res.data;
-        setUploadedFile({ fileName, filePath });
-
+        fileLocal.isUploading = false;
+        console.log(fileLocal)
+        setFiles([...files, fileLocal])
         setMessage("File Uploaded!");
+        console.log(files)
       } catch (err) {
         if (err.response.status === 500) {
           setMessage("There was a problem with the server");
         } else {
           setMessage(err.response.data.msg);
         }
+        removeFile(fileLocal.name);
       }
     }
   };
@@ -65,7 +73,7 @@ const FileUpload = () => {
         <form onSubmit={onFileSubmit}>
           {
             <div>
-              <label for="singerName">Singer:</label>
+              <label htmlFor="singerName">Singer:</label>
               <input
                 type="text"
                 className="custom-name-input ml-1 display:table-cell"
@@ -74,7 +82,7 @@ const FileUpload = () => {
                 onChange={onSingerNameChange}
               />
               <br />
-              <label for="singerName">Album:</label>
+              <label htmlFor="singerName">Album:</label>
               <input
                 type="text"
                 className="custom-name-input ml-1"
@@ -93,7 +101,7 @@ const FileUpload = () => {
               onChange={onFileChange}
             />
             <label className="custom-file-label" htmlFor="customFile">
-              {fileName}
+              {fileNameLocal}
             </label>
           </div>
 
@@ -104,16 +112,7 @@ const FileUpload = () => {
           />
         </form>
       }
-
-      {uploadedFile ? (
-        <div className="row mt-5">
-          <div className="col-md-6 m-auto">
-            <h3 className="text-center">Uploaded songs</h3>
-            {/* for each file uploaded ?? */}
-            <h2 className="text-center">{uploadedFile.fileName}</h2>
-          </div>
-        </div>
-      ) : null}
+      
     </Fragment>
   );
 };

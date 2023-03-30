@@ -4,6 +4,8 @@ const fs = require('fs');
 var path = require('path')
 const app = express();
 
+const cors = require('cors')
+
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -14,6 +16,7 @@ function getUserHome() {
     return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
   }
 
+app.use(cors());
 app.use(fileUpload());
 
 // TODO keep track of all the songs added to be displayed and deleted
@@ -27,6 +30,7 @@ app.post('/upload', (req, res) => {
         return res.status(400).json({msg: 'No file uploaded - You need to select a file'})
     }
     const file = req.files.file;
+
     if (fs.existsSync(`${__dirname}/client/public/uploads/${file.name}`)) {
         res.status(400).json({msg: 'No file uploaded - The file is already uploaded!'})
     }
@@ -38,12 +42,19 @@ app.post('/upload', (req, res) => {
             if(err) {
                 return res.status(500).send(err);
             }
-            res.json({ fileName: file.name, filePath: `/uploads/${file.name}`}); 
             // convert the file into wav.
             ffmpeg(`${__dirname}/client/public/uploads/${file.name}`).toFormat('wav').save(`${__dirname}/../songs/${file.name.slice(0, -4)}.wav`);
             // Call the UDP message handler here TODO
+            return res.status(200).json({ result: true, msg: "File uploaded",fileName: file.name, filePath: `/uploads/${file.name}`}); 
         });
     }
 });
+
+app.post('/delete', (req, res) => {
+    console.log('file deleted');
+    console.log(req.body)
+    // Send a UDP message to the C program to delete the song
+    return res.status(200).json({result : true, mdg: 'Song deleted!'})
+})
 
 app.listen(5000, () => console.log('Server started'));
