@@ -16,8 +16,8 @@ typedef enum
  * Our HashMap is as follow:
  * 
  * Key: ARTIST_LIST  value: List of all Artists in the system
- * Key: 
- * 
+ * Key: SONG_LIST Value: list of songs --> We have multiple song lists (The key of the song list is the artist position in the Artist list)
+ * Key: ALBUM_LIST Value: list of Albums --> We have multiple albums lists (The key of the song list is the artist position in the Artist list)
  * 
 */
 // Initialize's the hash map
