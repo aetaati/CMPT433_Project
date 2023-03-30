@@ -6,7 +6,6 @@
 #include <assert.h>
 
 #include "hashmap.h"
-#define MAX_NUM_BUCKETS 3
 
 struct Node
 {
@@ -31,12 +30,11 @@ struct List
 struct HashMap
 {
     struct List* list_ptr;
-    HASH_MAP_KEY key;
 };
 
 static bool is_module_initialized = false;
 //static struct List *list_ptr = NULL;
-static struct HashMap hash_map[MAX_NUM_BUCKETS];
+static struct HashMap hash_map[NUM_KEYS_LIST];
 
 static void push_to_head(struct List **list_ptr_l, void *src, unsigned int size)
 {
