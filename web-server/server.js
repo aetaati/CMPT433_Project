@@ -45,7 +45,10 @@ app.post('/upload', (req, res) => {
             // convert the file into wav.
             ffmpeg(`${__dirname}/client/public/uploads/${file.name}`).toFormat('wav').save(`${__dirname}/../songs/${file.name.slice(0, -4)}.wav`);
             // Call the UDP message handler here TODO
-            return res.status(200).json({ result: true, msg: "File uploaded",fileName: file.name, filePath: `/uploads/${file.name}`}); 
+            setTimeout(() => {
+                return res.status(200).json({ result: true, msg: "File uploaded",fileName: file.name, filePath: `/uploads/${file.name}`});
+            }, 
+                3000);
         });
     }
 });

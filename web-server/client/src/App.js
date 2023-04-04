@@ -7,7 +7,6 @@ function App() {
     const [files, setFiles] = useState([])
 
     const removeFile = (filename) => {
-      console.log(files)
       setFiles(files.filter(file => file.name !== filename))
     }
 
