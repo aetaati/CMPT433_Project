@@ -61,9 +61,6 @@ app.post('/delete', (req, res) => {
         if (err) {
             console.error(err);
         }
-        else {
-            console.log(`${filePathMP3} has been deleted`);
-        }
     });
     
     const filePathWav = `${__dirname}/../songs/${song_name.slice(0, -4)}.wav`;
@@ -71,12 +68,9 @@ app.post('/delete', (req, res) => {
     if (err) {
         console.error(err);
     }
-    else {
-        console.log(`${filePathWav} has been deleted`);
-    }
     });
     // Send a UDP message to the C program to delete the song
     return res.status(200).json({result : true, mdg: 'Song deleted!'})
-})
+});
 
 app.listen(5000, () => console.log('Server started'));
