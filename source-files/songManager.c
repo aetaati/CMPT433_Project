@@ -1,15 +1,9 @@
-
-/*
-Author: Mehdi Esmaeilzadeh
-Date: 2023-03-10
-Subject: Implementation of the SongManager module
-*/
-
 #include <stdio.h>
 #include <time.h>
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h> 
 
 #include "songManager.h"
 #include "doublyLinkedList.h"
@@ -59,7 +53,7 @@ static void setSongs(SONG_CURSOR_LINE current_song, char *song1, char *song2, ch
     {
     case CURSOR_LINE_ONE:
         // draw arrow on line 1
-        
+        LCD_clear();
         LCD_writeChar(LCD_RIGHT_ARROW);
         LCD_writeString(song1);
         LCD_writeStringAtLine(song2, LCD_LINE2);
@@ -70,9 +64,9 @@ static void setSongs(SONG_CURSOR_LINE current_song, char *song1, char *song2, ch
     case CURSOR_LINE_TWO:
         // draw arrow line 2
         
-        LCD_writeStringAtLine("                   ", LCD_LINE1);
+        LCD_clear();
         LCD_writeStringAtLine(song1, LCD_LINE1);
-        LCD_writeStringAtLine("", LCD_LINE2);
+        LCD_writeStringAtLine("",LCD_LINE2);
         LCD_writeChar(LCD_RIGHT_ARROW);
         LCD_writeString(song2);
         LCD_writeStringAtLine(song3, LCD_LINE3);
@@ -81,6 +75,7 @@ static void setSongs(SONG_CURSOR_LINE current_song, char *song1, char *song2, ch
         break;
     case CURSOR_LINE_THREE:
         // draw arrow line 3
+        LCD_clear();
         LCD_writeString(song1);
         LCD_writeStringAtLine(song2, LCD_LINE2);
         LCD_writeStringAtLine("", LCD_LINE3); // set cursor
@@ -90,7 +85,7 @@ static void setSongs(SONG_CURSOR_LINE current_song, char *song1, char *song2, ch
         break;
     case CURSOR_LINE_FOUR:
         // draw arrow on line 4
-        
+        LCD_clear();
         LCD_writeString(song1);
         LCD_writeStringAtLine(song2, LCD_LINE2);
         LCD_writeStringAtLine(song3, LCD_LINE3);
@@ -359,7 +354,7 @@ void songManager_init()
     char *song4_p = "songs/som-liveletlive.wav";
     char *song5_p = "songs/Wild Ones (feat. Sia).wav";
     char *song1_name = "Author 1";
-    char *song2_name = "Author 2";
+    char *song2_name = "Kiss from a Rose";
     char *song3_name = "Author 3";
     char *song4_name = "Author 4";
     char *song5_name = "Author 5";

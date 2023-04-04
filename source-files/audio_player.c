@@ -10,7 +10,7 @@
 
 #define DEFAULT_VOLUME 0.8
 #define SAMPLE_RATE 48000
-#define NUM_CHANNELS 2
+#define NUM_CHANNELS 2 // sample rate
 
 // size of each PCM sample from the audio file.
 // each frame sent to the PCM device 
@@ -73,7 +73,7 @@ void AudioPlayer_init(void)
 	// ..get info on the hardware buffers:
  	unsigned long unusedBufferSize = 0;
 	snd_pcm_get_params(handle, &unusedBufferSize, &playbackBufferSize);
-	playbackBufferSize = playbackBufferSize * NUM_CHANNELS;
+	playbackBufferSize = playbackBufferSize;
 	// ..allocate playback buffer:
 	playbackBuffer = malloc(playbackBufferSize * sizeof(*playbackBuffer));
 
@@ -88,41 +88,46 @@ void AudioPlayer_init(void)
 void AudioPlayer_readWaveFileIntoMemory(char *fileName, wavedata_t *pSound)
 {
 	assert(pSound);
+	pthread_mutex_lock(&audioMutex);
+	{
+		// The PCM data in a wave file starts after the header:
+		const int PCM_DATA_OFFSET = 44;
 
-	// The PCM data in a wave file starts after the header:
-	const int PCM_DATA_OFFSET = 44;
+		// Open the wave file
+		FILE *file = fopen(fileName, "r");
+		if (file == NULL) {
+			fprintf(stderr, "ERROR: Unable to open file %s.\n", fileName);
+			exit(EXIT_FAILURE);
+		}
+		printf("getting file size\n");
+		// Get file size
+		fseek(file, 0, SEEK_END);
+		int sizeInBytes = ftell(file) - PCM_DATA_OFFSET;
+		pSound->numSamples = sizeInBytes / (SAMPLE_SIZE);
 
-	// Open the wave file
-	FILE *file = fopen(fileName, "r");
-	if (file == NULL) {
-		fprintf(stderr, "ERROR: Unable to open file %s.\n", fileName);
-		exit(EXIT_FAILURE);
+		// Search to the start of the data in the file
+		fseek(file, PCM_DATA_OFFSET, SEEK_SET);
+
+		// Allocate space to hold all PCM data
+		pSound->pData = malloc(sizeInBytes);
+		if (pSound->pData == 0) {
+			fprintf(stderr, "ERROR: Unable to allocate %d bytes for file %s.\n",
+					sizeInBytes, fileName);
+			exit(EXIT_FAILURE);
+		}
+		printf("begin reading file\n");
+		// Read PCM data from wave file into memory
+		int samplesRead = fread(pSound->pData, SAMPLE_SIZE , pSound->numSamples, file);
+		if (samplesRead != pSound->numSamples) {
+			fprintf(stderr, "ERROR: Unable to read %d samples from file %s (read %d).\n",
+					pSound->numSamples, fileName, samplesRead);
+			exit(EXIT_FAILURE);
+		}
+		printf("finished reading\n");
+		fclose(file);
 	}
-
-	// Get file size
-	fseek(file, 0, SEEK_END);
-	int sizeInBytes = ftell(file) - PCM_DATA_OFFSET;
-	pSound->numSamples = sizeInBytes / (SAMPLE_SIZE);
-
-	// Search to the start of the data in the file
-	fseek(file, PCM_DATA_OFFSET, SEEK_SET);
-
-	// Allocate space to hold all PCM data
-	pSound->pData = malloc(sizeInBytes);
-	if (pSound->pData == 0) {
-		fprintf(stderr, "ERROR: Unable to allocate %d bytes for file %s.\n",
-				sizeInBytes, fileName);
-		exit(EXIT_FAILURE);
-	}
-
-	// Read PCM data from wave file into memory
-	int samplesRead = fread(pSound->pData, SAMPLE_SIZE , pSound->numSamples, file);
-	if (samplesRead != pSound->numSamples) {
-		fprintf(stderr, "ERROR: Unable to read %d samples from file %s (read %d).\n",
-				pSound->numSamples, fileName, samplesRead);
-		exit(EXIT_FAILURE);
-	}
-	fclose(file);
+	pthread_mutex_unlock(&audioMutex);
+	
 }
 
 void AudioPlayer_freeWaveFileData(wavedata_t *pSound)
@@ -270,13 +275,14 @@ static void fillPlaybackBuffer(short *buff, int size)
 {
     // discard old pcm data
     memset(buff, 0, size * SAMPLE_SIZE);
+	
 
     pthread_mutex_lock(&audioMutex);
 	{
 		
         wavedata_t* sound_data = current_sound.pSound;
         if(sound_data != NULL){
-            
+            printf("sound not null\n");
             // copy into playback buff
             int total_samples = sound_data->numSamples;
             int location = current_sound.location;

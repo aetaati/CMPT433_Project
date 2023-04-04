@@ -1,6 +1,4 @@
 /*
-Author: Mehdi Esmaeilzadeh
-Date: 2023-03-10
 Subject: Definition of the Joystick module to get the current accelerometer action
 */
 
