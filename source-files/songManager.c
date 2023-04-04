@@ -353,7 +353,7 @@ void songManager_init()
     char *song4_p = "songs/som-liveletlive.wav";
     char *song5_p = "songs/Wild Ones (feat. Sia).wav";
     char *song1_name = "Author 1";
-    char *song2_name = "Author 2";
+    char *song2_name = "Kiss from a Rose";
     char *song3_name = "Author 3";
     char *song4_name = "Author 4";
     char *song5_name = "Author 5";

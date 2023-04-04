@@ -60,7 +60,7 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
 static BLUETOOTH_OPTIONS bluetoothMenu_currentOption;
 static char* BluetoothMenu_options_strings[NUM_BT_OPTIONS] = {
   "Connect to Device",
-  "Disconnect Device"
+  "Disconnect"
 };
 static void BluetoothMenu_joystickAction(enum eJoystickDirections currentJoyStickDirection);
 static void displayBluetoothMenu(void);
