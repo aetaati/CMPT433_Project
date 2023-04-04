@@ -390,6 +390,10 @@ void songManager_addSongBack(song_info *song)
 }
 
 void songManager_displaySongs() {
+  if(doublyLinkedList_getSize() == 0) {
+    LCD_clear();
+    LCD_writeStringAtLine("      No Songs   ", LCD_LINE1);
+  }
   int current_song_number = getCurrentSongNumber();
   int from_song = getfromSongForDisplay(current_song_number);
   doublyLinkedList_setIterator(from_song);
