@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "menuManager.h"
 #include "songManager.h"
@@ -568,8 +569,6 @@ void MenuManager_init(void)
 {
   LCD_init();
 
-  songManager_init();
-
   Joystick_init();
 
   pthread_create(&menuManagerThreadId, NULL, MenuManagerThread, NULL);
@@ -583,8 +582,6 @@ void MenuManager_cleanup(void)
   pthread_join(menuManagerThreadId, NULL);
 
   Joystick_cleanup();
-
-  songManager_cleanup();
 
   LCD_cleanup();
 }

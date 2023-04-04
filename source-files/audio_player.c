@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <limits.h>
 #include <string.h>
+#include <time.h>
 #include <alloca.h>
 
 
@@ -87,6 +88,7 @@ void AudioPlayer_init(void)
 // Client code must call AudioMixer_freeWaveFileData to free dynamically allocated data.
 void AudioPlayer_readWaveFileIntoMemory(char *fileName, wavedata_t *pSound)
 {
+	
 	assert(pSound);
 	pthread_mutex_lock(&audioMutex);
 	{
@@ -116,6 +118,7 @@ void AudioPlayer_readWaveFileIntoMemory(char *fileName, wavedata_t *pSound)
 			exit(EXIT_FAILURE);
 		}
 		printf("begin reading file\n");
+		clock_t begin = clock();
 		// Read PCM data from wave file into memory
 		int samplesRead = fread(pSound->pData, SAMPLE_SIZE , pSound->numSamples, file);
 		if (samplesRead != pSound->numSamples) {
@@ -123,7 +126,8 @@ void AudioPlayer_readWaveFileIntoMemory(char *fileName, wavedata_t *pSound)
 					pSound->numSamples, fileName, samplesRead);
 			exit(EXIT_FAILURE);
 		}
-		printf("finished reading\n");
+		clock_t end = clock();
+		printf("finished reading, it took: %fs\n", (double) (end - begin)/CLOCKS_PER_SEC);
 		fclose(file);
 	}
 	pthread_mutex_unlock(&audioMutex);

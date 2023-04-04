@@ -26,10 +26,12 @@ int main(int argc, char const *argv[])
     AudioPlayer_init();
     Potentiometer_init();
     MenuManager_init();
+    songManager_init();
     
     Shutdown_init();
     Shutdown_waitForShutdown();
 
+    songManager_cleanup();
     MenuManager_cleanup();
     Potentiometer_cleanup();
     AudioPlayer_cleanup();
