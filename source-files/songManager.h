@@ -1,10 +1,12 @@
 #if !defined(SONG_MANAGER_H)
 #define SONG_MANAGER_H
+#include "audio_player.h"
 
 typedef struct {
     char * song_path;
     char * author_name;
     char * album;
+    wavedata_t * pSong_DWave; 
 }song_info;
 
 typedef enum
@@ -33,6 +35,9 @@ void songManager_moveCursorDown(void);
 void songManager_moveCursorUp(void);
 /* Displays the songs */
 void songManager_displaySongs();
+
+/* Song Mananger Delete a song*/
+void songManager_deleteSong();
 
 /* Returns song_info struct to the user*/
 // Gets current song_playing
