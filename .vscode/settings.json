@@ -2,7 +2,8 @@
     "files.associations": {
         "stdbool.h": "c",
         "bluetooth.h": "c",
-        "songmanager.h": "c"
+        "songmanager.h": "c",
+        "audio_player.h": "c"
     },
     "cSpell.words": [
         "wavedata"
