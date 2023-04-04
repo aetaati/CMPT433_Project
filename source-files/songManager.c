@@ -7,10 +7,9 @@
 
 #include "songManager.h"
 #include "doublyLinkedList.h"
-#include "audio_player.h"
+
 #include "lcd_4line.h"
 
-static wavedata_t *pSound_currentSong = NULL;
 
 static song_info *current_song_playing = NULL;
 
@@ -20,7 +19,7 @@ static int previous_song_start_from = -1;
 
 /********************************PRIVATE FUNCTIONS***********************************************************/
 static song_info *create_song_struct(char *name, char *album, char *path);
-static void playSong(char *soundPath);
+static void playSong(wavedata_t* song);
 static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number);
 static bool previously_displayed(SONG_CURSOR_LINE current_song, int from_song_number);
 static void setSongs(SONG_CURSOR_LINE current_song, char *song1, char *song2, char *song3, char *song4);
@@ -103,26 +102,10 @@ static int getCurrentSongNumber()
     return doublyLinkedList_getCurrentIdx() + 1;
 }
 
-// static song_info *give_song(int song_number)
-// {
-//     int n = song_number - 1;
-//     struct Node *temp = doublyLinkedList_getHead();
-//     for (int i = 0; i < n; i++)
-//     {
-//         if (temp == NULL)
-//         {
-//             break;
-//         }
-//         temp = temp->next;
-//     }
-//     return temp->data;
-// }
-
-static void playSong(char *soundPath)
+static void playSong(wavedata_t* song)
 {
-    pSound_currentSong = malloc(sizeof(*pSound_currentSong));
-    AudioPlayer_readWaveFileIntoMemory(soundPath, pSound_currentSong);
-    AudioPlayer_playWAV(pSound_currentSong);
+    // pSound_currentSong = malloc(sizeof(*pSound_currentSong));
+    AudioPlayer_playWAV(song);
 }
 // static void clean_passed_song(song_info* song) {
 //     if(song != NULL) {
@@ -150,6 +133,8 @@ static song_info *create_song_struct(char *name, char *album, char *path)
     strcpy(song->author_name, name);
     strcpy(song->album, album);
     strcpy(song->song_path, path);
+    song->pSong_DWave = malloc(sizeof(*song->pSong_DWave));
+    AudioPlayer_readWaveFileIntoMemory(song->song_path, song->pSong_DWave);
 
     // song->author_name = name;
     // song->album = album;
@@ -399,7 +384,7 @@ void songManager_playSong()
     else
     {
         current_song_playing = temp;
-        playSong(current_song_playing->song_path);
+        playSong(current_song_playing->pSong_DWave);
     }
 }
 
