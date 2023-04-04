@@ -6,6 +6,7 @@ typedef struct {
     char * song_path;
     char * author_name;
     char * album;
+    char * song_name;
     wavedata_t * pSong_DWave; 
 }song_info;
 

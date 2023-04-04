@@ -87,4 +87,6 @@ bool doublyLinkedList_advanceIteratorNTimes(int n);
 // Returns false if the iterator cannot be moved
 bool doublyLinkedList_rewindIteratorNTimes(int n);
 
+bool doublyLinkedList_delete(int idx);
+
 #endif // DOUBLY_LINKED_LIST_H
