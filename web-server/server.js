@@ -10,14 +10,13 @@ const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
 
-const uploadDirectory = getUserHome()
-
-function getUserHome() {
-    return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
-  }
-
 app.use(cors());
 app.use(fileUpload());
+
+
+const bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // TODO keep track of all the songs added to be displayed and deleted
 
@@ -31,19 +30,19 @@ app.post('/upload', (req, res) => {
     }
     const file = req.files.file;
 
-    if (fs.existsSync(`${__dirname}/client/public/uploads/${file.name}`)) {
+    if (fs.existsSync(`${__dirname}/../songs/${file.name}`)) {
         res.status(400).json({msg: 'No file uploaded - The file is already uploaded!'})
     }
     else if (path.extname(file.name) != '.mp3') {
         return res.status(400).json({msg: 'No file uploaded - The file should be mp3'});
     }
     else {
-        file.mv(`${__dirname}/client/public/uploads/${file.name}`, err => {
+        file.mv(`${__dirname}/../songs/${file.name}`, err => {
             if(err) {
                 return res.status(500).send(err);
             }
             // convert the file into wav.
-            ffmpeg(`${__dirname}/client/public/uploads/${file.name}`).toFormat('wav').save(`${__dirname}/../songs/${file.name.slice(0, -4)}.wav`);
+            ffmpeg(`${__dirname}/../songs/${file.name}`).toFormat('wav').save(`${__dirname}/../songs/${file.name.slice(0, -4)}.wav`);
             // Call the UDP message handler here TODO
             setTimeout(() => {
                 return res.status(200).json({ result: true, msg: "File uploaded",fileName: file.name, filePath: `/uploads/${file.name}`});
@@ -55,7 +54,27 @@ app.post('/upload', (req, res) => {
 
 app.post('/delete', (req, res) => {
     console.log('file deleted');
-    console.log(req.body)
+    const song_name = req.body.name;
+    const filePathMP3 = `${__dirname}/../songs/${song_name}`;
+    
+    fs.unlink(filePathMP3, (err) => {
+        if (err) {
+            console.error(err);
+        }
+        else {
+            console.log(`${filePathMP3} has been deleted`);
+        }
+    });
+    
+    const filePathWav = `${__dirname}/../songs/${song_name.slice(0, -4)}.wav`;
+    fs.unlink(filePathWav, (err) => {
+    if (err) {
+        console.error(err);
+    }
+    else {
+        console.log(`${filePathWav} has been deleted`);
+    }
+    });
     // Send a UDP message to the C program to delete the song
     return res.status(200).json({result : true, mdg: 'Song deleted!'})
 })

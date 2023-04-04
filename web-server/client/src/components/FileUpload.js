@@ -1,14 +1,12 @@
 import React, { Fragment, useState } from "react";
 import axios from "axios";
-import Message from "./Message";
 
-const FileUpload = ({files, setFiles, removeFile}) => {
+const FileUpload = ({files, setFiles, setMessage}) => {
   // Hooks
 
   const [currentFileLocal, setCurrentFileLocal] = useState({});
   const [currentFileName, setCurrentFileName] = useState("Choose File");
 
-  const [message, setMessage] = useState("");
 
   const [singerName, setSingerName] = useState("Enter singer name here...");
   const [albumName, setAlbumName] = useState("Enter album name here...");
@@ -70,7 +68,6 @@ const FileUpload = ({files, setFiles, removeFile}) => {
 
   return (
     <Fragment>
-      {message ? <Message msg={message} /> : null}
       {
         <form onSubmit={onFileSubmit}>
           {
