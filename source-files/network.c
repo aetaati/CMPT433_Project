@@ -52,6 +52,7 @@ static enum eWebCommands parse_command(char messageRx[MSG_MAX_LEN])
 {
     if (strncmp(messageRx, "add_song", strlen("add_song")) == 0)
     {
+        printf("adding song\n");
         return COMMAND_ADD_SONG;
     }
     else if (strncmp(messageRx, "remove_song", strlen("remove_song")) == 0)
@@ -89,6 +90,7 @@ static enum eWebCommands parse_command(char messageRx[MSG_MAX_LEN])
 // the caller should call free()
 static void run_command(enum eWebCommands cur_command, char* message)
 {
+    printf("current command: %d\n", cur_command);
     // TODO: consider using an array of function pointers to respond to each command
     // The array will be initialized in network_init ??
     // The indices of the array will be the values of eWebCommands enum ??
@@ -106,8 +108,10 @@ static void run_command(enum eWebCommands cur_command, char* message)
         
         int iter = 0;
 
-        while(message != NULL ) {
-            message = strtok(NULL, "\n");
+        while((message = strtok(NULL, "\n") )!= NULL ) {
+            
+            printf("%s\n", message);
+            printf("after printing\n");
 
             if(iter == 0) {
                 path = malloc(strlen(message)+ 1);
@@ -127,6 +131,8 @@ static void run_command(enum eWebCommands cur_command, char* message)
             }
             iter++;
         }
+
+        printf("after parsing\n");
         //song_info * song = create_song
         // Create Song stuct
         song_info* song_struct = create_song_struct(singer, album, path, song_name);
