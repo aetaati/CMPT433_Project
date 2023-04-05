@@ -4,7 +4,6 @@ import axios from "axios";
 
 const FileUpload = ({files, setFiles, setMessage}) => {
   // Hooks
-
   const [currentFileLocal, setCurrentFileLocal] = useState({});
   const [currentFileName, setCurrentFileName] = useState("Choose File");
 

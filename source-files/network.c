@@ -217,6 +217,7 @@ static void network_logic(int socketDescriptor)
             printf("ERROR: Failed to receive. Data is not available and socket is in nonblocking mode\n");
             exit(-1);
         }
+        printf("recieved: <%s>\n", messageRx);
 
         // handle the received message ///////////////////////////////////////////////////////////////////////
 

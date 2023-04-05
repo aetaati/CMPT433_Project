@@ -18,7 +18,7 @@ var dgram = require('dgram');
 function sendUDP(data) {
     // Info for connecting to the local process via UDP
     var PORT = 12345;
-    var HOST = '127.0.0.1';
+    var HOST = '192.168.7.2';
     const message = Buffer.from(data);
 
     var client = dgram.createSocket('udp4');
@@ -59,7 +59,6 @@ app.post('/upload', (req, res) => {
 
     const c_UDP_values = `${'newSong'}\n${file_pat}\n${song_name}\n${singer_name}\n${album_name}`;
 
-    console.log("pink")
     if (fs.existsSync(`/home/kingsteez/cmpt433/public/myApps/songs/${file.name}`)) {
         res.status(400).json({msg: 'No file uploaded - The file is already uploaded!'})
     }
@@ -69,12 +68,14 @@ app.post('/upload', (req, res) => {
     else {
         file.mv(`/home/kingsteez/cmpt433/public/myApps/songs/${file.name}`, err => {
             if(err) {
-                console.log("shake");
                 return res.status(500).send(err);
             }
+
+            console.log("before conversion");
             // convert the file into wav.
-            ffmpeg(`/home/kingsteez/cmpt433/public/myApps/songs/${file.name}`).toFormat(`/home/kingsteez/cmpt433/public/myApps/songs/${file.name.slice(0, -4)}.wav`);
+            ffmpeg(`/home/kingsteez/cmpt433/public/myApps/songs/${file.name}`).toFormat('wav').save(`/home/kingsteez/cmpt433/public/myApps/songs/${file.name.slice(0, -4)}.wav`);
             // Call the UDP message handler here TODO
+            console.log("finished conversion");
             
 
             sendUDP(c_UDP_values);
