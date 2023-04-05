@@ -20,6 +20,8 @@ typedef enum
 } SONG_CURSOR_LINE;
 
 
+void songManager_AutoPlayNext(void);
+
 void songManager_init(void);
 /* Plays the song that the cursor is pointing at */
 void songManager_playSong();

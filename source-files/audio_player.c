@@ -7,6 +7,7 @@
 #include <string.h>
 #include <time.h>
 #include <alloca.h>
+#include "songManager.h"
 
 
 #define DEFAULT_VOLUME 0.8
@@ -24,6 +25,7 @@ static snd_pcm_t *handle;
 static unsigned long playbackBufferSize = 0;
 static short *playbackBuffer = NULL;
 static int volume = 0;
+static bool SONG_PLAYED = false;
 
 typedef struct {
 	// a pointer to the raw PCM data
@@ -156,7 +158,7 @@ void AudioPlayer_playWAV(wavedata_t *pSound)
 	} 
     pthread_mutex_unlock(&audioMutex);
 
-    fprintf(stderr, "Failed to update current song\n");
+    fprintf(stderr, "Failed to play song\n");
 
 }
 
@@ -286,7 +288,8 @@ static void fillPlaybackBuffer(short *buff, int size)
 		
         wavedata_t* sound_data = current_sound.pSound;
         if(sound_data != NULL){
-            printf("sound not null\n");
+            SONG_PLAYED = true;
+
             // copy into playback buff
             int total_samples = sound_data->numSamples;
             int location = current_sound.location;
@@ -339,6 +342,11 @@ static void fillPlaybackBuffer(short *buff, int size)
 
             
         }
+		else if(SONG_PLAYED == true){
+			printf("Song is over.\n");
+			songManager_AutoPlayNext();
+
+		}
     }
     pthread_mutex_unlock(&audioMutex);
 

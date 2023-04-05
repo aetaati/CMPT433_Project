@@ -12,13 +12,13 @@
 
 
 static song_info *current_song_playing = NULL;
-
+static int CURRENT_AUTOPLAY_SONG;
 static SONG_CURSOR_LINE previous_song_cursor = CURSOR_LINE_NOT_SET;
 static int previous_song_start_from = -1;
 
 
 /********************************PRIVATE FUNCTIONS***********************************************************/
-//static song_info *create_song_struct(char *name, char *album, char *path);
+static song_info *create_song_struct(char *name, char *album, char *path);
 static void playSong(wavedata_t* song);
 static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number);
 static bool previously_displayed(SONG_CURSOR_LINE current_song, int from_song_number);
@@ -103,7 +103,8 @@ static int getCurrentSongNumber()
 }
 
 static void playSong(wavedata_t* song)
-{
+{   
+    printf("started song\n");
     // pSound_currentSong = malloc(sizeof(*pSound_currentSong));
     AudioPlayer_playWAV(song);
 }
@@ -122,7 +123,7 @@ static void playSong(wavedata_t* song)
 //     }
 // }
 
-/*static song_info *create_song_struct(char *name, char *album, char *path)
+static song_info *create_song_struct(char *name, char *album, char *path)
 {
     song_info *song = malloc(sizeof(*song));
 
@@ -140,7 +141,7 @@ static void playSong(wavedata_t* song)
     // song->song_path = path;
 
     return song;
-}*/
+}
 
 // Returns where the song cursor is located at -- Cursor can be #1, #2, #3, #4
 static SONG_CURSOR_LINE getsongCursor(int current_song_number)
@@ -333,7 +334,7 @@ void songManager_init()
     /**** TESTING********/
 
     // Adds 5 song to the list
-    /*char *song1_p = "songs/hunnybee.wav";
+    char *song1_p = "songs/hunnybee.wav";
     char *song2_p = "songs/kiss-from-rose.wav";
     char *song3_p = "songs/moves.wav";
     char *song4_p = "songs/som-liveletlive.wav";
@@ -353,17 +354,26 @@ void songManager_init()
     song1->pSong_DWave = malloc(sizeof(*song1->pSong_DWave));
     AudioPlayer_readWaveFileIntoMemory(song1->song_path, song1->pSong_DWave);
     songManager_addSongFront(song1);
+    CURRENT_AUTOPLAY_SONG = 0;
 
 
 
     song_info *song2 = create_song_struct(song2_name, song2_album, song2_p);
+    song2->pSong_DWave = malloc(sizeof(*song2->pSong_DWave));
+    AudioPlayer_readWaveFileIntoMemory(song2->song_path, song2->pSong_DWave);
     songManager_addSongBack(song2);
+
+
     song_info *song3 = create_song_struct(song3_name, song3_album, song3_p);
+    song3->pSong_DWave = malloc(sizeof(*song3->pSong_DWave));
+    AudioPlayer_readWaveFileIntoMemory(song3->song_path, song3->pSong_DWave);
     songManager_addSongBack(song3);
+
+
     song_info *song4 = create_song_struct(song4_name, song4_album, song4_p);
     songManager_addSongBack(song4);
     song_info *song5 = create_song_struct(song5_name, song5_album, song5_p);
-    songManager_addSongBack(song5);*/
+    songManager_addSongBack(song5);
 
 
 }
@@ -380,15 +390,24 @@ void songManager_init()
 //     return size;
 // }
 
+
+void songManager_AutoPlayNext(){
+    CURRENT_AUTOPLAY_SONG++;
+    song_info* song = (song_info*) doublyLinkedList_getElementAtIndex(CURRENT_AUTOPLAY_SONG);
+    playSong(song->pSong_DWave);
+}
+
 void songManager_playSong()
 {
     song_info *temp = doublyLinkedList_getCurrentElement();
+    CURRENT_AUTOPLAY_SONG = doublyLinkedList_getCurrentIdx();
     if (temp == NULL)
     {
         printf("Song does not exist\n");
     }
     else
     {
+
         current_song_playing = temp;
         playSong(current_song_playing->pSong_DWave);
     }
@@ -409,7 +428,7 @@ void songManager_displaySongs() {
     if(!doublyLinkedList_getSize()){
         LCD_clear();
         LCD_writeStringAtLine("Empty song library",LCD_LINE1);
-        return ;
+        return;
     }
   int current_song_number = getCurrentSongNumber();
   int from_song = getfromSongForDisplay(current_song_number);
