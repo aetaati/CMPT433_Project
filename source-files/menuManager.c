@@ -1,9 +1,3 @@
-/*
-Author: Mehdi Esmaeilzadeh
-Date: 2023-03-12
-Subject: Implementation of the MenuManager module
-*/
-
 #include <pthread.h>
 #include <stdio.h>
 #include <time.h>
@@ -15,67 +9,100 @@ Subject: Implementation of the MenuManager module
 #include "songManager.h"
 #include "audio_player.h"
 #include "joystick.h"
-#include "lcd_display.h"
 #include "gpio.h"
 #include "shutdown.h"
 #include "bluetooth.h"
 #include "sleep.h"
 #include "lcd_4line.h"
 
+#define INPUT_CHECK_WAIT_TIME 5
+#define DEBOUNCE_WAIT_TIME 100
 
 
+/**
+ * Global Variables / Private Function Declarations
+*/
+
+/**
+ * Threading
+*/
 static bool stoppingMenu = false;
-
 static pthread_t menuManagerThreadId;
-
-static bool show_once_menu = false;
-
-static int current_song_number = 1;
-static bool show_display_songs = false;
-
-
-typedef enum
-{
-  MAIN,
-  SONGS,
-  BLUETOOTH,
-  SETTINGS,
-  NUM_MENUS
-} MENU;
-
-typedef enum
-{
-  SONGS_OPT,
-  BLUETOOTH_OPT,
-  SETTINGS_OPT,
-  POWEROFF_OPT,
-  NUM_OPTIONS
-} MAIN_OPTIONS;
-
-
-
-static MENU current_menu; // MAIN 
-static MAIN_OPTIONS current_main; 
-static void setArrow(MAIN_OPTIONS current_main);
-
-
-//////////////////////MIGHT USE
-// #define TEMPO_DEFAULT 120
-// static int currentTempo = TEMPO_DEFAULT;
-
-wavedata_t *pSound_currentSong = NULL;
-
-// static pthread_mutex_t tempoMutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t volumeMutex = PTHREAD_MUTEX_INITIALIZER;
+static void *MenuManagerThread(void *arg);
 static pthread_mutex_t currentModeMutex = PTHREAD_MUTEX_INITIALIZER;
 
-// Flags Used for switching to the playsong menu
-static bool display_mainMenu = true;
+/**
+ * Menu Manager
+*/
+static MENU current_menu = MAIN_MENU;
+static LCD_LINE_NUM current_arrow_line; 
+static char* display_array[4] = {"", "", "", ""};
 
-/********************** Private/Helper functions**********************/
+/**
+ * Main Menu
+*/
+static MAIN_OPTIONS MainMenu_currentOpt = SONGS_OPT; 
+static char* MainMenu_option_strings[NUM_MAIN_OPTIONS] = {
+  "Select Song",
+  "Bluetooth",
+  "Settings",
+  "Poweroff"
+};
+static void MainMenu_setArrowAtLine(LCD_LINE_NUM line);
+static void displayMainMenu(void);
+static void MainMenu_changeMenu(MAIN_OPTIONS option);
+static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection);
 
-////////////////////////// Accelerometer and Joystick Input
 
+/** 
+ * Bluetooth Menu
+*/
+static BLUETOOTH_OPTIONS bluetoothMenu_currentOption;
+static char* BluetoothMenu_options_strings[NUM_BT_OPTIONS] = {
+  "Connect to Device",
+  "Disconnect Device"
+};
+static void BluetoothMenu_joystickAction(enum eJoystickDirections currentJoyStickDirection);
+static void displayBluetoothMenu(void);
+static void BluetoothMenu_setArrowAtLine(LCD_LINE_NUM line);
+
+
+/**
+ * Bluetooth Scan Menu
+*/
+static bluetooth_scan_t* scanner;
+static char** bt_scan_option_strings;
+int current_bt_device = 0;
+static void BTScanMenu_setArrowAtLine(LCD_LINE_NUM line);
+static void displayBTScanMenu(void);
+static void BTScanMenu_joystickAction(enum eJoystickDirections currentJoyStickDirection);
+
+
+/**
+ * Settings Menu
+*/
+static void displaySettingsMenu(void){
+  LCD_clear();
+  LCD_writeStringAtLine("Settings Menu", LCD_LINE1);
+}
+
+
+/**
+ * Song Menu
+*/
+static void displaySongMenu(void)
+{
+  LCD_clear();
+  LCD_writeStringAtLine("Songs Menu", LCD_LINE1);
+}
+static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection);
+
+
+
+
+/* -------------------------------------------------------------------- *
+ * JOYSTICK                                                             *
+ * -------------------------------------------------------------------- */
 // Sets the timer for action related to idx
 // Done after the action gets triggered
 static void setTimers(long long *timers, int idx, int wait_time)
@@ -85,7 +112,6 @@ static void setTimers(long long *timers, int idx, int wait_time)
     timers[idx] = wait_time;
   }
 }
-
 // // Reduces wait time for all waiting actions
 // // Done at end of each loop
 static void decrementTimers(long long *timers, int size)
@@ -98,7 +124,6 @@ static void decrementTimers(long long *timers, int size)
     }
   }
 }
-
 // Checks to see if the action can be triggered or should wait.
 // Used for debouncing
 static bool isActionTriggered(long long *timers, int idx)
@@ -110,197 +135,393 @@ static bool isActionTriggered(long long *timers, int idx)
   return false;
 }
 
+
+
+static void BluetoothMenu_joystickAction(enum eJoystickDirections currentJoyStickDirection){
+  switch(currentJoyStickDirection){
+    case JOYSTICK_UP:
+      // scroll up
+      if(bluetoothMenu_currentOption == BTMENU_CONNECT){
+        // do nothing
+      }
+      else{
+        // set to line 1
+        BluetoothMenu_setArrowAtLine(LCD_LINE1);
+        bluetoothMenu_currentOption--;
+      }
+      break;
+
+    case JOYSTICK_DOWN:
+      // scroll down
+      if(bluetoothMenu_currentOption == BTMENU_DISCONNECT){
+        // do nothing
+      }
+      else{
+        // set to line 2
+        BluetoothMenu_setArrowAtLine(LCD_LINE2);
+        bluetoothMenu_currentOption++;
+      }
+      break;
+
+    case JOYSTICK_CENTER:
+      if(bluetoothMenu_currentOption == BTMENU_CONNECT){
+        displayBTScanMenu();
+      }
+      else if(bluetoothMenu_currentOption == BTMENU_DISCONNECT){
+        LCD_clear();
+        LCD_writeStringAtLine("Disconnecting...", LCD_LINE1);
+        Bluetooth_disconnect();
+        LCD_clearLine(LCD_LINE1);
+        LCD_writeStringAtLine("Disconnected!", LCD_LINE1);
+        Sleep_ms(1000);
+        displayBluetoothMenu();
+      }
+      break;
+
+    case JOYSTICK_LEFT:
+      displayMainMenu();
+      break;
+      
+    default:
+      // unsupported direction
+      break;
+  }
+
+}
+
+
+static void displayBluetoothMenu(void){
+  current_menu = BLUETOOTH_MENU;
+  LCD_clear();
+  LCD_writeChar(LCD_RIGHT_ARROW);
+  LCD_writeString(BluetoothMenu_options_strings[0]);
+  LCD_writeStringAtLine(BluetoothMenu_options_strings[1], LCD_LINE2);
+  current_arrow_line = LCD_LINE1;
+  bluetoothMenu_currentOption = BTMENU_CONNECT;
+}
+
+
+static void BluetoothMenu_setArrowAtLine(LCD_LINE_NUM line){
+  switch(line){
+      case LCD_LINE1:
+        // draw arrow line 1
+        LCD_clearLine(LCD_LINE1);
+        LCD_writeChar(LCD_RIGHT_ARROW);
+        LCD_writeString(BluetoothMenu_options_strings[0]);
+        LCD_clearLine(LCD_LINE2);
+        LCD_writeStringAtLine(BluetoothMenu_options_strings[1], LCD_LINE2);
+        break;
+
+      case LCD_LINE2:
+        // draw arrow line 2
+        LCD_clearLine(LCD_LINE1);
+        LCD_writeStringAtLine(BluetoothMenu_options_strings[0], LCD_LINE1);
+        LCD_clearLine(LCD_LINE2);
+        LCD_writeChar(LCD_RIGHT_ARROW);
+        LCD_writeString(BluetoothMenu_options_strings[1]);
+        break;
+
+      default:
+        break;
+    }
+}
+
+
+
+
+
+/* -------------------------------------------------------------------- *
+ * BLUETOOTH Scan MENU                                                       *
+ * -------------------------------------------------------------------- */
+static void displayBTScanMenu(void){
+  current_menu = BTSCAN_MENU;
+  LCD_clear();
+ 
+
+  // scan
+  LCD_writeStringAtLine("Scanning for Devices", LCD_LINE1);
+  scanner = malloc(sizeof(bluetooth_scan_t));
+  Bluetooth_scan(scanner);
+  bt_scan_option_strings = malloc(sizeof(char*) * scanner->num_devices);
+  Bluetooth_getHumanReadableNames(scanner, bt_scan_option_strings);
+  printf("num scanned: %d\n", scanner->num_devices);
+  LCD_clear();
+ 
+
+  // display up to the first 3 devices
+  LCD_writeStringAtLine("    Select Device", LCD_LINE1);
+  LCD_writeStringAtLine("", LCD_LINE2);
+  LCD_writeChar(LCD_RIGHT_ARROW);
+  int index = 1;
+  LCD_writeString(bt_scan_option_strings[0]);
+  display_array[1] = bt_scan_option_strings[0];
+  while(index < 3 && index < scanner->num_devices){
+    LCD_writeStringAtLine(bt_scan_option_strings[index], index + 1);
+    display_array[index + 1] = bt_scan_option_strings[index];
+    index++;
+  }
+  current_arrow_line = LCD_LINE2;
+}
+
+// Cursor scroll wrapping is currently not active
+static void BTScanMenu_joystickAction(enum eJoystickDirections currentJoyStickDirection){
+  switch(currentJoyStickDirection){
+    case JOYSTICK_UP:
+      // scroll up
+      if(current_bt_device == 0){
+        // top of list -> do nothing
+      }
+      else if(current_arrow_line == LCD_LINE2){
+        // top of displayed options -> shift display array back by 1 leave arrow at line 2
+        current_bt_device--;
+        for(int i = 1; i < 4; i++){
+          display_array[i] = bt_scan_option_strings[current_bt_device - 1 + i];
+        }
+
+        LCD_clearLine(LCD_LINE2);
+        LCD_clearLine(LCD_LINE3);
+        LCD_clearLine(LCD_LINE4);
+        BTScanMenu_setArrowAtLine(LCD_LINE2);
+      }
+      else if(current_arrow_line == LCD_LINE3){
+        // arrow line 3 -> move to line 2
+        current_bt_device--;
+        LCD_clearLine(LCD_LINE3);
+        BTScanMenu_setArrowAtLine(LCD_LINE2);
+      }
+      else if(current_arrow_line == LCD_LINE4){
+        // arrow line 4 -> move to line 3
+        current_bt_device--;
+        LCD_clearLine(LCD_LINE4);
+        BTScanMenu_setArrowAtLine(LCD_LINE3);
+      }
+      break;
+
+    case JOYSTICK_DOWN:
+      // scroll down
+      if(current_bt_device == scanner->num_devices - 1){
+        // bottom of list -> do nothing
+      }
+      else if(current_arrow_line == LCD_LINE4){
+        // bottom of displayed options -> shift display array forward by 1 leave arrow at line 4
+        current_bt_device++;
+        for(int i = 3; i > 0; i--){
+          display_array[i] = bt_scan_option_strings[current_bt_device  + i - 3];
+        }
+        LCD_clearLine(LCD_LINE2);
+        LCD_clearLine(LCD_LINE3);
+        LCD_clearLine(LCD_LINE4);
+        BTScanMenu_setArrowAtLine(LCD_LINE4);
+      }
+      else if(current_arrow_line == LCD_LINE3){
+        // arrow at line 3 -> move to line 4
+        current_bt_device++;
+        LCD_clearLine(LCD_LINE3);
+        BTScanMenu_setArrowAtLine(LCD_LINE4);
+      }
+      else if(current_arrow_line == LCD_LINE2){
+        // arrow at line 2 -> move to line 3
+        current_bt_device++;
+        LCD_clearLine(LCD_LINE2);
+        BTScanMenu_setArrowAtLine(LCD_LINE3);
+      }
+      break;
+
+    case JOYSTICK_CENTER:
+      // connect to selected device
+      LCD_clear();
+      LCD_writeStringAtLine("Connecting...", LCD_LINE1);
+      if (Bluetooth_connect(&(scanner->devices + current_bt_device)->bdaddr) != 0)
+      {
+          LCD_clearLine(LCD_LINE1);
+          LCD_writeStringAtLine("Connection Error", LCD_LINE1);
+      }
+      else{
+          LCD_clearLine(LCD_LINE1);
+          LCD_writeStringAtLine("Connected to: ", LCD_LINE1);
+          LCD_writeStringAtLine(bt_scan_option_strings[current_bt_device], LCD_LINE2);
+          Sleep_ms(750);
+      }
+
+      // cleanup memory used for bluetooth scan
+      for(int i =0; i < scanner->num_devices; i++){
+        free(bt_scan_option_strings[i]);
+        bt_scan_option_strings[i] = NULL;
+      }
+      free(bt_scan_option_strings);
+      bt_scan_option_strings = NULL;
+
+      free(scanner->devices);
+      scanner->devices = NULL;
+
+      free(scanner);
+      scanner = NULL;
+      displayMainMenu();
+
+      break;
+    case JOYSTICK_LEFT:
+      // ***NEED to cleanup before going back to main***
+      displayBluetoothMenu();
+      
+    default:
+      // unsupported direction
+      break;
+  }
+}
+
+
+static void BTScanMenu_setArrowAtLine(LCD_LINE_NUM line){
+  switch(line){
+    
+      case LCD_LINE2:
+        // draw arrow line 2
+        LCD_clearLine(LCD_LINE2);
+        LCD_writeChar(LCD_RIGHT_ARROW);
+        LCD_writeString(display_array[1]);
+        LCD_writeStringAtLine(display_array[2], LCD_LINE3);
+        LCD_writeStringAtLine(display_array[3], LCD_LINE4);
+        current_arrow_line = LCD_LINE2;
+        break;
+
+      case LCD_LINE3:
+        // draw arrow line 3
+        LCD_writeStringAtLine(display_array[1], LCD_LINE2);
+        LCD_clearLine(LCD_LINE3);
+        LCD_writeChar(LCD_RIGHT_ARROW);
+        LCD_writeString(display_array[2]);
+        LCD_writeStringAtLine(display_array[3], LCD_LINE4);
+        current_arrow_line = LCD_LINE3;
+        break;
+
+      case LCD_LINE4:
+        // draw arrow on line 4
+        LCD_writeStringAtLine(display_array[1], LCD_LINE2);
+        LCD_writeStringAtLine(display_array[2], LCD_LINE3); 
+        LCD_clearLine(LCD_LINE4);
+        LCD_writeChar(LCD_RIGHT_ARROW);
+        LCD_writeString(display_array[3]);
+        current_arrow_line = LCD_LINE4;
+        break;
+
+      default:
+        break;
+    }
+}
+
+
+
+
+/* -------------------------------------------------------------------- *
+ * MAIN MENU                                                            *
+ * -------------------------------------------------------------------- */
+static void displayMainMenu(void)
+{
+  current_menu = MAIN_MENU;
+  MainMenu_currentOpt = SONGS_OPT;
+  MainMenu_setArrowAtLine(SONGS_OPT);
+}
+
+
+static void MainMenu_changeMenu(MAIN_OPTIONS option){
+  switch(option){
+    case SONGS_OPT:
+      displaySongMenu();
+      break;
+    case BLUETOOTH_OPT:
+      displayBluetoothMenu();
+      break;
+    case SETTINGS_OPT:
+      displaySettingsMenu();
+      break;
+    case POWEROFF_OPT:
+      Shutdown_triggerForShutdown();
+      break;
+    default:
+      // invalid option
+      break;
+  }
+}
+
+
+// arrow will wrap around display at when moving off screen
 static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection)
 {
-  /***
-   * 1) If Joystick is pressed Up Increase the Volume
-   * 2) If Joystick is pressed Down Decrease the volume
-   * 3) If Joystick is pressed Left QUIT from the main menu
-   * 4) If Joystick is pressed Right Connect to the Bluetooth
-   * 5) If Joystick is pressed Center Go the songs menu
-   */
-  if (currentJoyStickDirection == JOYSTICK_UP)
-  {
-    printf("current option %d\n", current_main);
-    if( current_main == SONGS_OPT){
-      current_main = POWEROFF_OPT;
-    }
-    else{
-      current_main--;
-    }
+  
+  switch(currentJoyStickDirection){
+    case JOYSTICK_UP:
+      printf("main menu joytsick up\n");
+      // scroll up
+      if( MainMenu_currentOpt == SONGS_OPT){
+        MainMenu_currentOpt = POWEROFF_OPT;
+      }
+      else{
+        MainMenu_currentOpt--;
+      }
+      MainMenu_setArrowAtLine(MainMenu_currentOpt);
+      break;
 
-    setArrow(current_main);
-    printf("after joystick %d\n", current_main);
-    
+    case JOYSTICK_DOWN:
+      // scroll down
+      MainMenu_currentOpt = (MainMenu_currentOpt + 1) % NUM_MAIN_OPTIONS;
+      MainMenu_setArrowAtLine(MainMenu_currentOpt);
+      break;
 
-  }
-  else if (currentJoyStickDirection == JOYSTICK_DOWN)
-  {
-    // scroll down
-    printf("current option %d\n", current_main);
-    current_main = (current_main + 1) % NUM_OPTIONS;
-
-    setArrow(current_main);
-    printf("after joystick %d\n", current_main);
-
-
-  }
-  else if (currentJoyStickDirection == JOYSTICK_LEFT)
-  {
-    printf("Quiting from the Beaglepod !\n");
-    Shutdown_triggerForShutdown();
-  }
-  else if (currentJoyStickDirection == JOYSTICK_RIGHT)
-  {
-    //  Connect to the Bluetooth
-    int selection;
-    inquiry_info *devices;
-    char input[15] = {0};
-    devices = malloc(BT_MAX_DEV_RSP * sizeof(inquiry_info));
-    int num_scanned = Bluetooth_scan(devices, BT_MAX_DEV_RSP);
-    Bluetooth_displayDevices(devices, num_scanned);
-
-    printf("Choose a device to connect to\n> ");
-    if (fgets(input, sizeof(input), stdin) == NULL)
-    {
-      fprintf(stderr, "error reading from stdin");
-    }
-    sscanf(input, "%d", &selection);
-
-    printf("connecting to device...\n");
-    if (Bluetooth_connect(&(devices + selection)->bdaddr) != 0)
-    {
-      printf("error connecting to device\n");
-    }
-    else
-    {
-      printf("Connected!\n");
-    }
-  }
-  else if (currentJoyStickDirection == JOYSTICK_CENTER)
-  {
-    display_mainMenu = false;
-    show_display_songs = false;
+    case JOYSTICK_CENTER:
+      // drill into sub menu
+      MainMenu_changeMenu(MainMenu_currentOpt);
+      break;
+      
+    default:
+      // unsupported direction
+      break;
   }
 }
 
-static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection)
-{
-  /**
-   * 1) If Pressed Joystick is up then play song #1
-   * 2) If Pressed Joystick is down then play song #2
-   * 3) If Pressed Joystick is right then play song #3
-   * 4) If Pressed Joystick is left then go back to the main menu
-   */
 
-  if (currentJoyStickDirection == JOYSTICK_UP)
-  {
-    if (current_song_number - 1 >= 1)
-    {
-      current_song_number--;
-    }
-  }
-  else if (currentJoyStickDirection == JOYSTICK_DOWN)
-  {
-    if (current_song_number + 1 <= (int)songManager_currentNumberSongs())
-    {
-      current_song_number++;
-    }
-  }
-  else if (currentJoyStickDirection == JOYSTICK_CENTER)
-  {
-    songManager_playSong(current_song_number);
-  }
-  else if (currentJoyStickDirection == JOYSTICK_LEFT)
-  {
-    current_song_number = 1;
-    display_mainMenu = true;
-    show_once_menu = false;
-  }
-}
-
-/**********************************FUNCTION WE MIGHT USE ******************************************************/
-// static void triggerAccelerometerAction(enum eAccelerometerActions accelerometerAction)
-// {
-//   if (accelerometerAction == ACCELEROMETER_X) {
-//     playSingleSound(SNARE_FILE);
-//   }
-//   if (accelerometerAction == ACCELEROMETER_Y) {
-//     playSingleSound(HI_HAT_FILE);
-//   }
-//   if (accelerometerAction == ACCELEROMETER_Z) {
-//     playSingleSound(BASE_DRUM_FILE);
-//   }
-// }
-/**************************************************************************************************************/
-
-static void display_menu_content()
-{
-  printf("Welcome to the BeaglePod Menu !\n");
-  printf("1) Song Menu (Press Joystick Center)\n");
-  printf("2) Connect to Bluetooth (Move Joystick Right)\n");
-  printf("3) Settings \n");
-  printf("4) Quit(Move Joystickleft)\n");
-
-  LCD_writeChar(LCD_RIGHT_ARROW);
-  LCD_writeString("Select Song");
-  LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
-  LCD_writeStringAtLine("Settings", LCD_LINE3);
-  LCD_writeStringAtLine("Poweroff", LCD_LINE4);
-}
-
-static void display_songs_in_menu()
-{
-
-  songManager_displayAllSongs();
-  printf("Go back to the main menu \n");
-}
-
-static void setArrow(MAIN_OPTIONS current_main){
-  switch(current_main){
+static void MainMenu_setArrowAtLine(LCD_LINE_NUM line){
+  switch(line){
       case LCD_LINE1:
       // draw arrow on line 1
         LCD_clear();
         LCD_writeChar(LCD_RIGHT_ARROW);
-        LCD_writeString("Select Song");    
-        LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
-        LCD_writeStringAtLine("Settings", LCD_LINE3);
-        LCD_writeStringAtLine("Poweroff", LCD_LINE4);
+        LCD_writeString(MainMenu_option_strings[0]);    
+        LCD_writeStringAtLine(MainMenu_option_strings[1], LCD_LINE2);
+        LCD_writeStringAtLine(MainMenu_option_strings[2], LCD_LINE3);
+        LCD_writeStringAtLine(MainMenu_option_strings[3],  LCD_LINE4);
         
         break;
-      case LCD_LINE2:
+      case 1:
        // draw arrow line 2
         LCD_clear();
-        LCD_writeStringAtLine("                   ", LCD_LINE1);
-        LCD_writeStringAtLine("Select Song", LCD_LINE1);
+        LCD_writeStringAtLine(MainMenu_option_strings[0], LCD_LINE1);
         LCD_writeStringAtLine("", LCD_LINE2);
         LCD_writeChar(LCD_RIGHT_ARROW);
-        LCD_writeString("Bluetooth");
-        LCD_writeStringAtLine("Settings", LCD_LINE3);
-        LCD_writeStringAtLine("Poweroff", LCD_LINE4);
+        LCD_writeString(MainMenu_option_strings[1]);
+        LCD_writeStringAtLine(MainMenu_option_strings[2], LCD_LINE3);
+        LCD_writeStringAtLine(MainMenu_option_strings[3], LCD_LINE4);
         
         break;
-      case LCD_LINE3:
+      case 2:
       // draw arrow line 3
         LCD_clear();
-        LCD_writeString("Select Song");
-        LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
+        LCD_writeString(MainMenu_option_strings[0]);
+        LCD_writeStringAtLine(MainMenu_option_strings[1], LCD_LINE2);
         LCD_writeStringAtLine("", LCD_LINE3); // set cursor 
         LCD_writeChar(LCD_RIGHT_ARROW);
-        LCD_writeString("Settings");
-        LCD_writeStringAtLine("Poweroff", LCD_LINE4);
+        LCD_writeString(MainMenu_option_strings[2]);
+        LCD_writeStringAtLine(MainMenu_option_strings[3], LCD_LINE4);
        
         break;
-      case LCD_LINE4:
+      case 3:
       // draw arrow on line 4
         LCD_clear();
-        LCD_writeString("Select Song");
-        LCD_writeStringAtLine("Bluetooth", LCD_LINE2);
-        LCD_writeStringAtLine("Settings", LCD_LINE3); 
+        LCD_writeString(MainMenu_option_strings[0]);
+        LCD_writeStringAtLine(MainMenu_option_strings[1], LCD_LINE2);
+        LCD_writeStringAtLine(MainMenu_option_strings[2], LCD_LINE3); 
         LCD_writeStringAtLine("", LCD_LINE4);
         LCD_writeChar(LCD_RIGHT_ARROW);// set cursor 
       
-        LCD_writeString("Poweroff");
+        LCD_writeString(MainMenu_option_strings[3]);
         
         break;
       default:
@@ -309,135 +530,44 @@ static void setArrow(MAIN_OPTIONS current_main){
 }
 
 
-static void *MenuManagerThread(void *arg)
+
+/* -------------------------------------------------------------------- *
+ * SONG MENU                                                            *
+ * -------------------------------------------------------------------- */
+static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection)
 {
-  // int timer_size = JOYSTICK_MAX_NUMBER_DIRECTIONS + ACCELEROMETER_MAX_NUMBER_ACTIONS;
-
-  /********************TIMERS USED FOR DEBOUNCING LOGIC********************/
-
-  int timer_size = JOYSTICK_MAX_NUMBER_DIRECTIONS;
-  long long action_timers[timer_size];
-  for (size_t i = 0; i < timer_size; i++)
-  {
-    action_timers[i] = (long long)0;
-  }
-
-  /*************************************************************************/
-
-  while (!stoppingMenu && !Shutdown_isShutdown())
-  {
-    switch (current_menu)
-    {
-    case MAIN:
-      // Display Menu
-      if (!show_once_menu)
-      {
-        show_once_menu = true;
-        display_menu_content();
-      }
+  switch(currentJoyStickDirection){
+    case JOYSTICK_UP:
       break;
-    case SONGS:
-      // Display the songs menu
-      if (!show_display_songs)
-      {
-        show_display_songs = true;
-        display_songs_in_menu();
-
-      }
+    case JOYSTICK_DOWN:
       break;
-    case BLUETOOTH:
+    case JOYSTICK_LEFT:
       break;
-    case SETTINGS:
+    case JOYSTICK_RIGHT:
       break;
     default:
-      // invalid option
+      // unsupported direction
       break;
-    }
-
-    /*if (display_mainMenu)
-    {
-      // Display Menu
-      if (!show_once_menu)
-      {
-        show_once_menu = true;
-        display_menu_content();
-      }
-    }
-    else
-    {
-      // Display the songs menu
-      if (!show_display_songs)
-      {
-        show_display_songs = true;
-        display_songs_in_menu();
-      }
-    }*/
-    // Read the Joystick
-    enum eJoystickDirections currentJoyStickDirection = Joystick_process_direction();
-
-    // Debouncing logic: Joystick
-    // Trigger action
-    if (isActionTriggered(action_timers, currentJoyStickDirection))
-    {
-      switch(current_menu){
-        case MAIN:
-          // Display Menu
-          
-          
-          mainMenuJoystickAction(currentJoyStickDirection);
-          
-          break;
-        case SONGS:
-          // Display the songs menu
-          
-          songMenuJoystickAction(currentJoyStickDirection);
-
-        
-          break;
-        case BLUETOOTH:
-          break;
-        case SETTINGS:
-          break;
-        default:
-          // invalid option
-          break;
-      }
-      /*{
-        mainMenuJoystickAction(currentJoyStickDirection);
-      }
-      else
-      {
-        songMenuJoystickAction(currentJoyStickDirection);
-      }*/
-      // Update current direction time
-      setTimers(action_timers, currentJoyStickDirection, DEBOUNCE_WAIT_TIME);
-    }
-
-    // Adjust timers
-    decrementTimers(action_timers, timer_size);
-
-    Sleep_ms(INPUT_CHECK_WAIT_TIME);
   }
-
-  return NULL;
 }
 
-/********************** Public/Module functions**********************/
 
+
+
+/* -------------------------------------------------------------------- *
+ * Public Functions                                                     *
+ * -------------------------------------------------------------------- */
 void MenuManager_init(void)
 {
+  LCD_init();
+
   songManager_init();
 
   Joystick_init();
 
-  LCD_init();
-
-  current_menu = MAIN;
-  current_main = SONGS_OPT;
-
-  // Launch menu manager thread
   pthread_create(&menuManagerThreadId, NULL, MenuManagerThread, NULL);
 }
+
 
 void MenuManager_cleanup(void)
 {
@@ -445,58 +575,13 @@ void MenuManager_cleanup(void)
 
   pthread_join(menuManagerThreadId, NULL);
 
-  LCD_cleanup();
-
   Joystick_cleanup();
 
   songManager_cleanup();
+
+  LCD_cleanup();
 }
 
-void MenuManager_UpdateVolume(int changeSize, bool isIncrease)
-{
-  if (changeSize < 0)
-  {
-    return;
-  }
-  pthread_mutex_lock(&volumeMutex);
-  int current_volume = AudioPlayer_getVolume();
-  int new_volume = current_volume;
-  if (!isIncrease)
-  {
-    // decrease volume
-    if ((current_volume - changeSize) < MIN_VOLUME)
-    {
-      new_volume = MIN_VOLUME;
-    }
-    else
-    {
-      new_volume -= changeSize;
-    }
-  }
-  else
-  {
-    // increase volume
-    if ((current_volume + changeSize) > MAX_VOLUME)
-    {
-      new_volume = MAX_VOLUME;
-    }
-    else
-    {
-      new_volume += changeSize;
-    }
-  }
-  AudioPlayer_setVolume(new_volume);
-  pthread_mutex_unlock(&volumeMutex);
-}
-
-int MenuManager_GetCurrentVolume(void)
-{
-  int volume = -1;
-  pthread_mutex_lock(&volumeMutex);
-  volume = AudioPlayer_getVolume();
-  pthread_mutex_unlock(&volumeMutex);
-  return volume;
-}
 
 song_info *MenuManager_GetCurrentSongPlaying(void)
 {
@@ -507,63 +592,61 @@ song_info *MenuManager_GetCurrentSongPlaying(void)
   return current_song;
 }
 
-/////////////////////////////FUNCTIONS MIGHT USE//////////////////////////////////////////////////
-// void MenuManager_UpdateTempo(int changeSize, bool isIncrease)
-// {
-//   if (changeSize < 0)
-//   {
-//     return;
-//   }
-// pthread_mutex_lock(&tempoMutex);
-// if (!isIncrease)
-// {
-//   // decrease tempo
-//   if ((currentTempo - changeSize) < MIN_TEMPO)
-//   {
-//     currentTempo = MIN_TEMPO;
-//   }
-//   else
-//   {
-//     currentTempo -= changeSize;
-//   }
-// }
-//   else
-//   {
-//     // increase tempo
-//     if ((currentTempo + changeSize) > MAX_TEMPO)
-//     {
-//       currentTempo = MAX_TEMPO;
-//     }
-//     else
-//     {
-//       currentTempo += changeSize;
-//     }
-//   }
-//   pthread_mutex_unlock(&tempoMutex);
-// }
 
-// int MenuManager_GetCurrentTempo(void)
-// {
-//   int tempo = -1;
-//   pthread_mutex_lock(&tempoMutex);
-//   tempo = currentTempo;
-//   pthread_mutex_unlock(&tempoMutex);
-//   return tempo;
-// }
 
-/////////////////////////////////////////////////////// For Testing ///////////////////////////////////////////////////////
-// int main(int argc, char
-//   const * argv[])
-//   {
-//   MenuManager_init();
+/* -------------------------------------------------------------------- *
+ * MENU MANAGER THREAD                                                  *
+ * -------------------------------------------------------------------- */
+static void *MenuManagerThread(void *arg)
+{
 
-//   MenuManager_HandleInputs();
+  int timer_size = JOYSTICK_MAX_NUMBER_DIRECTIONS;
+  long long action_timers[timer_size];
+  for (size_t i = 0; i < timer_size; i++)
+  {
+    action_timers[i] = (long long)0;
+  }
 
-//   while (1) {
+  
+  displayMainMenu();
+  while (!stoppingMenu && !Shutdown_isShutdown())
+  {
+    enum eJoystickDirections currentJoyStickDirection = Joystick_process_direction();
 
-//   }
+    // Trigger action
+    if (isActionTriggered(action_timers, currentJoyStickDirection) && currentJoyStickDirection != JOYSTICK_NONE)
+    {
+      switch(current_menu){
+        case MAIN_MENU:
+          mainMenuJoystickAction(currentJoyStickDirection);
+          break;
+        case SONGS_MENU:
+          songMenuJoystickAction(currentJoyStickDirection);
+          break;
+        case BLUETOOTH_MENU:
+          BluetoothMenu_joystickAction(currentJoyStickDirection);
+          break;
+        case BTSCAN_MENU:
+          BTScanMenu_joystickAction(currentJoyStickDirection);
+          break;
+        case SETTINGS_MENU:
+          break;
+        default:
+          // invalid option
+          break;
+      }
+      
+      // Update current direction time
+      setTimers(action_timers, currentJoyStickDirection, DEBOUNCE_WAIT_TIME);
+    }
 
-//   MenuManager_cleanup();
+    // Adjust timers
+    decrementTimers(action_timers, timer_size);
+    Sleep_ms(INPUT_CHECK_WAIT_TIME);
+  }
 
-//   return 0;
-// }
+  return NULL;
+}
+
+
+

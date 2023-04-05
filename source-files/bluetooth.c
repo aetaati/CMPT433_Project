@@ -2,7 +2,6 @@
 #include "audio_player.h"
 
 #include <stdbool.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -15,11 +14,6 @@
 #include <bluetooth/rfcomm.h>
 #include <bluetooth/sdp.h>
 #include <bluetooth/sdp_lib.h>
-
-
-
-// max number of devices that can respond to a bluetooth scan query
-
 
 // the duration of the bluetooth scan = 1.28s * SCAN_LENGTH
 #define SCAN_LENGTH 4
@@ -38,7 +32,7 @@ int runCommand(char* command);
 
 
 
-void Bluetooth_displayDevices(inquiry_info *devices, int num_devices)
+void Bluetooth_printDevicesToConsole(inquiry_info *devices, int num_devices)
 {
     openBT();
     char addr[19] = {0};
@@ -55,6 +49,22 @@ void Bluetooth_displayDevices(inquiry_info *devices, int num_devices)
             strcpy(name, "[unknown]");
         }
         printf("[%d]: %s\n", i, name);
+    }
+    closeBT();
+}
+
+
+void Bluetooth_getHumanReadableNames(bluetooth_scan_t* scanned_devices, char* names[]){
+    openBT();
+    for (int i = 0; i < scanned_devices->num_devices ;i++)
+    {
+
+        names[i] = calloc(256, sizeof(char));
+        // send request to device with address equal to bdaddr, for human readable name
+        if (hci_read_remote_name(bt_adapter_fd, &(scanned_devices->devices + i)->bdaddr, 255, names[i], 0) < 0)
+        {
+            strcpy(names[i], "[unknown]");
+        }
     }
     closeBT();
 }
@@ -78,11 +88,11 @@ int Bluetooth_pair(bdaddr_t *device_address){
 }
 
 
-int Bluetooth_scan(inquiry_info *scanned_devices, int n)
+int Bluetooth_scan(bluetooth_scan_t* scanner)
 {
     openBT();
-    printf("Scanning for bluetooth devices...\n");
-    if (scanned_devices == NULL)
+    scanner->devices = malloc(BT_MAX_DEV_RSP * sizeof(inquiry_info));
+    if (scanner->devices == NULL)
     {
         fprintf(stderr, "failed to allocate memory for scanned devices\n");
         closeBT();
@@ -90,14 +100,17 @@ int Bluetooth_scan(inquiry_info *scanned_devices, int n)
     }
 
     // scan for bluetooth devices
-    int num_rsp = hci_inquiry(bt_adapter_id, SCAN_LENGTH, n, NULL, &scanned_devices, IREQ_CACHE_FLUSH);
+    int num_rsp = hci_inquiry(bt_adapter_id, SCAN_LENGTH, BT_MAX_DEV_RSP, NULL, &scanner->devices, IREQ_CACHE_FLUSH);
     if (num_rsp < 0)
     {
         fprintf(stderr, "hci_inquiry: error scanning devices");
+        closeBT();
+        return (-1);
     }
 
+    scanner->num_devices = num_rsp;
     closeBT();
-    return(num_rsp);
+    return(1);
 
 }
 
