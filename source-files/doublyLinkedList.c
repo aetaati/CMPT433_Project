@@ -345,7 +345,7 @@ void *doublyLinkedList_getCurrentIteratorElement(void)
 bool doublyLinkedList_setIterator(int idx)
 {
     assert(is_module_initialized);
-    return set_ptr_to_idx(idx, list_ptr->currentDisplay);
+    return doublyLinkedList_advanceIteratorNTimes(idx);
 }
 
 bool doublyLinkedList_advanceIteratorNTimes(int n)

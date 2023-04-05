@@ -320,6 +320,7 @@ static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number)
     free(songtemp2);
     free(songtemp3);
     free(songtemp4);
+    doublyLinkedList_setIteratorStartPosition();
     
     // iterate_through_all_songs();
 }
@@ -410,7 +411,7 @@ void songManager_displaySongs() {
     }
   int current_song_number = getCurrentSongNumber();
   int from_song = getfromSongForDisplay(current_song_number);
-  doublyLinkedList_setIterator(from_song);
+  doublyLinkedList_setIterator(from_song - 1);
 
   SONG_CURSOR_LINE song_cursor = getsongCursor(current_song_number);
   displaySongs(song_cursor, from_song);
