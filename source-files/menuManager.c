@@ -15,6 +15,7 @@
 #include "bluetooth.h"
 #include "sleep.h"
 #include "lcd_4line.h"
+#include "network.h"
 
 #define INPUT_CHECK_WAIT_TIME 5
 #define DEBOUNCE_WAIT_TIME 100
@@ -437,6 +438,7 @@ static void MainMenu_changeMenu(MAIN_OPTIONS option){
       displaySettingsMenu();
       break;
     case POWEROFF_OPT:
+      Network_shutdown();
       Shutdown_triggerForShutdown();
       break;
     default:

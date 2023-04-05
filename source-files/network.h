@@ -7,5 +7,5 @@ void Network_init();
 // Wait until network thread stops
 void Network_cleanup();
 
-
+void Network_shutdown(void);
 #endif // _NETWORK_H_

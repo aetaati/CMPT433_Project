@@ -191,18 +191,36 @@ static void run_command(enum eWebCommands cur_command, char* message)
         //return NULL; // TODO: ??
     }
 }
-// static int get_size_string(int start,char * str) {
-//     int size =0;
-//     for (size_t i = start; i < strlen(str); i++)
-//     {
-//         if (str[i] == '\n')
-//         {
-//             return size;
-//         }
-//         size++;
-//     }        
-//     return size; 
-// }
+
+
+void Network_shutdown(void){
+    int sockfd;
+    struct sockaddr_in addr;
+    char buffer[MSG_MAX_LEN];
+
+    // create UDP socket
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // set socket address
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr.sin_port = htons(PORT);
+
+    // send message to self
+    sprintf(buffer, "terminate");
+    if (sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        perror("sendto failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // close socket
+    close(sockfd);
+}
 
 static void network_logic(int socketDescriptor)
 {
@@ -234,7 +252,10 @@ static void network_logic(int socketDescriptor)
         // make the received message null terminated so string functions work
         messageRx[bytesRx] = 0;
 
-        printf("Recieved Message <%s>\n", messageRx);
+        if(strcmp("terminate", messageRx) == 0){
+            network_cond = false;
+            break;
+        }
 
         
         

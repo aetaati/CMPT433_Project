@@ -125,26 +125,26 @@ static void playSong(wavedata_t* song)
 //     }
 // }
 
-song_info *create_song_struct(char *name, char *album, char *path, char* song_name_local)
+song_info *create_song_struct(char *artist, char *album, char *title, char*path )
 {
     song_info *song = malloc(sizeof(*song));
 
-    printf("aritist: <%s>\n", name);
+    printf("aritist: <%s>\n", artist);
     printf("album: <%s>\n", album);
     printf("path: <%s>\n", path);
-    printf("song name: <%s>\n", song_name_local);
+    printf("song name: <%s>\n", title);
 
-    song->author_name = (char *)malloc(strlen(name) + 1);
+    song->author_name = (char *)malloc(strlen(artist) + 1);
     song->album = (char *)malloc(strlen(album) + 1);
     song->song_path = (char *)malloc(strlen(path) + 1);
-    song->song_name = (char *) malloc(strlen(song_name_local) + 1);
+    song->song_name = (char *) malloc(strlen(title) + 1);
 
     
 
-    strcpy(song->author_name, name);
+    strcpy(song->author_name, artist);
     strcpy(song->album, album);
     strcpy(song->song_path, path);
-    strcpy(song->song_name, song_name_local);
+    strcpy(song->song_name, title);
 
     song->pSong_DWave = malloc(sizeof(*song->pSong_DWave));
     AudioPlayer_readWaveFileIntoMemory(song->song_path, song->pSong_DWave);
@@ -239,27 +239,27 @@ static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number)
     char* songtemp3 = NULL;
     char* songtemp4 = NULL;
     if(temp1 != NULL) {
-        songtemp1 = (char *)malloc(strlen(temp1->author_name) + 1);
+        songtemp1 = (char *)malloc(strlen(temp1->song_name) + 1);
         
     } else {
         songtemp1 = (char *)malloc(3);
     }
     if(temp2 != NULL) {
-        songtemp2 = (char *)malloc(strlen(temp2->author_name) + 1);
+        songtemp2 = (char *)malloc(strlen(temp2->song_name) + 1);
         
     } else {
         songtemp2 = (char *)malloc(3);
         
     }
     if(temp3 != NULL) {
-        songtemp3 = (char *)malloc(strlen(temp3->author_name) + 1);
+        songtemp3 = (char *)malloc(strlen(temp3->song_name) + 1);
         
     } else {
         songtemp3 = (char *)malloc(3);
         
     }
     if(temp4 != NULL) {
-        songtemp4 = (char *)malloc(strlen(temp4->author_name) + 1);
+        songtemp4 = (char *)malloc(strlen(temp4->song_name) + 1);
         
     } else {
         songtemp4 = (char *)malloc(3);
@@ -272,7 +272,7 @@ static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number)
 
     if (temp1 != NULL)
     {
-        strcpy(songtemp1, temp1->author_name);
+        strcpy(songtemp1, temp1->song_name);
         // strcat(songtemp1, temp1->album);
     }
     else
@@ -283,7 +283,7 @@ static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number)
 
     if (temp2 != NULL)
     {
-        strcpy(songtemp2, temp2->author_name);
+        strcpy(songtemp2, temp2->song_name);
         // strcat(songtemp2, temp2->album);
     }
     else
@@ -293,7 +293,7 @@ static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number)
     }
     if (temp3 != NULL)
     {
-        strcpy(songtemp3, temp3->author_name);
+        strcpy(songtemp3, temp3->song_name);
         //  strcat(songtemp3, temp3->album);
     }
     else
@@ -303,7 +303,7 @@ static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number)
     }
     if (temp4 != NULL)
     {
-        strcpy(songtemp4, temp4->author_name);
+        strcpy(songtemp4, temp4->song_name);
         // strcat(songtemp4, temp4->album);
     }
     else
@@ -333,37 +333,33 @@ void songManager_init()
     /**** TESTING********/
 
     // Adds 5 song to the list
-    /*char *song1_p = "songs/moves.wav";
-    char *song2_p = "songs/hair.wav";
+    //char *song1_p = "songs/moves.wav";
+    char *song2_p = "songs/hunnybee.wav";
     char *song3_p = "songs/moves.wav";
     char *song4_p = "songs/som-liveletlive.wav";
-    char *song5_p = "songs/Wild Ones (feat. Sia).wav";*/
-    /*char *song1_name = "Moves";
-    char *song2_name = "HairShop";
-    char *song3_name = "Author 3";
-    char *song4_name = "Author 4";
-    char *song5_name = "Author 5";
-    char *song1_album = "Dummy 1";
-    char *song2_album = "Dummy 2";
-    char *song3_album = "Dummy 3";
-    char *song4_album = "Dummy 4";
-    char *song5_album = "Dummy 5";
-    song_info *song1 = create_song_struct(song1_name, song1_album,"songs/moves.wav", song1_p);
-    songManager_addSongFront(song1);
-    song_info *song2 = create_song_struct(song2_name, song2_album, "songs/hair.wav",song2_p);
+    char *song5_p = "songs/back-in-black.wav";
+    //char *song1_name = "Moves";
+    char *song2_name = "Hunny Bee";
+    char *song3_name = "Moves Like Jagger";
+    char *song4_name = "Live and Let Live";
+    char *song5_name = "Back in Black";
+    //char *song1_album = "Dummy 1";
+    char *song2_album = "Album 1";
+    char *song3_album = "Album 2";
+    char *song4_album = "Album 3";
+    char *song5_album = "Album 4";
+    //song_info *song1 = create_song_struct(song1_name, song1_album,"songs/moves.wav", song1_p);
+    //songManager_addSongFront(song1);
+    song_info *song2 = create_song_struct("artist 1", song2_album, song2_name, song2_p);
     songManager_addSongBack(song2);
     
-    song_info *song3 = create_song_struct(song3_name, song3_album, song3_p);
+    song_info *song3 = create_song_struct("artist 2", song3_album, song3_name, song3_p);
     songManager_addSongBack(song3);
-    song_info *song4 = create_song_struct(song4_name, song4_album, song4_p);
+    song_info *song4 = create_song_struct("artist 3", song4_album, song4_name, song4_p);
     songManager_addSongBack(song4);
-    song_info *song5 = create_song_struct(song5_name, song5_album, song5_p);
-    songManager_addSongFront(song1);
-    songManager_addSongBack(song2);
-    songManager_addSongBack(song3);
-    songManager_addSongBack(song4);
+    song_info *song5 = create_song_struct("artist 4", song5_album, song5_name, song5_p);
     songManager_addSongBack(song5);
-    */
+    
 }
 
 // size_t songManager_currentNumberSongs()
@@ -394,7 +390,7 @@ void songManager_playSong()
 }
 
 void songManager_AutoPlayNext(void){
-    CURRENT_AUTOPLAY_SONG++;
+    CURRENT_AUTOPLAY_SONG = CURRENT_AUTOPLAY_SONG % doublyLinkedList_getSize();
     song_info* song = (song_info*) doublyLinkedList_getElementAtIndex(CURRENT_AUTOPLAY_SONG);
     playSong(song->pSong_DWave);
 }
