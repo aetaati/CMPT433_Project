@@ -1,10 +1,3 @@
-/*
-Subject: CMPT433 (Embedded Systems) - BeablePod Project
-Purpose: Definitions of the LCD module functions to manage bus and pin configuration
-Author: Amirhossein Etaati
-Date: 2023-03-04
-*/
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>

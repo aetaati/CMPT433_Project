@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "menuManager.h"
 #include "songManager.h"
@@ -60,7 +61,7 @@ static void mainMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
 static BLUETOOTH_OPTIONS bluetoothMenu_currentOption;
 static char* BluetoothMenu_options_strings[NUM_BT_OPTIONS] = {
   "Connect to Device",
-  "Disconnect Device"
+  "Disconnect"
 };
 static void BluetoothMenu_joystickAction(enum eJoystickDirections currentJoyStickDirection);
 static void displayBluetoothMenu(void);
@@ -92,8 +93,8 @@ static void displaySettingsMenu(void){
 */
 static void displaySongMenu(void)
 {
-  LCD_clear();
-  LCD_writeStringAtLine("Songs Menu", LCD_LINE1);
+  songManager_displaySongs();
+  current_menu = SONGS_MENU;
 }
 static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection);
 
@@ -335,6 +336,7 @@ static void BTScanMenu_joystickAction(enum eJoystickDirections currentJoyStickDi
       {
           LCD_clearLine(LCD_LINE1);
           LCD_writeStringAtLine("Connection Error", LCD_LINE1);
+          Sleep_ms(1000);
       }
       else{
           LCD_clearLine(LCD_LINE1);
@@ -425,6 +427,7 @@ static void displayMainMenu(void)
 static void MainMenu_changeMenu(MAIN_OPTIONS option){
   switch(option){
     case SONGS_OPT:
+      // song manager
       displaySongMenu();
       break;
     case BLUETOOTH_OPT:
@@ -538,12 +541,17 @@ static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
 {
   switch(currentJoyStickDirection){
     case JOYSTICK_UP:
+      songManager_moveCursorUp();
       break;
     case JOYSTICK_DOWN:
+      songManager_moveCursorDown();
       break;
     case JOYSTICK_LEFT:
+      songManager_reset();
+      displayMainMenu();
       break;
-    case JOYSTICK_RIGHT:
+    case JOYSTICK_CENTER:
+      songManager_playSong();
       break;
     default:
       // unsupported direction
@@ -561,8 +569,6 @@ void MenuManager_init(void)
 {
   LCD_init();
 
-  songManager_init();
-
   Joystick_init();
 
   pthread_create(&menuManagerThreadId, NULL, MenuManagerThread, NULL);
@@ -576,8 +582,6 @@ void MenuManager_cleanup(void)
   pthread_join(menuManagerThreadId, NULL);
 
   Joystick_cleanup();
-
-  songManager_cleanup();
 
   LCD_cleanup();
 }

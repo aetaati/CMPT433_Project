@@ -1,9 +1,6 @@
 /*
-Subject: CMPT433 (Embedded Systems) - BeablePod Project
 Purpose: Definitions of a general doublyLinkedList
-Author: Amirhossein Etaati
 Use cases: 1) Store the name of the songs
-Date: 2023-03-16
 */
 
 #if !defined(DOUBLY_LINKED_LIST_H)

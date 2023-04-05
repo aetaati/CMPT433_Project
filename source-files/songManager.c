@@ -1,15 +1,9 @@
-
-/*
-Author: Mehdi Esmaeilzadeh
-Date: 2023-03-10
-Subject: Implementation of the SongManager module
-*/
-
 #include <stdio.h>
 #include <time.h>
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h> 
 
 #include "songManager.h"
 #include "doublyLinkedList.h"
@@ -26,7 +20,7 @@ static int previous_song_start_from = -1;
 
 
 /********************************PRIVATE FUNCTIONS***********************************************************/
-static song_info *create_song_struct(char *name, char *album, char *path);
+//static song_info *create_song_struct(char *name, char *album, char *path);
 static void playSong(wavedata_t* song);
 static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number);
 //static bool previously_displayed(SONG_CURSOR_LINE current_song, int from_song_number);
@@ -61,7 +55,7 @@ static void setSongs(SONG_CURSOR_LINE current_song, char *song1, char *song2, ch
     {
     case CURSOR_LINE_ONE:
         // draw arrow on line 1
-        
+        LCD_clear();
         LCD_writeChar(LCD_RIGHT_ARROW);
         LCD_writeString(song1);
         LCD_writeStringAtLine(song2, LCD_LINE2);
@@ -72,9 +66,9 @@ static void setSongs(SONG_CURSOR_LINE current_song, char *song1, char *song2, ch
     case CURSOR_LINE_TWO:
         // draw arrow line 2
         
-        LCD_writeStringAtLine("                   ", LCD_LINE1);
+        LCD_clear();
         LCD_writeStringAtLine(song1, LCD_LINE1);
-        LCD_writeStringAtLine("", LCD_LINE2);
+        LCD_writeStringAtLine("",LCD_LINE2);
         LCD_writeChar(LCD_RIGHT_ARROW);
         LCD_writeString(song2);
         LCD_writeStringAtLine(song3, LCD_LINE3);
@@ -83,6 +77,7 @@ static void setSongs(SONG_CURSOR_LINE current_song, char *song1, char *song2, ch
         break;
     case CURSOR_LINE_THREE:
         // draw arrow line 3
+        LCD_clear();
         LCD_writeString(song1);
         LCD_writeStringAtLine(song2, LCD_LINE2);
         LCD_writeStringAtLine("", LCD_LINE3); // set cursor
@@ -92,7 +87,7 @@ static void setSongs(SONG_CURSOR_LINE current_song, char *song1, char *song2, ch
         break;
     case CURSOR_LINE_FOUR:
         // draw arrow on line 4
-        
+        LCD_clear();
         LCD_writeString(song1);
         LCD_writeStringAtLine(song2, LCD_LINE2);
         LCD_writeStringAtLine(song3, LCD_LINE3);
@@ -129,7 +124,7 @@ static void playSong(wavedata_t* song)
 //     }
 // }
 
-static song_info *create_song_struct(char *name, char *album, char *path)
+song_info *create_song_struct(char *name, char *album, char *path)
 {
     song_info *song = malloc(sizeof(*song));
 
@@ -140,8 +135,7 @@ static song_info *create_song_struct(char *name, char *album, char *path)
     strcpy(song->author_name, name);
     strcpy(song->album, album);
     strcpy(song->song_path, path);
-    song->pSong_DWave = malloc(sizeof(*song->pSong_DWave));
-    AudioPlayer_readWaveFileIntoMemory(song->song_path, song->pSong_DWave);
+    
 
     return song;
 }
@@ -326,13 +320,13 @@ void songManager_init()
     /**** TESTING********/
 
     // Adds 5 song to the list
-    char *song1_p = "songs/hunnybee.wav";
+    /*char *song1_p = "songs/hunnybee.wav";
     char *song2_p = "songs/kiss-from-rose.wav";
     char *song3_p = "songs/moves.wav";
     char *song4_p = "songs/som-liveletlive.wav";
     char *song5_p = "songs/Wild Ones (feat. Sia).wav";
     char *song1_name = "Author 1";
-    char *song2_name = "Author 2";
+    char *song2_name = "Kiss from a Rose";
     char *song3_name = "Author 3";
     char *song4_name = "Author 4";
     char *song5_name = "Author 5";
@@ -343,15 +337,25 @@ void songManager_init()
     char *song4_album = "Dummy 4";
     char *song5_album = "Dummy 5";
     song_info *song1 = create_song_struct(song1_name, song1_album, song1_p);
+    song1->pSong_DWave = malloc(sizeof(*song1->pSong_DWave));
+    AudioPlayer_readWaveFileIntoMemory(song1->song_path, song1->pSong_DWave);
+    songManager_addSongFront(song1);
+
+
+
     song_info *song2 = create_song_struct(song2_name, song2_album, song2_p);
+    songManager_addSongBack(song2);
     song_info *song3 = create_song_struct(song3_name, song3_album, song3_p);
+    songManager_addSongBack(song3);
     song_info *song4 = create_song_struct(song4_name, song4_album, song4_p);
+    songManager_addSongBack(song4);
     song_info *song5 = create_song_struct(song5_name, song5_album, song5_p);
     songManager_addSongFront(song1);
     songManager_addSongBack(song2);
     songManager_addSongBack(song3);
     songManager_addSongBack(song4);
     songManager_addSongBack(song5);
+    */
 }
 
 // size_t songManager_currentNumberSongs()
@@ -371,7 +375,7 @@ void songManager_playSong()
     song_info *temp = doublyLinkedList_getCurrentElement();
     if (temp == NULL)
     {
-        printf("Song is not Existed ! \n");
+        printf("Song does not exist\n");
     }
     else
     {
@@ -390,16 +394,18 @@ void songManager_addSongBack(song_info *song)
 }
 
 void songManager_displaySongs() {
-  if(doublyLinkedList_getSize() == 0) {
-    LCD_clear();
-    LCD_writeStringAtLine("      No Songs   ", LCD_LINE1);
-  }
+    if(!doublyLinkedList_getSize()){
+        LCD_clear();
+        LCD_writeStringAtLine("Empty song library",LCD_LINE1);
+        return ;
+    }
   int current_song_number = getCurrentSongNumber();
   int from_song = getfromSongForDisplay(current_song_number);
   doublyLinkedList_setIterator(from_song);
 
   SONG_CURSOR_LINE song_cursor = getsongCursor(current_song_number);
   displaySongs(song_cursor, from_song);
+  printf("finished displaying, current_song_number: %d, song_cursor: %d from song: %d\n", current_song_number, song_cursor, from_song);
 }
 
 void songManager_reset() {
