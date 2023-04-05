@@ -56,24 +56,24 @@ app.post('/upload', (req, res) => {
     const song_name = req.body.album;
     const album_name = req.body.song;
 
-    const file_pat = `/songs/${file.name}`;
+    const file_pat = `songs/${file.name}`;
 
     const c_UDP_values = `${'newSong'}\n${file_pat}\n${song_name}\n${singer_name}\n${album_name}`;
 
 
-    if (fs.existsSync(`${__dirname}/../songs/${file.name}`)) {
+    if (fs.existsSync(`/mnt/remote/myApps/songs/${file.name}`)) {
         res.status(400).json({msg: 'No file uploaded - The file is already uploaded!'})
     }
     else if (path.extname(file.name) != '.mp3') {
         return res.status(400).json({msg: 'No file uploaded - The file should be mp3'});
     }
     else {
-        file.mv(`${__dirname}/../songs/${file.name}`, err => {
+        file.mv(`/mnt/remote/myApps/songs/${file.name}`, err => {
             if(err) {
                 return res.status(500).send(err);
             }
             // convert the file into wav.
-            ffmpeg(`${__dirname}/../songs/${file.name}`).toFormat('wav').save(`${__dirname}/../songs/${file.name.slice(0, -4)}.wav`);
+            ffmpeg(`/mnt/remote/myApps/songs/${file.name}`).toFormat(`/mnt/remote/myApps/songs/${file.name.slice(0, -4)}.wav`);
             // Call the UDP message handler here TODO
             
 
@@ -90,7 +90,7 @@ app.post('/upload', (req, res) => {
 app.post('/delete', (req, res) => {
     console.log('file deleted');
     const song_name = req.body.name;
-    const filePathMP3 = `${__dirname}/../songs/${song_name}`;
+    const filePathMP3 = `/mnt/remote/myApps/songs/${song_name}`;
     
     fs.unlink(filePathMP3, (err) => {
         if (err) {
@@ -98,7 +98,7 @@ app.post('/delete', (req, res) => {
         }
     });
     
-    const filePathWav = `${__dirname}/../songs/${song_name.slice(0, -4)}.wav`;
+    const filePathWav = `/mnt/remote/myApps/songs/${song_name.slice(0, -4)}.wav`;
     fs.unlink(filePathWav, (err) => {
     if (err) {
         console.error(err);

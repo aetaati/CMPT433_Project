@@ -17,7 +17,12 @@ PROJECT_NAME=beaglepod-server
 DEPLOY_PATH= $(HOME)/cmpt433/public/myApps/$(PROJECT_NAME)-copy
 
 # Deploy web interface
-node : deploy node_install react_install
+node : deploy node_install react_install all
+
+all: 
+	$(CC_C) $(CFLAGS) $(SOURCE) -o $(OUTDIR)/$(OUTFILE) $(LFLAGS) -lbluetooth -lasound -pthread
+	mkdir -p $(OUTDIR)/songs/
+	cp songs/* $(OUTDIR)/songs/
 	
 deploy:
 	@echo 'COPYING THE NODE.JS FILES TO $(DEPLOY_PATH)'
@@ -46,10 +51,6 @@ react_install:
 	@echo ''
 	cd $(DEPLOY_PATH)/client && npm install
 
-all: 
-	$(CC_C) $(CFLAGS) $(SOURCE) -o $(OUTDIR)/$(OUTFILE) $(LFLAGS) -lbluetooth -lasound -pthread
-	mkdir -p $(OUTDIR)/songs/
-	cp songs/* $(OUTDIR)/songs/
 	
 clean:
 	rm $(OUTDIR)/$(OUTFILE)

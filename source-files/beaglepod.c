@@ -12,6 +12,7 @@
 #include "menuManager.h"
 #include "volume.h"
 #include "lcd_4line.h"
+#include "network.h"
 
 
 #define SONG "songs/som-liveletlive.wav"
@@ -26,12 +27,15 @@ int main(int argc, char const *argv[])
     AudioPlayer_init();
     Potentiometer_init();
     MenuManager_init();
+    Network_init();
     songManager_init();
+    
     
     Shutdown_init();
     Shutdown_waitForShutdown();
 
     songManager_cleanup();
+    Network_cleanup();
     MenuManager_cleanup();
     Potentiometer_cleanup();
     AudioPlayer_cleanup();

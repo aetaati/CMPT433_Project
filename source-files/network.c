@@ -52,6 +52,7 @@ static enum eWebCommands parse_command(char messageRx[MSG_MAX_LEN])
 {
     if (strncmp(messageRx, "add_song", strlen("add_song")) == 0)
     {
+        printf("hey\n");
         return COMMAND_ADD_SONG;
     }
     else if (strncmp(messageRx, "remove_song", strlen("remove_song")) == 0)
@@ -194,6 +195,7 @@ static void run_command(enum eWebCommands cur_command, char* message)
 
 static void network_logic(int socketDescriptor)
 {
+
     bool network_cond = true;
     while (network_cond)
     {
@@ -207,6 +209,7 @@ static void network_logic(int socketDescriptor)
 
         // buffer size: maximum length minus one to allow null termination (string data)
         int buffer_size = MSG_MAX_LEN - 1;
+        printf("wating to receive\n");
         int bytesRx = recvfrom(socketDescriptor, messageRx, buffer_size, 0, (struct sockaddr *)&sinRemote, &sin_len);
         // Check for errors
         if (bytesRx == -1)
@@ -219,6 +222,8 @@ static void network_logic(int socketDescriptor)
 
         // make the received message null terminated so string functions work
         messageRx[bytesRx] = 0;
+
+        printf("received\n");
 
         
         
@@ -301,7 +306,7 @@ static void *network_thread(void *params)
     }
 
     // int n = -1;
-
+    printf("network init\n");
     network_logic(socketDescriptor);
 
     // close the socket
@@ -315,6 +320,7 @@ void Network_init()
 {
     // start network thread
     pthread_create(&thread_id, NULL, &network_thread, NULL);
+    printf("network thread created\n");
 
     is_module_initialized = true;
 }
