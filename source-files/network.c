@@ -17,6 +17,7 @@ Date: 2023-03-16
 #include <unistd.h> // for close()
 #include <ctype.h>
 #include <assert.h>
+#include <string.h>
 #include "songManager.h"
 
 #define MSG_MAX_LEN 1024
@@ -105,19 +106,25 @@ static void run_command(enum eWebCommands cur_command, char* message)
 
         while(message != NULL ) {
             message = strtok(NULL, "\n");
+
             if(iter == 0) {
+                path = malloc(strlen(message)+ 1);
                 strcpy(path, message);
             }
             else if(iter == 1) {
+                album = malloc(strlen(album)+ 1);
                 strcpy(album, message);
             }
             else if(iter == 2) {
+                singer = malloc(strlen(singer)+ 1);
                 strcpy(singer, message);
             }
             iter++;
         }
         //song_info * song = create_song
         // Create Song stuct
+        song_info* song_struct = create_song_struct(singer, album, path);
+        songManager_addSongBack(song_struct);
         // add song into linked list back
         printf("DEBUG: add song\n");
         
@@ -125,8 +132,9 @@ static void run_command(enum eWebCommands cur_command, char* message)
     }
     else if (cur_command == COMMAND_REMOVE_SONG)
     {
-        char* song_num  = strtok(NULL, "\n");
-        int index = atoi(song_num);
+        //char* song_num  = strtok(NULL, "\n");
+        //int index = atoi(song_num);
+        // songManager_delete(index);
 
         // Delete a song number index
         
@@ -219,35 +227,18 @@ static void network_logic(int socketDescriptor)
         // Command
         // Path
         // 
-        int start_index =0;
+        
         enum eWebCommands curr_command = UNKNOWN_COMMAND;
+        char * token = NULL;
         if (bytesRx > 1)
         {
 
-            char * token = strtok(messageRx, "\n");
+            token = strtok(messageRx, "\n");
             curr_command = parse_command(token);
-            // loop through the string to extract all other tokens
-            // bool first_time = true;
-            // while( token != NULL ) {
-            //     if(first_time) {
-
-            //     }
-            //     printf( " %s\n", token ); //printing each token
-
-            //     token = strtok(NULL, "\n");
-            // }
-           
-
-            // get rid of \n in the command
-
-            // for (size_t i = 0; i < strlen(messageRx); i++)
-            // {
-            //     if (messageRx[i] == '\n')
-            //     {
-            //         messageRx[i] = '\0';
-            //     }
-            // }
+            
         }
+
+        run_command(curr_command, token);
 
         // extract the command from the message received
          

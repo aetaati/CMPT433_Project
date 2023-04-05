@@ -25,7 +25,7 @@ static int previous_song_start_from = -1;
 
 
 /********************************PRIVATE FUNCTIONS***********************************************************/
-static song_info *create_song_struct(char *name, char *album, char *path);
+//static song_info *create_song_struct(char *name, char *album, char *path);
 static void playSong(char *soundPath);
 static void displaySongs(SONG_CURSOR_LINE current_song, int from_song_number);
 static bool previously_displayed(SONG_CURSOR_LINE current_song, int from_song_number);
@@ -144,7 +144,7 @@ static void playSong(char *soundPath)
 //     }
 // }
 
-static song_info *create_song_struct(char *name, char *album, char *path)
+song_info *create_song_struct(char *name, char *album, char *path)
 {
     song_info *song = malloc(sizeof(*song));
 

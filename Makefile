@@ -16,7 +16,7 @@ LD_LIBRARY_PATH=/home/kingsteez/cmpt433/public/pulse-audio_lib_BBB:$(LD_LIBRARY_
 all: 
 	$(CC_C) $(CFLAGS) $(SOURCE) -o $(OUTDIR)/$(OUTFILE) $(LFLAGS) -lbluetooth -lasound -pthread
 	mkdir -p $(OUTDIR)/songs/
-	cp songs/* $(OUTDIR)/songs/
+# cp songs/* $(OUTDIR)/songs/
 	
 clean:
 	rm $(OUTDIR)/$(OUTFILE)

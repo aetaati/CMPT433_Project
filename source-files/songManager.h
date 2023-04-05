@@ -34,6 +34,9 @@ void songManager_moveCursorUp(void);
 /* Displays the songs */
 void songManager_displaySongs();
 
+/*Create Song struct */
+song_info *create_song_struct(char *name, char *album, char *path);
+
 /* Returns song_info struct to the user*/
 // Gets current song_playing
 song_info *songManager_getCurrentSongPlaying(void);
