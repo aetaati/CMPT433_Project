@@ -7,6 +7,7 @@
 #include <string.h>
 #include <time.h>
 #include <alloca.h>
+#include "songManager.h"
 
 
 #define DEFAULT_VOLUME 0.8
@@ -41,6 +42,7 @@ static bool stopping = false;
 static pthread_t playbackThreadId;
 static pthread_mutex_t audioMutex = PTHREAD_MUTEX_INITIALIZER;
 static playbackSong_t current_sound;
+static bool SONG_PLAYED = false;
 
 
 
@@ -285,8 +287,9 @@ static void fillPlaybackBuffer(short *buff, int size)
 	{
 		
         wavedata_t* sound_data = current_sound.pSound;
-        if(sound_data != NULL){
+        if(sound_data != NULL && (sound_data->numSamples - current_sound.location) > 0){
             printf("sound not null\n");
+			SONG_PLAYED = true;
             // copy into playback buff
             int total_samples = sound_data->numSamples;
             int location = current_sound.location;
@@ -327,18 +330,12 @@ static void fillPlaybackBuffer(short *buff, int size)
 				*(buff + i + 1) = right_val;
 
 			}
-
-            if( samples_left != size){
-                AudioPlayer_freeWaveFileData(current_sound.pSound);
-				current_sound.pSound = NULL;
-                current_sound.location = 0;
-            }
-            else{
-                current_sound.location += samples_left;
-            }
-
-            
+            current_sound.location += samples_left;
         }
+		else if(SONG_PLAYED){
+			pthread_mutex_unlock(&audioMutex);
+			songManager_AutoPlayNext();
+		}
     }
     pthread_mutex_unlock(&audioMutex);
 
