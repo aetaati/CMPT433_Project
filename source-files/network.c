@@ -17,6 +17,7 @@ Date: 2023-03-16
 #include <unistd.h> // for close()
 #include <ctype.h>
 #include <assert.h>
+#include "songManager.h"
 
 #define MSG_MAX_LEN 1024
 #define MSG_ACK "ACK"
@@ -85,64 +86,103 @@ static enum eWebCommands parse_command(char messageRx[MSG_MAX_LEN])
 // run the commands and return the appropriate string to be sent back
 // returns NULL rerun is required
 // the caller should call free()
-static char *run_command(enum eWebCommands cur_command)
+static void run_command(enum eWebCommands cur_command, char* message)
 {
     // TODO: consider using an array of function pointers to respond to each command
     // The array will be initialized in network_init ??
     // The indices of the array will be the values of eWebCommands enum ??
-    char *result = NULL;
-    result = malloc(MSG_ACK_LEN * sizeof(char));
-    snprintf(result, MSG_ACK_LEN, MSG_ACK);
+    // char *result = NULL;
+    // result = malloc(MSG_ACK_LEN * sizeof(char));
+    // snprintf(result, MSG_ACK_LEN, MSG_ACK);
     if (cur_command == COMMAND_ADD_SONG)
     {
         // TODO call the call songManager module to add the new song
         // TODO: SOS - need the path of the song ??
+        char* path;
+        char* album;
+        char* singer;
+        int iter = 0;
+
+        while(message != NULL ) {
+            message = strtok(NULL, "\n");
+            if(iter == 0) {
+                strcpy(path, message);
+            }
+            else if(iter == 1) {
+                strcpy(album, message);
+            }
+            else if(iter == 2) {
+                strcpy(singer, message);
+            }
+            iter++;
+        }
+        //song_info * song = create_song
+        // Create Song stuct
+        // add song into linked list back
         printf("DEBUG: add song\n");
-        return result;
+        
+        //return result;
     }
     else if (cur_command == COMMAND_REMOVE_SONG)
     {
+        char* song_num  = strtok(NULL, "\n");
+        int index = atoi(song_num);
+
+        // Delete a song number index
+        
         // TODO call the call songManager module to remove the song
         // TODO: SOS - need the path of the song ??
         printf("DEBUG: remove song\n");
-        return result;
+        //return result;
     }
     else if (cur_command == COMMAND_VOLUME_UP)
     {
         // TODO call the volume module to increase the volume
         printf("DEBUG: volume up\n");
-        return result;
+        //return result;
     }
     else if (cur_command == COMMAND_VOLUME_DOWN)
     {
         // TODO call the volume module to decrease the volume
         printf("DEBUG: volume down\n");
-        return result;
+        //return result;
     }
     else if (cur_command == COMMAND_SONG_NEXT)
     {
         // TODO call the song module to go to the next song
         printf("DEBUG: next song\n");
-        return result;
+        //return result;
     }
     else if (cur_command == COMMAND_SONG_PREVIOUS)
     {
         // TODO call the song module to the previous song
         printf("DEBUG: previous song\n");
-        return result;
+        //return result;
     }
     else if (cur_command == COMMAND_STOP)
     {
         // TODO stop all the other threads and modules
         printf("DEBUG: stop\n");
-        return result;
+        //return result;
     }
     else
     {
         printf("DEBUG: unkown command\n");
-        return NULL; // TODO: ??
+        //return NULL; // TODO: ??
     }
 }
+// static int get_size_string(int start,char * str) {
+//     int size =0;
+//     for (size_t i = start; i < strlen(str); i++)
+//     {
+//         if (str[i] == '\n')
+//         {
+//             return size;
+//         }
+//         size++;
+//     }        
+//     return size; 
+// }
 
 static void network_logic(int socketDescriptor)
 {
@@ -172,21 +212,45 @@ static void network_logic(int socketDescriptor)
         // make the received message null terminated so string functions work
         messageRx[bytesRx] = 0;
 
+        
+        
         // if command is not 'enter' (!= "\n")
+
+        // Command
+        // Path
+        // 
+        int start_index =0;
+        enum eWebCommands curr_command = UNKNOWN_COMMAND;
         if (bytesRx > 1)
         {
+
+            char * token = strtok(messageRx, "\n");
+            curr_command = parse_command(token);
+            // loop through the string to extract all other tokens
+            // bool first_time = true;
+            // while( token != NULL ) {
+            //     if(first_time) {
+
+            //     }
+            //     printf( " %s\n", token ); //printing each token
+
+            //     token = strtok(NULL, "\n");
+            // }
+           
+
             // get rid of \n in the command
-            for (size_t i = 0; i < strlen(messageRx); i++)
-            {
-                if (messageRx[i] == '\n')
-                {
-                    messageRx[i] = '\0';
-                }
-            }
+
+            // for (size_t i = 0; i < strlen(messageRx); i++)
+            // {
+            //     if (messageRx[i] == '\n')
+            //     {
+            //         messageRx[i] = '\0';
+            //     }
+            // }
         }
 
         // extract the command from the message received
-        enum eWebCommands curr_command = parse_command(messageRx);
+         
 
         // compose the response message
 
@@ -195,42 +259,21 @@ static void network_logic(int socketDescriptor)
             // unknown command
             continue;
         }
-        char *response = run_command(curr_command);
+        //char *response = run_command(curr_command);
 
         // TODO: for now all the replies are ACK; Kept for potential later use
-        if (strlen(response) <= MSG_MAX_LEN)
-        {
-            // send in one packet
-            char messageTx[MSG_MAX_LEN];
-            snprintf(messageTx, MSG_MAX_LEN, "%s", response);
+        // if (strlen(response) <= MSG_MAX_LEN)
+        // {
+        //     // send in one packet
+        //     char messageTx[MSG_MAX_LEN];
+        //     snprintf(messageTx, MSG_MAX_LEN, "%s", response);
 
-            // transmit a reply:
-            sin_len = sizeof(sinRemote);
-            sendto(socketDescriptor, messageTx, strlen(messageTx), 0, (struct sockaddr *)&sinRemote, sin_len);
-        }
-        else
-        {
-            // read response line by line
-            // delimeter
-            const char s[2] = "\n";
-            char *messageTx_token; // each token is a line
-            // get the first token/line
-            messageTx_token = strtok(response, s);
+        //     // transmit a reply:
+        //     sin_len = sizeof(sinRemote);
+        //     sendto(socketDescriptor, messageTx, strlen(messageTx), 0, (struct sockaddr *)&sinRemote, sin_len);
+        // }
 
-            // walk through other tokens /line
-            while (messageTx_token != NULL)
-            {
-                // adding the lost new line character
-                messageTx_token[strlen(messageTx_token) - 1] = '\n';
-
-                // transmit a reply:
-                sin_len = sizeof(sinRemote);
-                sendto(socketDescriptor, messageTx_token, strlen(messageTx_token), 0, (struct sockaddr *)&sinRemote, sin_len);
-
-                messageTx_token = strtok(NULL, s);
-            }
-        }
-        free(response);
+        
 
         // check termination condition
         if (curr_command == COMMAND_STOP)
