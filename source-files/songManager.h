@@ -38,7 +38,7 @@ void songManager_moveCursorUp(void);
 void songManager_displaySongs();
 
 /*Create Song struct */
-song_info *create_song_struct(char *name, char *album, char *path);
+song_info *create_song_struct(char *name, char *album, char *path, char* song_name_local);
 /* Song Mananger Delete a song*/
 void songManager_deleteSong();
 

@@ -58,7 +58,7 @@ app.post('/upload', (req, res) => {
 
     const file_pat = `/songs/${file.name}`;
 
-    const c_UDP_values = `${'newSong'}\n${file_pat}\n${song_name}\n${singer_name}\n${album_name}`;
+    const c_UDP_values = `add_song\n${file_pat}\n${song_name}\n${singer_name}\n${album_name}`;
 
 
     if (fs.existsSync(`${__dirname}/../songs/${file.name}`)) {
