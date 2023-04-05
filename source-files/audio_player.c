@@ -287,9 +287,9 @@ static void fillPlaybackBuffer(short *buff, int size)
 	{
 		
         wavedata_t* sound_data = current_sound.pSound;
-        if(sound_data != NULL){
+        if(sound_data != NULL && (sound_data->numSamples - current_sound.location) > 0){
             SONG_PLAYED = true;
-
+			printf("song data still left");
             // copy into playback buff
             int total_samples = sound_data->numSamples;
             int location = current_sound.location;
@@ -331,22 +331,24 @@ static void fillPlaybackBuffer(short *buff, int size)
 
 			}
 
-            if( samples_left != size){
+            /*if( samples_left != size){
                 AudioPlayer_freeWaveFileData(current_sound.pSound);
 				current_sound.pSound = NULL;
                 current_sound.location = 0;
             }
-            else{
+            else{*/
                 current_sound.location += samples_left;
-            }
+            //}
 
             
         }
 		else if(SONG_PLAYED == true){
 			printf("Song is over.\n");
+			pthread_mutex_unlock(&audioMutex);
 			songManager_AutoPlayNext();
 
 		}
+		
     }
     pthread_mutex_unlock(&audioMutex);
 

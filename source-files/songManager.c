@@ -104,7 +104,7 @@ static int getCurrentSongNumber()
 
 static void playSong(wavedata_t* song)
 {   
-    printf("started song\n");
+    
     // pSound_currentSong = malloc(sizeof(*pSound_currentSong));
     AudioPlayer_playWAV(song);
 }
@@ -334,29 +334,34 @@ void songManager_init()
     /**** TESTING********/
 
     // Adds 5 song to the list
-    char *song1_p = "songs/hunnybee.wav";
-    char *song2_p = "songs/kiss-from-rose.wav";
-    char *song3_p = "songs/moves.wav";
-    char *song4_p = "songs/som-liveletlive.wav";
-    char *song5_p = "songs/Wild Ones (feat. Sia).wav";
-    char *song1_name = "Author 1";
-    char *song2_name = "Kiss from a Rose";
+    char *song1_p = "songs/Danger_Zone.wav";
+    char *song2_p = "songs/Moves.wav";
+    char *song3_p = "songs/hunnybee.wav";
+    char *song4_p = "songs/kiss-from-rose.wav";
+    char *song5_p = "songs/som-liveletlive.wav";
+    char *song6_p = "songs/Wild Ones (feat. Sia).wav";
+
+    char *song1_name = "Danger Zone";
+    char *song2_name = "Moves Like Jagger";
     char *song3_name = "Author 3";
     char *song4_name = "Author 4";
     char *song5_name = "Author 5";
+    char *song6_name = "Author 6";
+
 
     char *song1_album = "Dummy 1";
     char *song2_album = "Dummy 2";
     char *song3_album = "Dummy 3";
     char *song4_album = "Dummy 4";
     char *song5_album = "Dummy 5";
+    char *song6_album = "Dummy 6";
+
+
     song_info *song1 = create_song_struct(song1_name, song1_album, song1_p);
     song1->pSong_DWave = malloc(sizeof(*song1->pSong_DWave));
     AudioPlayer_readWaveFileIntoMemory(song1->song_path, song1->pSong_DWave);
     songManager_addSongFront(song1);
     CURRENT_AUTOPLAY_SONG = 0;
-
-
 
     song_info *song2 = create_song_struct(song2_name, song2_album, song2_p);
     song2->pSong_DWave = malloc(sizeof(*song2->pSong_DWave));
@@ -372,8 +377,12 @@ void songManager_init()
 
     song_info *song4 = create_song_struct(song4_name, song4_album, song4_p);
     songManager_addSongBack(song4);
+
     song_info *song5 = create_song_struct(song5_name, song5_album, song5_p);
     songManager_addSongBack(song5);
+
+    song_info *song6 = create_song_struct(song6_name, song6_album, song6_p);
+    songManager_addSongBack(song6);
 
 
 }
@@ -392,15 +401,19 @@ void songManager_init()
 
 
 void songManager_AutoPlayNext(){
+    printf("started song autoplay");
     CURRENT_AUTOPLAY_SONG++;
     song_info* song = (song_info*) doublyLinkedList_getElementAtIndex(CURRENT_AUTOPLAY_SONG);
+    printf("index: %d, song path: %s\n", CURRENT_AUTOPLAY_SONG, song->song_path);
     playSong(song->pSong_DWave);
 }
 
 void songManager_playSong()
 {
+    printf("started song manually\n");
     song_info *temp = doublyLinkedList_getCurrentElement();
     CURRENT_AUTOPLAY_SONG = doublyLinkedList_getCurrentIdx();
+    printf("CURRENT AUTOPLAY INDEX: %d, song path: %s\n", CURRENT_AUTOPLAY_SONG, temp->song_path);
     if (temp == NULL)
     {
         printf("Song does not exist\n");
