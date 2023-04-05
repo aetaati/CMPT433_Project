@@ -27,7 +27,7 @@ int main(int argc, char const *argv[])
     AudioPlayer_init();
     Potentiometer_init();
     MenuManager_init();
-    Network_init();
+    //Network_init();
     songManager_init();
     
     
@@ -35,7 +35,7 @@ int main(int argc, char const *argv[])
     Shutdown_waitForShutdown();
 
     songManager_cleanup();
-    Network_cleanup();
+    //Network_cleanup();
     MenuManager_cleanup();
     Potentiometer_cleanup();
     AudioPlayer_cleanup();
