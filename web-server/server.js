@@ -57,7 +57,7 @@ app.post('/upload', (req, res) => {
 
     const file_pat = `songs/${file.name}`;
 
-    const c_UDP_values = `${'add_song'}\n${file_pat}\n${song_name}\n${singer_name}\n${album_name}`;
+    const c_UDP_values = `${'add_song'}\n${file_pat}\n${song_name}\n${singer_name}\n${album_name}\n`;
 
     if (fs.existsSync(`/home/kingsteez/cmpt433/public/myApps/songs/${file.name}`)) {
         res.status(400).json({msg: 'No file uploaded - The file is already uploaded!'})
