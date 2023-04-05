@@ -100,9 +100,11 @@ static void run_command(enum eWebCommands cur_command, char* message)
     {
         // TODO call the call songManager module to add the new song
         // TODO: SOS - need the path of the song ??
-        char* path;
-        char* album;
-        char* singer;
+        char* path; // 0
+        char* song_name; // 1
+        char* singer; // 2
+        char* album; // 3
+        
         int iter = 0;
 
         while(message != NULL ) {
@@ -113,6 +115,10 @@ static void run_command(enum eWebCommands cur_command, char* message)
                 strcpy(path, message);
             }
             else if(iter == 1) {
+                song_name = malloc(strlen(message)+ 1);
+                strcpy(song_name, message);
+            }
+            else if(iter == 3) {
                 album = malloc(strlen(album)+ 1);
                 strcpy(album, message);
             }
@@ -124,7 +130,7 @@ static void run_command(enum eWebCommands cur_command, char* message)
         }
         //song_info * song = create_song
         // Create Song stuct
-        song_info* song_struct = create_song_struct(singer, album, path);
+        song_info* song_struct = create_song_struct(singer, album, path, song_name);
         songManager_addSongBack(song_struct);
         // add song into linked list back
         printf("DEBUG: add song\n");
@@ -133,10 +139,10 @@ static void run_command(enum eWebCommands cur_command, char* message)
     }
     else if (cur_command == COMMAND_REMOVE_SONG)
     {
-        //char* song_num  = strtok(NULL, "\n");
-        //int index = atoi(song_num);
-        // songManager_delete(index);
-
+        char* song_num  = strtok(NULL, "\n");
+        int index = atoi(song_num);
+        
+        songManager_deleteSong(index);
         // Delete a song number index
         
         // TODO call the call songManager module to remove the song
