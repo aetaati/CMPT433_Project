@@ -1,12 +1,13 @@
 import React, { Fragment, useState } from "react";
 import axios from "axios";
-import Message from "./Message";
 
-const FileUpload = ({files, setFiles, removeFile}) => {
+const FileUpload = ({files, setFiles, setMessage}) => {
   // Hooks
-  const [fileLocal, setFileLocal] = useState("");
-  const [fileNameLocal, setFileNameLocal] = useState("Choose File");
-  const [message, setMessage] = useState("");
+
+  const [currentFileLocal, setCurrentFileLocal] = useState({});
+  const [currentFileName, setCurrentFileName] = useState("Choose File");
+
+
   const [singerName, setSingerName] = useState("Enter singer name here...");
   const [albumName, setAlbumName] = useState("Enter album name here...");
 
@@ -22,10 +23,8 @@ const FileUpload = ({files, setFiles, removeFile}) => {
     const file = e.target.files[0];
     if(!file) return;
     file.isUploading = true;
-    setFileLocal(file);
-    setFileNameLocal(file.name);
-
-    // setFiles([...files], fileLocal)
+    setCurrentFileLocal(file);
+    setCurrentFileName(file.name);
   };
 
   const onFileSubmit = async (e) => {
@@ -37,38 +36,38 @@ const FileUpload = ({files, setFiles, removeFile}) => {
       singerName === ""
     ) {
       setMessage("No file uploaded - All fields should be provided");
-    } else {
+    }
       
-      
-      const formData = new FormData();
-      formData.append('file', fileLocal, fileLocal.name);
-      // TODO: maybe add other information here to the formData - i.e. singer, album, etc.
+    currentFileLocal.isUploading = false;
+    const formData = new FormData();
+    formData.append('file', currentFileLocal, currentFileLocal.name);
+    // TODO: maybe add other information here to the formData - i.e. singer, album, etc.
 
-      try {
-        await axios.post("/upload", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-        fileLocal.isUploading = false;
-        console.log(fileLocal)
-        setFiles([...files, fileLocal])
-        setMessage("File Uploaded!");
-        console.log(files)
-      } catch (err) {
+    try {
+      await axios.post("/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      currentFileLocal.isUploading = false;
+      setFiles([...files, currentFileLocal])
+      setMessage("File Uploaded!");
+    } catch (err) {
+      if (err.hasOwnProperty("response")) {
         if (err.response.status === 500) {
           setMessage("There was a problem with the server");
         } else {
           setMessage(err.response.data.msg);
         }
-        removeFile(fileLocal.name);
+      }
+      else {
+        console.log(err);
       }
     }
   };
 
   return (
     <Fragment>
-      {message ? <Message msg={message} /> : null}
       {
         <form onSubmit={onFileSubmit}>
           {
@@ -101,7 +100,7 @@ const FileUpload = ({files, setFiles, removeFile}) => {
               onChange={onFileChange}
             />
             <label className="custom-file-label" htmlFor="customFile">
-              {fileNameLocal}
+              {currentFileName}
             </label>
           </div>
 

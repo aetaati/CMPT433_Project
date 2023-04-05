@@ -2,16 +2,12 @@ import React from 'react'
 import FileItem from './FileItem'
 import axios from "axios";
 
-
 const FileList = ({ files, removeFile }) => {
     const deleteFileHandler = async (_name) => {
-        // axios.delete(`http://localhost:5000/upload?name=${_name}`)
-        //     .then((res) => removeFile(_name))
-        //     .catch((err) => console.error(err));
         try {
-            await axios.post("/delete", _name, {
+            await axios.post("/delete", { name: _name }, {
               headers: {
-                "Content-Type": "text/plain",
+                "Content-Type": "application/json",
               },
             });
             removeFile(_name)
