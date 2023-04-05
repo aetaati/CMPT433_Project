@@ -1,11 +1,3 @@
-/*
-Author: Mehdi Esmaeilzadeh
-Date: 2023-03-10
-Subject: Implementation of the Joystick module to get the current accelerometer action
-*/
-
-
-
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>

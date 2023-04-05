@@ -1,12 +1,3 @@
-
-/*
-Subject: CMPT433 (Embedded Systems) - BeablePod Project
-Purpose: Declarations of a general doublyLinkedList
-Use cases: 1) Store the name of the songs
-Author: Amirhossein Etaati
-Date: 2023-03-16
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

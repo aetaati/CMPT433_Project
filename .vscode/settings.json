@@ -1,8 +1,12 @@
 {
-  "files.associations": {
-    "stdbool.h": "c",
-    "bluetooth.h": "c",
-    "stdio.h": "c"
-  },
-  "cSpell.words": ["wavedata"]
+    "files.associations": {
+        "stdbool.h": "c",
+        "bluetooth.h": "c",
+        "songmanager.h": "c",
+        "audio_player.h": "c"
+    },
+    "cSpell.words": [
+        "wavedata"
+    ]
+    
 }
