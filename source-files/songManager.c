@@ -122,7 +122,7 @@ static void playSong(wavedata_t* song)
 //     }
 // }
 
-/*static song_info *create_song_struct(char *name, char *album, char *path)
+song_info *create_song_struct(char *name, char *album, char *path)
 {
     song_info *song = malloc(sizeof(*song));
 
@@ -140,7 +140,7 @@ static void playSong(wavedata_t* song)
     // song->song_path = path;
 
     return song;
-}*/
+}
 
 // Returns where the song cursor is located at -- Cursor can be #1, #2, #3, #4
 static SONG_CURSOR_LINE getsongCursor(int current_song_number)
