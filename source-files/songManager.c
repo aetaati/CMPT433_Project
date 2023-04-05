@@ -126,12 +126,21 @@ static void playSong(wavedata_t* song)
 
 song_info *create_song_struct(char *name, char *album, char *path, char* song_name_local)
 {
-    song_info *song = malloc(sizeof(*song));
+    printf("before failure\n");
+    song_info *song = malloc(sizeof(song_info));
+    printf("after failure\n");
+
+    printf("aritist: <%s>\n", name);
+    printf("album: <%s>\n", album);
+    printf("path: <%s>\n", path);
+    printf("song name: <%s>\n", song_name_local);
 
     song->author_name = (char *)malloc(strlen(name) + 1);
     song->album = (char *)malloc(strlen(album) + 1);
     song->song_path = (char *)malloc(strlen(path) + 1);
     song->song_name = (char *) malloc(strlen(song_name_local) + 1);
+
+    
 
     strcpy(song->author_name, name);
     strcpy(song->album, album);
