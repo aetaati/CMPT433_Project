@@ -3,7 +3,8 @@
         "stdbool.h": "c",
         "bluetooth.h": "c",
         "songmanager.h": "c",
-        "audio_player.h": "c"
+        "audio_player.h": "c",
+        "string.h": "c"
     },
     "cSpell.words": [
         "wavedata"

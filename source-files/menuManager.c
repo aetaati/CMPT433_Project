@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <time.h>
 
 #include "menuManager.h"
@@ -534,13 +535,44 @@ static void MainMenu_setArrowAtLine(LCD_LINE_NUM line){
     }
 }
 
+void display_songInfo(song_info* song){
+  LCD_clear();
+  LCD_writeStringAtLine("Now Playing:", LCD_LINE1 );
+  LCD_writeStringAtLine(song->song_name, LCD_LINE2 );
+  LCD_writeStringAtLine("", LCD_LINE3);
+  LCD_writeString("By: ");
+  LCD_writeString(song->author_name);
+  LCD_writeStringAtLine(song->album, LCD_LINE4 );
+  current_menu = SONGINFO_MENU;
 
+}
+
+void songInfoMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection){
+  switch(currentJoyStickDirection){
+    case JOYSTICK_UP:
+      
+      break;
+    case JOYSTICK_DOWN:
+      
+      break;
+    case JOYSTICK_LEFT:
+      displaySongMenu();
+      break;
+    case JOYSTICK_CENTER:
+      printf("PAUSE\n");
+      break;
+    default:
+      // unsupported direction
+      break;
+  }
+}
 
 /* -------------------------------------------------------------------- *
  * SONG MENU                                                            *
  * -------------------------------------------------------------------- */
 static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirection)
 {
+  song_info* song = NULL;
   switch(currentJoyStickDirection){
     case JOYSTICK_UP:
       songManager_moveCursorUp();
@@ -549,11 +581,12 @@ static void songMenuJoystickAction(enum eJoystickDirections currentJoyStickDirec
       songManager_moveCursorDown();
       break;
     case JOYSTICK_LEFT:
-      songManager_reset();
+      //songManager_reset();
       displayMainMenu();
       break;
     case JOYSTICK_CENTER:
-      songManager_playSong();
+      song = songManager_playSong();
+      display_songInfo(song);
       break;
     default:
       // unsupported direction
@@ -637,6 +670,8 @@ static void *MenuManagerThread(void *arg)
           break;
         case SETTINGS_MENU:
           break;
+        case SONGINFO_MENU:
+          songInfoMenuJoystickAction(currentJoyStickDirection);
         default:
           // invalid option
           break;

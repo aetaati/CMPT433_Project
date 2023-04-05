@@ -288,7 +288,7 @@ static void fillPlaybackBuffer(short *buff, int size)
 		
         wavedata_t* sound_data = current_sound.pSound;
         if(sound_data != NULL && (sound_data->numSamples - current_sound.location) > 0){
-            printf("sound not null\n");
+            
 			SONG_PLAYED = true;
             // copy into playback buff
             int total_samples = sound_data->numSamples;

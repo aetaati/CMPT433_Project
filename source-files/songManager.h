@@ -23,7 +23,7 @@ typedef enum
 void songManager_AutoPlayNext(void);
 void songManager_init(void);
 /* Plays the song that the cursor is pointing at */
-void songManager_playSong();
+song_info* songManager_playSong();
 /* Adds the song to the front of the list*/
 void songManager_addSongFront(song_info *);
 /* Adds the song to the back of the list*/

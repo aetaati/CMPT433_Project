@@ -374,7 +374,7 @@ void songManager_init()
 //     return size;
 // }
 
-void songManager_playSong()
+song_info* songManager_playSong()
 {
     song_info *temp = doublyLinkedList_getCurrentElement();
     CURRENT_AUTOPLAY_SONG = doublyLinkedList_getCurrentIdx();
@@ -387,6 +387,7 @@ void songManager_playSong()
         current_song_playing = temp;
         playSong(current_song_playing->pSong_DWave);
     }
+    return temp;
 }
 
 void songManager_AutoPlayNext(void){
