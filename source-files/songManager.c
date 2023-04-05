@@ -137,8 +137,10 @@ song_info *create_song_struct(char *name, char *album, char *path, char* song_na
     strcpy(song->album, album);
     strcpy(song->song_path, path);
     strcpy(song->song_name, song_name_local);
-    
 
+    song->pSong_DWave = malloc(sizeof(*song->pSong_DWave));
+    AudioPlayer_readWaveFileIntoMemory(song->song_path, song->pSong_DWave);
+    
     return song;
 }
 
