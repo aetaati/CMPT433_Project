@@ -19,6 +19,8 @@
 // will consist of NUM_CHANNELS samples 
 #define SAMPLE_SIZE (sizeof(short))  
 
+static bool PAUSE = false;
+
 
 // Global Variables
 static snd_pcm_t *handle;
@@ -287,7 +289,7 @@ static void fillPlaybackBuffer(short *buff, int size)
 	{
 		
         wavedata_t* sound_data = current_sound.pSound;
-        if(sound_data != NULL && (sound_data->numSamples - current_sound.location) > 0){
+        if(!PAUSE && sound_data != NULL && (sound_data->numSamples - current_sound.location) > 0){
             
 			SONG_PLAYED = true;
             // copy into playback buff
@@ -332,13 +334,23 @@ static void fillPlaybackBuffer(short *buff, int size)
 			}
             current_sound.location += samples_left;
         }
-		else if(SONG_PLAYED){
+		else if(SONG_PLAYED && !PAUSE){
 			pthread_mutex_unlock(&audioMutex);
 			songManager_AutoPlayNext();
 		}
     }
     pthread_mutex_unlock(&audioMutex);
 
+}
+
+void AudioPlayer_pause(void){
+	if(PAUSE){
+		PAUSE = false;
+	}
+	else{
+		PAUSE = true;
+	}
+	
 }
 
 

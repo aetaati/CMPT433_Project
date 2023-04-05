@@ -560,6 +560,7 @@ void songInfoMenuJoystickAction(enum eJoystickDirections currentJoyStickDirectio
       break;
     case JOYSTICK_CENTER:
       printf("PAUSE\n");
+      AudioPlayer_pause();
       break;
     default:
       // unsupported direction

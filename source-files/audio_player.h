@@ -13,6 +13,8 @@ typedef struct {
 void AudioPlayer_init(void);
 void AudioPlayer_cleanup(void);
 
+void AudioPlayer_pause(void);
+
 // Read the contents of a wave file into the pSound structure. Note that
 // the pData pointer in this structure will be dynamically allocated in
 // readWaveFileIntoMemory(), and is freed by calling freeWaveFileData().
