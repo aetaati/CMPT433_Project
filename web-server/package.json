@@ -23,7 +23,8 @@
     "express-fileupload": "^1.4.0",
     "ffmpeg": "^0.0.4",
     "fluent-ffmpeg": "^2.1.2",
-    "mp3-to-wav": "^0.1.11"
+    "mp3-to-wav": "^0.1.11",
+    "socket.io": "^4.6.1"
   },
   "devDependencies": {
     "concurrently": "^7.6.0",

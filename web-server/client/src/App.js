@@ -6,7 +6,7 @@ import Message from "./components/Message";
 
 function App() {
     const [files, setFiles] = useState([]);
-    const [message, setMessage] = useState("");
+    const [message, setMessage] = useState("Upload a song below to get started...");
 
     const removeFile = (filename) => {
       setFiles(files.filter(file => file.name !== filename))
@@ -18,7 +18,7 @@ function App() {
           <i className="fab fa-react"></i> BeaglePod Song Upload
         </h4>
 
-        {message ? <Message msg={message} /> : null}
+        <Message msg={message} />
         <FileUpload files={files} setFiles={setFiles} setMessage={setMessage} />
         <FileList files={files} removeFile={removeFile} />
 
