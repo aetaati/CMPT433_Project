@@ -50,7 +50,7 @@ static int getCurrentSongNumber();
 
 static void setSongs(SONG_CURSOR_LINE current_song, char *song1, char *song2, char *song3, char *song4)
 {
-    LCD_clear();
+    //LCD_clear();
     switch (current_song)
     {
     case CURSOR_LINE_ONE:
@@ -126,9 +126,7 @@ static void playSong(wavedata_t* song)
 
 song_info *create_song_struct(char *name, char *album, char *path, char* song_name_local)
 {
-    printf("before failure\n");
     song_info *song = malloc(sizeof(*song));
-    printf("after failure\n");
 
     printf("aritist: <%s>\n", name);
     printf("album: <%s>\n", album);
@@ -334,27 +332,28 @@ void songManager_init()
     /**** TESTING********/
 
     // Adds 5 song to the list
-    /*char *song1_p = "songs/hunnybee.wav";
-    char *song2_p = "songs/kiss-from-rose.wav";
-    char *song3_p = "songs/moves.wav";
+    char *song1_p = "songs/moves.wav";
+    char *song2_p = "songs/hair.wav";
+    /*char *song3_p = "songs/moves.wav";
     char *song4_p = "songs/som-liveletlive.wav";
-    char *song5_p = "songs/Wild Ones (feat. Sia).wav";
-    char *song1_name = "Author 1";
-    char *song2_name = "Kiss from a Rose";
-    char *song3_name = "Author 3";
+    char *song5_p = "songs/Wild Ones (feat. Sia).wav";*/
+    char *song1_name = "Moves";
+    char *song2_name = "HairShop";
+    /*char *song3_name = "Author 3";
     char *song4_name = "Author 4";
-    char *song5_name = "Author 5";
+    char *song5_name = "Author 5";*/
     char *song1_album = "Dummy 1";
     char *song2_album = "Dummy 2";
-    char *song3_album = "Dummy 3";
+    /*char *song3_album = "Dummy 3";
     char *song4_album = "Dummy 4";
-    char *song5_album = "Dummy 5";
-    song_info *song1 = create_song_struct(song1_name, song1_album, song1_p);
+    char *song5_album = "Dummy 5";*/
+    song_info *song1 = create_song_struct(song1_name, song1_album,"songs/moves.wav", song1_p);
     song1->pSong_DWave = malloc(sizeof(*song1->pSong_DWave));
     AudioPlayer_readWaveFileIntoMemory(song1->song_path, song1->pSong_DWave);
     songManager_addSongFront(song1);
-    song_info *song2 = create_song_struct(song2_name, song2_album, song2_p);
+    song_info *song2 = create_song_struct(song2_name, song2_album, "songs/hair.wav",song2_p);
     songManager_addSongBack(song2);
+    /*
     song_info *song3 = create_song_struct(song3_name, song3_album, song3_p);
     songManager_addSongBack(song3);
     song_info *song4 = create_song_struct(song4_name, song4_album, song4_p);

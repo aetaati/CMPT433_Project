@@ -52,10 +52,10 @@ app.post('/upload', (req, res) => {
     const file = req.files.file;
 
     const singer_name = req.body.singer;
-    const song_name = req.body.album;
-    const album_name = req.body.song;
+    const song_name = req.body.song;
+    const album_name = req.body.album;
 
-    const file_pat = `songs/${file.name}`;
+    const file_pat = `/mnt/remote/myApps/songs/${file.name.slice(0, -4)}.wav`;
 
     const c_UDP_values = `${'add_song'}\n${file_pat}\n${song_name}\n${singer_name}\n${album_name}\n`;
 

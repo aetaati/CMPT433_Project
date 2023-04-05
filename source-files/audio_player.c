@@ -88,7 +88,7 @@ void AudioPlayer_init(void)
 // Client code must call AudioMixer_freeWaveFileData to free dynamically allocated data.
 void AudioPlayer_readWaveFileIntoMemory(char *fileName, wavedata_t *pSound)
 {
-	
+	sleep(1);
 	assert(pSound);
 	pthread_mutex_lock(&audioMutex);
 	{
@@ -98,7 +98,7 @@ void AudioPlayer_readWaveFileIntoMemory(char *fileName, wavedata_t *pSound)
 		// Open the wave file
 		FILE *file = fopen(fileName, "r");
 		if (file == NULL) {
-			fprintf(stderr, "ERROR: Unable to open file %s.\n", fileName);
+			fprintf(stderr, "ERROR: Unable to open file <%s>.\n", fileName);
 			exit(EXIT_FAILURE);
 		}
 		printf("getting file size\n");
