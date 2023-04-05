@@ -127,7 +127,7 @@ static void playSong(wavedata_t* song)
 song_info *create_song_struct(char *name, char *album, char *path, char* song_name_local)
 {
     printf("before failure\n");
-    song_info *song = malloc(sizeof(song_info));
+    song_info *song = malloc(sizeof(*song));
     printf("after failure\n");
 
     printf("aritist: <%s>\n", name);
