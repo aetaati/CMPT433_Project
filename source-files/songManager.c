@@ -334,14 +334,12 @@ void songManager_init()
     /**** TESTING********/
 
     // Adds 5 song to the list
-    char *song1_p = "songs/Danger_Zone.wav";
-    char *song2_p = "songs/Moves.wav";
+    char *song2_p = "songs/moves.wav";
     char *song3_p = "songs/hunnybee.wav";
     char *song4_p = "songs/kiss-from-rose.wav";
     char *song5_p = "songs/som-liveletlive.wav";
     char *song6_p = "songs/Wild Ones (feat. Sia).wav";
 
-    char *song1_name = "Danger Zone";
     char *song2_name = "Moves Like Jagger";
     char *song3_name = "Author 3";
     char *song4_name = "Author 4";
@@ -349,7 +347,6 @@ void songManager_init()
     char *song6_name = "Author 6";
 
 
-    char *song1_album = "Dummy 1";
     char *song2_album = "Dummy 2";
     char *song3_album = "Dummy 3";
     char *song4_album = "Dummy 4";
@@ -357,10 +354,7 @@ void songManager_init()
     char *song6_album = "Dummy 6";
 
 
-    song_info *song1 = create_song_struct(song1_name, song1_album, song1_p);
-    song1->pSong_DWave = malloc(sizeof(*song1->pSong_DWave));
-    AudioPlayer_readWaveFileIntoMemory(song1->song_path, song1->pSong_DWave);
-    songManager_addSongFront(song1);
+    
     CURRENT_AUTOPLAY_SONG = 0;
 
     song_info *song2 = create_song_struct(song2_name, song2_album, song2_p);
