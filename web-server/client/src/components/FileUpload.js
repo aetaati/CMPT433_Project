@@ -1,4 +1,5 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useState, useEffect } from "react";
+
 import axios from "axios";
 
 const FileUpload = ({files, setFiles, setMessage}) => {
@@ -42,6 +43,11 @@ const FileUpload = ({files, setFiles, setMessage}) => {
     const formData = new FormData();
     formData.append('file', currentFileLocal, currentFileLocal.name);
     // TODO: maybe add other information here to the formData - i.e. singer, album, etc.
+    formData.append('singer', singerName);
+    formData.append('album', albumName);
+    formData.append('song', currentFileLocal.name.slice(0, -4));
+
+    
 
     try {
       await axios.post("/upload", formData, {

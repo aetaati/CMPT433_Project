@@ -13,6 +13,27 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 app.use(cors());
 app.use(fileUpload());
 
+var dgram = require('dgram');
+
+function sendUDP(data) {
+    // Info for connecting to the local process via UDP
+    var PORT = 12345;
+    var HOST = '127.0.0.1';
+    const message = Buffer.from(data);
+
+    var client = dgram.createSocket('udp4');
+    client.send(buffer, 0, buffer.length, PORT, HOST, function(err, bytes) {
+        if (err)
+            throw err;
+    })
+
+    client.on('message', function (message, remote) {
+        var reply = message.toString('utf8')
+        client.close();
+    });
+}
+
+
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -28,7 +49,17 @@ app.post('/upload', (req, res) => {
     if(req.files == null) {
         return res.status(400).json({msg: 'No file uploaded - You need to select a file'})
     }
+
     const file = req.files.file;
+
+    const singer_name = req.body.singer;
+    const song_name = req.body.album;
+    const album_name = req.body.song;
+
+    const file_pat = `/songs/${file.name}`;
+
+    const c_UDP_values = `${'newSong'}\n${file_pat}\n${song_name}\n${singer_name}\n${album_name}`;
+
 
     if (fs.existsSync(`${__dirname}/../songs/${file.name}`)) {
         res.status(400).json({msg: 'No file uploaded - The file is already uploaded!'})
@@ -44,10 +75,14 @@ app.post('/upload', (req, res) => {
             // convert the file into wav.
             ffmpeg(`${__dirname}/../songs/${file.name}`).toFormat('wav').save(`${__dirname}/../songs/${file.name.slice(0, -4)}.wav`);
             // Call the UDP message handler here TODO
+            
+
+            sendUDP(c_UDP_values);
+
             setTimeout(() => {
                 return res.status(200).json({ result: true, msg: "File uploaded",fileName: file.name, filePath: `/uploads/${file.name}`});
             }, 
-                3000);
+                100);
         });
     }
 });
