@@ -18,11 +18,11 @@ var dgram = require('dgram');
 function sendUDP(data) {
     // Info for connecting to the local process via UDP
     var PORT = 12345;
-    var HOST = '127.0.0.1';
+    var HOST = '192.168.7.2';
     const message = Buffer.from(data);
 
     var client = dgram.createSocket('udp4');
-    client.send(buffer, 0, buffer.length, PORT, HOST, function(err, bytes) {
+    client.send(message, 0, message.length, PORT, HOST, function(err, bytes) {
         if (err)
             throw err;
     })
@@ -49,7 +49,6 @@ app.post('/upload', (req, res) => {
     if(req.files == null) {
         return res.status(400).json({msg: 'No file uploaded - You need to select a file'})
     }
-
     const file = req.files.file;
 
     const singer_name = req.body.singer;
@@ -58,23 +57,25 @@ app.post('/upload', (req, res) => {
 
     const file_pat = `songs/${file.name}`;
 
-    const c_UDP_values = `${'newSong'}\n${file_pat}\n${song_name}\n${singer_name}\n${album_name}`;
+    const c_UDP_values = `${'add_song'}\n${file_pat}\n${song_name}\n${singer_name}\n${album_name}`;
 
-
-    if (fs.existsSync(`/mnt/remote/myApps/songs/${file.name}`)) {
+    if (fs.existsSync(`/home/kingsteez/cmpt433/public/myApps/songs/${file.name}`)) {
         res.status(400).json({msg: 'No file uploaded - The file is already uploaded!'})
     }
     else if (path.extname(file.name) != '.mp3') {
         return res.status(400).json({msg: 'No file uploaded - The file should be mp3'});
     }
     else {
-        file.mv(`/mnt/remote/myApps/songs/${file.name}`, err => {
+        file.mv(`/home/kingsteez/cmpt433/public/myApps/songs/${file.name}`, err => {
             if(err) {
                 return res.status(500).send(err);
             }
+
+            console.log("before conversion");
             // convert the file into wav.
-            ffmpeg(`/mnt/remote/myApps/songs/${file.name}`).toFormat(`/mnt/remote/myApps/songs/${file.name.slice(0, -4)}.wav`);
+            ffmpeg(`/home/kingsteez/cmpt433/public/myApps/songs/${file.name}`).toFormat('wav').save(`/home/kingsteez/cmpt433/public/myApps/songs/${file.name.slice(0, -4)}.wav`);
             // Call the UDP message handler here TODO
+            console.log("finished conversion");
             
 
             sendUDP(c_UDP_values);
@@ -90,7 +91,8 @@ app.post('/upload', (req, res) => {
 app.post('/delete', (req, res) => {
     console.log('file deleted');
     const song_name = req.body.name;
-    const filePathMP3 = `/mnt/remote/myApps/songs/${song_name}`;
+    const filePathMP3 = `/home/kingsteez/cmpt433/public/myApps/songs/${song_name}`;
+    console.log(filePathMP3);
     
     fs.unlink(filePathMP3, (err) => {
         if (err) {
@@ -98,7 +100,7 @@ app.post('/delete', (req, res) => {
         }
     });
     
-    const filePathWav = `/mnt/remote/myApps/songs/${song_name.slice(0, -4)}.wav`;
+    const filePathWav = `/home/kingsteez/cmpt433/public/myApps/songs/${song_name.slice(0, -4)}.wav`;
     fs.unlink(filePathWav, (err) => {
     if (err) {
         console.error(err);

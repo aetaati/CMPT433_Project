@@ -376,6 +376,42 @@ bool doublyLinkedList_rewindIteratorNTimes(int n)
     return true;
 }
 
+bool doublyLinkedList_delete(int idx) {
+    if(list_ptr->size == 0) {
+        return false;
+    }
+    if(idx == 0) {
+        pop_from_head();
+        return true;
+    }
+    struct Node* temp = NULL;
+    if(set_ptr_to_idx(idx, temp) == false) {
+        return false;
+    }
+    if(temp == list_ptr->current) {
+        list_ptr->current = list_ptr->current->next;
+    } 
+    struct Node* delete_node = temp;
+    struct Node* prev_node = temp->prev;
+    struct Node* next_node = NULL;
+    if(temp != list_ptr->tail) {
+        next_node = temp->next;
+    }
+    prev_node->next = temp->next;
+    if(next_node != NULL) {
+        next_node->prev = prev_node;
+    }
+
+    if(list_ptr->tail == temp) {
+        list_ptr->tail = prev_node;
+    }
+    free(delete_node->data);
+    free(delete_node);
+    list_ptr->size -= 1;
+    return true;
+
+}
+
 /**********************************************************************/
 // int main(int argc, char const *argv[])
 // {

@@ -4,7 +4,6 @@ import axios from "axios";
 
 const FileUpload = ({files, setFiles, setMessage}) => {
   // Hooks
-
   const [currentFileLocal, setCurrentFileLocal] = useState({});
   const [currentFileName, setCurrentFileName] = useState("Choose File");
 
@@ -61,7 +60,7 @@ const FileUpload = ({files, setFiles, setMessage}) => {
     } catch (err) {
       if (err.hasOwnProperty("response")) {
         if (err.response.status === 500) {
-          setMessage("There was a problem with the server");
+          setMessage("There was a problem with the server!");
         } else {
           setMessage(err.response.data.msg);
         }

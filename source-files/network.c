@@ -52,7 +52,6 @@ static enum eWebCommands parse_command(char messageRx[MSG_MAX_LEN])
 {
     if (strncmp(messageRx, "add_song", strlen("add_song")) == 0)
     {
-        printf("hey\n");
         return COMMAND_ADD_SONG;
     }
     else if (strncmp(messageRx, "remove_song", strlen("remove_song")) == 0)
@@ -100,9 +99,11 @@ static void run_command(enum eWebCommands cur_command, char* message)
     {
         // TODO call the call songManager module to add the new song
         // TODO: SOS - need the path of the song ??
-        char* path;
-        char* album;
-        char* singer;
+        char* path; // 0
+        char* song_name; // 1
+        char* singer; // 2
+        char* album; // 3
+        
         int iter = 0;
 
         while(message != NULL ) {
@@ -113,6 +114,10 @@ static void run_command(enum eWebCommands cur_command, char* message)
                 strcpy(path, message);
             }
             else if(iter == 1) {
+                song_name = malloc(strlen(message)+ 1);
+                strcpy(song_name, message);
+            }
+            else if(iter == 3) {
                 album = malloc(strlen(album)+ 1);
                 strcpy(album, message);
             }
@@ -124,7 +129,7 @@ static void run_command(enum eWebCommands cur_command, char* message)
         }
         //song_info * song = create_song
         // Create Song stuct
-        song_info* song_struct = create_song_struct(singer, album, path);
+        song_info* song_struct = create_song_struct(singer, album, path, song_name);
         songManager_addSongBack(song_struct);
         // add song into linked list back
         printf("DEBUG: add song\n");
@@ -133,10 +138,10 @@ static void run_command(enum eWebCommands cur_command, char* message)
     }
     else if (cur_command == COMMAND_REMOVE_SONG)
     {
-        //char* song_num  = strtok(NULL, "\n");
-        //int index = atoi(song_num);
-        // songManager_delete(index);
-
+        char* song_num  = strtok(NULL, "\n");
+        int index = atoi(song_num);
+        
+        songManager_deleteSong(index);
         // Delete a song number index
         
         // TODO call the call songManager module to remove the song
@@ -195,7 +200,6 @@ static void run_command(enum eWebCommands cur_command, char* message)
 
 static void network_logic(int socketDescriptor)
 {
-
     bool network_cond = true;
     while (network_cond)
     {
@@ -209,7 +213,7 @@ static void network_logic(int socketDescriptor)
 
         // buffer size: maximum length minus one to allow null termination (string data)
         int buffer_size = MSG_MAX_LEN - 1;
-        printf("wating to receive\n");
+        printf("Before recieve \n");
         int bytesRx = recvfrom(socketDescriptor, messageRx, buffer_size, 0, (struct sockaddr *)&sinRemote, &sin_len);
         // Check for errors
         if (bytesRx == -1)
@@ -217,13 +221,14 @@ static void network_logic(int socketDescriptor)
             printf("ERROR: Failed to receive. Data is not available and socket is in nonblocking mode\n");
             exit(-1);
         }
+        printf("After recieve \n");
 
         // handle the received message ///////////////////////////////////////////////////////////////////////
 
         // make the received message null terminated so string functions work
         messageRx[bytesRx] = 0;
 
-        printf("received\n");
+        printf("Recieved Message <%s>\n", messageRx);
 
         
         
@@ -306,7 +311,7 @@ static void *network_thread(void *params)
     }
 
     // int n = -1;
-    printf("network init\n");
+
     network_logic(socketDescriptor);
 
     // close the socket
@@ -320,7 +325,6 @@ void Network_init()
 {
     // start network thread
     pthread_create(&thread_id, NULL, &network_thread, NULL);
-    printf("network thread created\n");
 
     is_module_initialized = true;
 }
