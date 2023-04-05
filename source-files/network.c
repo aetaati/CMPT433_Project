@@ -122,11 +122,11 @@ static void run_command(enum eWebCommands cur_command, char* message)
                 strcpy(song_name, message);
             }
             else if(iter == 3) {
-                album = malloc(strlen(album)+ 1);
+                album = malloc(strlen(message)+ 1);
                 strcpy(album, message);
             }
             else if(iter == 2) {
-                singer = malloc(strlen(singer)+ 1);
+                singer = malloc(strlen(message)+ 1);
                 strcpy(singer, message);
             }
             iter++;
