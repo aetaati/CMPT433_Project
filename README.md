@@ -1,6 +1,6 @@
 # Beaglepod
 
-The Beaglepod is a C project that enables music playback in various formats, with local and remote control options. It utilizes a Beaglebone Green board with an LCD display, joystick, and potentiometer for user interaction.
+The Beaglepod is a C project that enables music playback in various formats, with local and remote control options. It utilizes the ZEN cape's components such as joystick, and potentiometer in addition to the LCD screen for user interaction.
 
 ## Features
 
