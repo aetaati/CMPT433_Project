@@ -11,15 +11,11 @@ LFLAGS = -L$(HOME)/cmpt433/public/pulse-audio_lib_BBB -L$(HOME)/cmpt433/public/a
 
 LD_LIBRARY_PATH=/home/kingsteez/cmpt433/public/pulse-audio_lib_BBB:$(LD_LIBRARY_PATH)
 
-
-# Deploy this Node.js project to the public folder
-PROJECT_NAME=beaglepod-server
-DEPLOY_PATH= $(HOME)/cmpt433/public/myApps/$(PROJECT_NAME)-copy
+# TODO: add webserver stuff
 
 all: 
 	$(CC_C) $(CFLAGS) $(SOURCE) -o $(OUTDIR)/$(OUTFILE) $(LFLAGS) -lbluetooth -lasound -pthread
 	mkdir -p $(OUTDIR)/songs/
-#cp songs/* $(OUTDIR)/songs/
 	
 clean:
 	rm $(OUTDIR)/$(OUTFILE)
