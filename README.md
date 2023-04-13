@@ -1,6 +1,6 @@
 # Beaglepod
 
-The Beaglepod is a C project that enables music playback in various formats, with local and remote control options. It utilizes the ZEN cape's components such as joystick, and potentiometer in addition to the LCD screen for user interaction.
+The Beaglepod is a C project that enables mp3 playback, with local and remote control options. It utilizes the ZEN cape's components such as joystick, and potentiometer in addition to the LCD screen for user interaction.
 
 ## Features
 
@@ -9,7 +9,7 @@ The Beaglepod is a C project that enables music playback in various formats, wit
 - LCD Menu: Beaglepod displays a menu on the LCD for user interaction, allowing selection of songs, changing settings, connecting to Bluetooth devices, and other functionalities.
 - Song Information Display: The LCD shows the name, artist, and runtime of the current song playing.
 - Volume Control: Users can adjust the volume using the potentiometer.
-- Web Interface: Beaglepod includes a web interface for configuring the song library, adding songs, creating playlists, and interacting with the music player through a user-friendly interface.
+- Web Interface: Beaglepod includes a web interface for adding and deleting songs to interact with the music player through a user-friendly interface.
 
 ## Building the Project
 
