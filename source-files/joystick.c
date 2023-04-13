@@ -1,20 +1,28 @@
+/**
+ * @file joystick.c
+ * @brief This is a source file for the Joystick module.
+ *
+ * This source file contains the declaration of the functions
+ * for the Joystick module, which provides the utilities
+ * for setting up joystick and handling the joystick
+ * movement when pressed.
+ *
+ * @author Mehdi Esmaeilzadeh
+ * @date 2023-03-13
+ */
+
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <stdbool.h>
 #include <string.h>
-
-#include "joystick.h"
-
-#include "gpio.h"
-
-
-
 #include <alsa/asoundlib.h>
 
-// static enum Current_songPlaying song_playing = BASE_DRUM_SOUND;
+#include "joystick.h"
+#include "gpio.h"
 
+static void assertDirectionOk(enum eJoystickDirections direction);
 static void assertDirectionOk(enum eJoystickDirections direction);
 
 struct DirectionInfo
@@ -25,12 +33,31 @@ struct DirectionInfo
 
 // Data on all different directions which we support
 const struct DirectionInfo directions[] = {
-        {"Up",     26,},
-        {"Down",   46,},
-        {"Left",   65,},
-        {"Right",  47,},
-        {"Center", 27,},
+    {
+        "Up",
+        26,
+    },
+    {
+        "Down",
+        46,
+    },
+    {
+        "Left",
+        65,
+    },
+    {
+        "Right",
+        47,
+    },
+    {
+        "Center",
+        27,
+    },
 };
+
+//------------------------------------------------
+//////////////// Public Functions ////////////////
+//------------------------------------------------
 
 void Joystick_init()
 {
@@ -42,8 +69,9 @@ void Joystick_init()
 }
 
 void Joystick_cleanup()
-{ 
-    // Nothing to clean up 
+{
+    // Nothing to clean up
+    return;
 }
 
 bool Joystick_isDirectionPressed(enum eJoystickDirections direction)
@@ -91,17 +119,16 @@ enum eJoystickDirections Joystick_process_direction()
     }
     else if (Joystick_isDirectionPressed(JOYSTICK_LEFT))
     {
-         return JOYSTICK_LEFT;
+        return JOYSTICK_LEFT;
     }
     else if (Joystick_isDirectionPressed(JOYSTICK_CENTER))
-    {       
+    {
         return JOYSTICK_CENTER;
-
     }
-    else {
+    else
+    {
         return JOYSTICK_NONE;
     }
-
 }
 
 const char *Joystick_getDirectionName(enum eJoystickDirections direction)
@@ -110,6 +137,10 @@ const char *Joystick_getDirectionName(enum eJoystickDirections direction)
 
     return directions[direction].name;
 }
+
+//------------------------------------------------
+/////////////// Private Functions ////////////////
+//------------------------------------------------
 
 static void assertDirectionOk(enum eJoystickDirections direction)
 {

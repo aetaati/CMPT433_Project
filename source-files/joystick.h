@@ -1,13 +1,18 @@
-/*
-Subject: Definition of the Joystick module to get the current accelerometer action
-*/
+/**
+ * @file joystick.c
+ * @brief This is a source file for the Joystick module.
+ *
+ * This source file contains the declaration of the functions
+ * for the Joystick module, which provides the utilities
+ * for setting up joystick and handling the joystick
+ * movement when pressed.
+ *
+ * @author Mehdi Esmaeilzadeh
+ * @date 2023-03-13
+ */
 
-
-#ifndef INC_05_C_JOYSTICK_H
-#define INC_05_C_JOYSTICK_H
-
-/* The  Joystick Interface: The Joystick.h and Joystick.c is responsible for setting up joystick and handling 
-the joystick movement when pressed.  */
+#ifndef _JOYSTICK_H
+#define _JOYSTICK_H
 
 #define GPIO_FILE_DIRECTION "/sys/class/gpio/gpio%d/direction"
 #define GPIO_FILE_VALUE "/sys/class/gpio/gpio%d/value"
@@ -20,8 +25,9 @@ enum eJoystickDirections
     JOYSTICK_RIGHT,
     JOYSTICK_CENTER,
     JOYSTICK_NONE,
-    JOYSTICK_MAX_NUMBER_DIRECTIONS      // Get the number of directions via the enum
+    JOYSTICK_MAX_NUMBER_DIRECTIONS // Get the number of directions via the enum
 };
+
 // Initialize the Joystick module
 void Joystick_init();
 // Remove any dynamic memory or open file
@@ -31,8 +37,6 @@ enum eJoystickDirections Joystick_process_direction();
 // Is the given direction pressed by the user
 bool Joystick_isDirectionPressed(enum eJoystickDirections direction);
 // Returns "Up", "Down", "Left", "Right" as a char *
-const char* Joystick_getDirectionName(enum eJoystickDirections direction);
+const char *Joystick_getDirectionName(enum eJoystickDirections direction);
 
-
-
-#endif //INC_05_C_JOYSTICK_H
+#endif // _JOYSTICK_H
