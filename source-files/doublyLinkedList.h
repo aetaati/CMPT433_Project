@@ -1,11 +1,17 @@
-/*
-Purpose: Definitions of a general doublyLinkedList
-Use cases: 1) Store the name of the songs
-*/
+/**
+ * @file doublyLinkedList.h
+ * @brief This is a header file for the doublyLinkedList module.
+ *
+ * This source file contains the definition of the functions
+ * for the doublyLinkedList module, which provides the utilities
+ * for storing and traversing song information.
+ *
+ * @author Amirhossein Etaati
+ * @date 2023-03-17
+ */
 
 #if !defined(DOUBLY_LINKED_LIST_H)
 #define DOUBLY_LINKED_LIST_H
-#include <stdbool.h>
 
 // Returns a pointer to the newly allocated empty list
 // Note: caller should call doublyLinkedList_cleanup() to free the memory

@@ -1,3 +1,15 @@
+/**
+ * @file doublyLinkedList.c
+ * @brief This is a source file for the doublyLinkedList module.
+ *
+ * This source file contains the declaration of the functions
+ * for the doublyLinkedList module, which provides the utilities
+ * for storing and traversing song information.
+ *
+ * @author Amirhossein Etaati
+ * @date 2023-03-17
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,7 +33,7 @@ struct List
     struct Node *current; // keeps track of the current element in the list
     int curentIdx;        // -1 if there is no element in the list
 
-    struct Node *currentDisplay; // pointer to display the elements without changing "current" - TODO: change name to currentIterator
+    struct Node *currentIterator;
 
     int size;
 };
@@ -29,124 +41,15 @@ struct List
 static bool is_module_initialized = false;
 static struct List *list_ptr = NULL;
 
-static void push_to_head(void *src, unsigned int size)
-{
-    struct Node *new_node = malloc(sizeof(struct Node));
-    if (new_node == NULL)
-    {
-        fprintf(stderr, "%s\n", "doublyLinkedList_push_to_head(): Error - There was a problem allocating memory.");
-        exit(1);
-    }
-    (new_node->data) = malloc(size);
-    if ((new_node->data) == NULL)
-    {
-        fprintf(stderr, "%s\n", "doublyLinkedList_push_to_head(): Error - There was a problem allocating memory for t");
-        exit(1);
-    }
+// Private functions definitions
+static void push_to_head(void *src, unsigned int size);
+static void push_to_tail(void *src, unsigned int size);
+static void pop_from_head(void);
+static bool set_ptr_to_idx(int idx, struct Node *ptr);
 
-    memcpy((new_node->data), (src), size);
-    (new_node->next) = (list_ptr->head);
-    (new_node->prev) = NULL;
-
-    if (list_ptr->head != NULL)
-    {
-        list_ptr->head->prev = new_node;
-        (list_ptr->head) = new_node;
-    }
-    else
-    {
-        // List was previously empty
-        list_ptr->tail = list_ptr->head = list_ptr->current = list_ptr->currentDisplay = new_node;
-        list_ptr->curentIdx = 0;
-    }
-
-    list_ptr->size += 1;
-}
-
-static void push_to_tail(void *src, unsigned int size)
-{
-    struct Node *new_node = malloc(sizeof(struct Node));
-    if (new_node == NULL)
-    {
-        fprintf(stderr, "%s\n", "doublyLinkedList_push_to_tail(): Error - There was a problem allocating memory.");
-        exit(1);
-    }
-    (new_node->data) = malloc(size);
-    if ((new_node->data) == NULL)
-    {
-        fprintf(stderr, "%s\n", "doublyLinkedList_push_to_tail(): Error - There was a problem allocating memory for t");
-        exit(1);
-    }
-
-    memcpy((new_node->data), (src), size);
-    (new_node->next) = NULL;
-    (new_node->prev) = list_ptr->tail;
-
-    if (list_ptr->tail != NULL)
-    {
-        (list_ptr->tail->next) = new_node;
-        list_ptr->tail = new_node;
-    }
-    else
-    {
-        list_ptr->tail = list_ptr->head = list_ptr->current = list_ptr->currentDisplay = new_node;
-        list_ptr->curentIdx = 0;
-    }
-
-    list_ptr->size += 1;
-}
-
-static void pop_from_head(void)
-{
-    if ((list_ptr->head) == NULL)
-    {
-        fprintf(stderr, "%s\n", "doublyLinkedList_pop_from_head(): Error - The list is empty");
-        exit(1);
-    }
-
-    if (list_ptr->current == list_ptr->head)
-    {
-        list_ptr->current = list_ptr->head->next; // if current is pointing to head, set it to the next element
-    }
-    if (list_ptr->currentDisplay == list_ptr->head)
-    {
-        list_ptr->currentDisplay = list_ptr->head->next; // if currentDisplay is pointing to head, set it to the next element
-    }
-
-    struct Node *first_node = (list_ptr->head);
-    (list_ptr->head) = list_ptr->head->next;
-    if (list_ptr->head != NULL)
-    {
-        list_ptr->head->prev = NULL;
-    }
-    free(first_node->data);
-    free(first_node);
-
-    list_ptr->size -= 0;
-}
-
-static bool set_ptr_to_idx(int idx, struct Node *ptr)
-{
-    int counter = 0;
-    struct Node *node = list_ptr->head;
-
-    while (counter < idx && node != NULL)
-    {
-        node = node->next;
-        counter++;
-    }
-    if (node == NULL)
-        return false;
-
-    if (ptr == list_ptr->current)
-    {
-        list_ptr->curentIdx = idx;
-    }
-    ptr = node;
-    return true;
-}
-
-////////////////////////////////////////// Public Function //////////////////////////////////////////
+//------------------------------------------------
+//////////////// Public Functions ////////////////
+//------------------------------------------------
 
 void doublyLinkedList_init(void)
 {
@@ -155,7 +58,7 @@ void doublyLinkedList_init(void)
     list_ptr->tail = NULL;
     list_ptr->current = NULL;
     list_ptr->curentIdx = -1;
-    list_ptr->currentDisplay = NULL;
+    list_ptr->currentIterator = NULL;
     list_ptr->size = 0;
 
     is_module_initialized = true;
@@ -269,9 +172,6 @@ int doublyLinkedList_getSize(void)
     return list_ptr->size;
 }
 
-//////////// Extra functions to maintain the modularity according to songManager's needs ////////////
-/////////////////////////////////////////////////////////////////////////////
-
 // Sets list's position to be displayed from to the Head
 // Note: Returns false if the list is empty
 bool doublyLinkedList_setIteratorStartPosition(void)
@@ -281,7 +181,7 @@ bool doublyLinkedList_setIteratorStartPosition(void)
     {
         return false;
     }
-    list_ptr->currentDisplay = list_ptr->head;
+    list_ptr->currentIterator = list_ptr->head;
     return true;
 }
 
@@ -293,7 +193,7 @@ bool doublyLinkedList_setIteratorEndPosition(void)
     {
         return false;
     }
-    list_ptr->currentDisplay = list_ptr->tail;
+    list_ptr->currentIterator = list_ptr->tail;
     return true;
 }
 
@@ -306,9 +206,9 @@ bool doublyLinkedList_iteratorNext(void)
     {
         return false;
     }
-    if ((list_ptr->currentDisplay)->next != NULL)
+    if ((list_ptr->currentIterator)->next != NULL)
     {
-        list_ptr->currentDisplay = (list_ptr->currentDisplay)->next;
+        list_ptr->currentIterator = (list_ptr->currentIterator)->next;
         return true;
     }
     return false;
@@ -323,23 +223,23 @@ bool doublyLinkedList_iteratorPrev(void)
     {
         return false;
     }
-    if ((list_ptr->currentDisplay)->prev != NULL)
+    if ((list_ptr->currentIterator)->prev != NULL)
     {
-        list_ptr->currentDisplay = (list_ptr->currentDisplay)->prev;
+        list_ptr->currentIterator = (list_ptr->currentIterator)->prev;
         return true;
     }
     return false;
 }
 
-// Returns the data of the "currentDisplay"
+// Returns the data of the "currentIterator"
 void *doublyLinkedList_getCurrentIteratorElement(void)
 {
     assert(is_module_initialized);
-    if (list_ptr->currentDisplay == NULL)
+    if (list_ptr->currentIterator == NULL)
     {
         return NULL;
     }
-    return list_ptr->currentDisplay->data;
+    return list_ptr->currentIterator->data;
 }
 
 bool doublyLinkedList_setIterator(int idx)
@@ -350,7 +250,7 @@ bool doublyLinkedList_setIterator(int idx)
 
 bool doublyLinkedList_advanceIteratorNTimes(int n)
 {
-    if (n <= 0 || list_ptr->tail == list_ptr->currentDisplay)
+    if (n <= 0 || list_ptr->tail == list_ptr->currentIterator)
     {
         return false;
     }
@@ -364,7 +264,7 @@ bool doublyLinkedList_advanceIteratorNTimes(int n)
 
 bool doublyLinkedList_rewindIteratorNTimes(int n)
 {
-    if (n <= 0 || list_ptr->head == list_ptr->currentDisplay)
+    if (n <= 0 || list_ptr->head == list_ptr->currentIterator)
     {
         return false;
     }
@@ -376,43 +276,174 @@ bool doublyLinkedList_rewindIteratorNTimes(int n)
     return true;
 }
 
-bool doublyLinkedList_delete(int idx) {
-    if(list_ptr->size == 0) {
+bool doublyLinkedList_delete(int idx)
+{
+    if (list_ptr->size == 0)
+    {
         return false;
     }
-    if(idx == 0) {
+    if (idx == 0)
+    {
         pop_from_head();
         return true;
     }
-    struct Node* temp = NULL;
-    if(set_ptr_to_idx(idx, temp) == false) {
+    struct Node *temp = NULL;
+    if (set_ptr_to_idx(idx, temp) == false)
+    {
         return false;
     }
-    if(temp == list_ptr->current) {
+    if (temp == list_ptr->current)
+    {
         list_ptr->current = list_ptr->current->next;
-    } 
-    struct Node* delete_node = temp;
-    struct Node* prev_node = temp->prev;
-    struct Node* next_node = NULL;
-    if(temp != list_ptr->tail) {
+    }
+    struct Node *delete_node = temp;
+    struct Node *prev_node = temp->prev;
+    struct Node *next_node = NULL;
+    if (temp != list_ptr->tail)
+    {
         next_node = temp->next;
     }
     prev_node->next = temp->next;
-    if(next_node != NULL) {
+    if (next_node != NULL)
+    {
         next_node->prev = prev_node;
     }
 
-    if(list_ptr->tail == temp) {
+    if (list_ptr->tail == temp)
+    {
         list_ptr->tail = prev_node;
     }
     free(delete_node->data);
     free(delete_node);
     list_ptr->size -= 1;
     return true;
-
 }
 
-/**********************************************************************/
+//------------------------------------------------
+/////////////// Private Functions ////////////////
+//------------------------------------------------
+
+static void push_to_head(void *src, unsigned int size)
+{
+    struct Node *new_node = malloc(sizeof(struct Node));
+    if (new_node == NULL)
+    {
+        fprintf(stderr, "%s\n", "doublyLinkedList_push_to_head(): Error - There was a problem allocating memory.");
+        exit(1);
+    }
+    (new_node->data) = malloc(size);
+    if ((new_node->data) == NULL)
+    {
+        fprintf(stderr, "%s\n", "doublyLinkedList_push_to_head(): Error - There was a problem allocating memory for t");
+        exit(1);
+    }
+
+    memcpy((new_node->data), (src), size);
+    (new_node->next) = (list_ptr->head);
+    (new_node->prev) = NULL;
+
+    if (list_ptr->head != NULL)
+    {
+        list_ptr->head->prev = new_node;
+        (list_ptr->head) = new_node;
+    }
+    else
+    {
+        // List was previously empty
+        list_ptr->tail = list_ptr->head = list_ptr->current = list_ptr->currentIterator = new_node;
+        list_ptr->curentIdx = 0;
+    }
+
+    list_ptr->size += 1;
+}
+
+static void push_to_tail(void *src, unsigned int size)
+{
+    struct Node *new_node = malloc(sizeof(struct Node));
+    if (new_node == NULL)
+    {
+        fprintf(stderr, "%s\n", "doublyLinkedList_push_to_tail(): Error - There was a problem allocating memory.");
+        exit(1);
+    }
+    (new_node->data) = malloc(size);
+    if ((new_node->data) == NULL)
+    {
+        fprintf(stderr, "%s\n", "doublyLinkedList_push_to_tail(): Error - There was a problem allocating memory for t");
+        exit(1);
+    }
+
+    memcpy((new_node->data), (src), size);
+    (new_node->next) = NULL;
+    (new_node->prev) = list_ptr->tail;
+
+    if (list_ptr->tail != NULL)
+    {
+        (list_ptr->tail->next) = new_node;
+        list_ptr->tail = new_node;
+    }
+    else
+    {
+        list_ptr->tail = list_ptr->head = list_ptr->current = list_ptr->currentIterator = new_node;
+        list_ptr->curentIdx = 0;
+    }
+
+    list_ptr->size += 1;
+}
+
+static void pop_from_head(void)
+{
+    if ((list_ptr->head) == NULL)
+    {
+        fprintf(stderr, "%s\n", "doublyLinkedList_pop_from_head(): Error - The list is empty");
+        exit(1);
+    }
+
+    if (list_ptr->current == list_ptr->head)
+    {
+        list_ptr->current = list_ptr->head->next; // if current is pointing to head, set it to the next element
+    }
+    if (list_ptr->currentIterator == list_ptr->head)
+    {
+        list_ptr->currentIterator = list_ptr->head->next; // if currentIterator is pointing to head, set it to the next element
+    }
+
+    struct Node *first_node = (list_ptr->head);
+    (list_ptr->head) = list_ptr->head->next;
+    if (list_ptr->head != NULL)
+    {
+        list_ptr->head->prev = NULL;
+    }
+    free(first_node->data);
+    free(first_node);
+
+    list_ptr->size -= 0;
+}
+
+static bool set_ptr_to_idx(int idx, struct Node *ptr)
+{
+    int counter = 0;
+    struct Node *node = list_ptr->head;
+
+    while (counter < idx && node != NULL)
+    {
+        node = node->next;
+        counter++;
+    }
+    if (node == NULL)
+        return false;
+
+    if (ptr == list_ptr->current)
+    {
+        list_ptr->curentIdx = idx;
+    }
+    ptr = node;
+    return true;
+}
+
+//------------------------------------------------
+//////////////// FOR TESTING ONLY ////////////////
+//------------------------------------------------
+
 // int main(int argc, char const *argv[])
 // {
 //     doublyLinkedList_init();
