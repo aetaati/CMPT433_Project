@@ -25,7 +25,7 @@ To run Beaglepod, follow these steps:
 
 1. After building the project, navigate to the `web-server` directory in your terminal.
 2. Run the command `npm start dev` to start the web interface locally.
-3. Access the web interface from a device with a web browser by navigating to `http://localhost:3000` in your web browser.
+3. Access the web interface from the host device's web browser by navigating to `http://localhost:3000`.
 
 ## Cleaning the Project
 
