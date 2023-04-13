@@ -1,3 +1,15 @@
+/**
+ * @file bluetooth.c
+ * @brief This is a source file for the Bluetooth module.
+ *
+ * This source file contains the declaration of the functions
+ * for the Bluetooth module, which provides the utilities
+ * for scanning, pairing, connecting and disconnecting to nearby devices.
+ *
+ * @author Nick Hannay
+ * @date 2023-03-07
+ */
+
 #include "bluetooth.h"
 #include "audio_player.h"
 
@@ -18,19 +30,19 @@
 // the duration of the bluetooth scan = 1.28s * SCAN_LENGTH
 #define SCAN_LENGTH 4
 
-
 // Bluetooth Info
 int bt_adapter_id;
 int bt_adapter_fd;
 
-// Private functions
-void openBT(void);
-void closeBT(void);
-void checkError(void);
-int runCommand(char* command);
+// Private functions definitions
+static void openBT(void);
+static void closeBT(void);
+static void checkError(void);
+static int runCommand(char *command);
 
-
-
+//------------------------------------------------
+//////////////// Public Functions ////////////////
+//------------------------------------------------
 
 void Bluetooth_printDevicesToConsole(inquiry_info *devices, int num_devices)
 {
@@ -53,10 +65,10 @@ void Bluetooth_printDevicesToConsole(inquiry_info *devices, int num_devices)
     closeBT();
 }
 
-
-void Bluetooth_getHumanReadableNames(bluetooth_scan_t* scanned_devices, char* names[]){
+void Bluetooth_getHumanReadableNames(bluetooth_scan_t *scanned_devices, char *names[])
+{
     openBT();
-    for (int i = 0; i < scanned_devices->num_devices ;i++)
+    for (int i = 0; i < scanned_devices->num_devices; i++)
     {
 
         names[i] = calloc(256, sizeof(char));
@@ -69,8 +81,8 @@ void Bluetooth_getHumanReadableNames(bluetooth_scan_t* scanned_devices, char* na
     closeBT();
 }
 
-
-int Bluetooth_pair(bdaddr_t *device_address){
+int Bluetooth_pair(bdaddr_t *device_address)
+{
     openBT();
     char addr[19] = {0};
     ba2str(device_address, addr);
@@ -87,8 +99,7 @@ int Bluetooth_pair(bdaddr_t *device_address){
     return result;
 }
 
-
-int Bluetooth_scan(bluetooth_scan_t* scanner)
+int Bluetooth_scan(bluetooth_scan_t *scanner)
 {
     openBT();
     scanner->devices = malloc(BT_MAX_DEV_RSP * sizeof(inquiry_info));
@@ -96,7 +107,7 @@ int Bluetooth_scan(bluetooth_scan_t* scanner)
     {
         fprintf(stderr, "failed to allocate memory for scanned devices\n");
         closeBT();
-        return(-1);
+        return (-1);
     }
 
     // scan for bluetooth devices
@@ -110,10 +121,8 @@ int Bluetooth_scan(bluetooth_scan_t* scanner)
 
     scanner->num_devices = num_rsp;
     closeBT();
-    return(1);
-
+    return (1);
 }
-
 
 void Bluetooth_disconnect(void)
 {
@@ -121,7 +130,6 @@ void Bluetooth_disconnect(void)
     runCommand("bluetoothctl disconnect");
     closeBT();
 }
-
 
 int Bluetooth_connect(bdaddr_t *device_address)
 {
@@ -141,13 +149,12 @@ int Bluetooth_connect(bdaddr_t *device_address)
     return result;
 }
 
+//------------------------------------------------
+/////////////// Private Functions ////////////////
+//------------------------------------------------
 
-
-
-
-
-// Private Function Definitions
-void openBT(void){
+static void openBT(void)
+{
     // get default bt adapter
     bt_adapter_id = hci_get_route(NULL);
     checkError();
@@ -155,14 +162,15 @@ void openBT(void){
     checkError();
 }
 
-void closeBT(void){
-    if(close(bt_adapter_fd) == -1){
+static void closeBT(void)
+{
+    if (close(bt_adapter_fd) == -1)
+    {
         fprintf(stderr, "failed to close bluetooth file descriptor\n");
     }
 }
 
-
-int runCommand(char *command)
+static int runCommand(char *command)
 {
     FILE *pipe = popen(command, "r");
 
@@ -184,7 +192,7 @@ int runCommand(char *command)
     return (0);
 }
 
-void checkError(void)
+static void checkError(void)
 {
     switch (errno)
     {
