@@ -1,6 +1,7 @@
 OUTFILE = beaglepod
 OUTDIR = $(HOME)/cmpt433/public/myApps
-SOURCE = source-files/*.c
+SOURCE = source-files/
+SOURCES := $(wildcard $(SOURCE)/*.c)
 
 PUBDIR = $(HOME)/cmpt433/public/myApps
 CROSS_COMPILE = arm-linux-gnueabihf-
@@ -9,16 +10,24 @@ CFLAGS = -Wall -g -std=c99 -D _POSIX_C_SOURCE=200809L -Werror
 
 LFLAGS = -L$(HOME)/cmpt433/public/pulse-audio_lib_BBB -L$(HOME)/cmpt433/public/asound_lib_BBB 
 
-LD_LIBRARY_PATH=/home/kingsteez/cmpt433/public/pulse-audio_lib_BBB:$(LD_LIBRARY_PATH)
+# List of object files derived from source files
+OBJECTS = $(patsubst $(SOURCE)/%.c, $(OUTDIR)/%.o, $(SOURCES))
 
-# TODO: add webserver stuff
+# Default target
+all: $(OUTDIR)/$(OUTFILE)
 
-all: 
-	$(CC_C) $(CFLAGS) $(SOURCE) -o $(OUTDIR)/$(OUTFILE) $(LFLAGS) -lbluetooth -lasound -pthread
-	mkdir -p $(OUTDIR)/songs/
-	
+# Rule to build the final executable
+$(OUTDIR)/$(OUTFILE): $(OBJECTS)
+	$(CC_C) $(CFLAGS) $^ -o $@ $(LFLAGS) -lbluetooth -lasound -pthread
+
+# Rule to build .o files from .c files
+$(OUTDIR)/%.o: $(SOURCE)/%.c | $(OUTDIR)
+	$(CC_C) $(CFLAGS) -c $< -o $@
+
+# Rule to create the output directory
+$(OUTDIR):
+	mkdir -p $(OUTDIR)
+
 clean:
 	rm $(OUTDIR)/$(OUTFILE)
-	rm -r $(OUTDIR)/songs
-
-
+	rm $(OBJECTS)
