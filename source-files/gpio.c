@@ -2,7 +2,7 @@
  * @file gpio.c
  * @brief This is a source file for the gpio module.
  *
- * This source file contains the definition of the functions
+ * This source file contains the declare of the functions
  * for the gpio module, which provides the utilities
  * for enabling and configuring the GPIO pins of the BeagleBone Green.
  *

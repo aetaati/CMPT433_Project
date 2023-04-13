@@ -1,3 +1,15 @@
+/**
+ * @file lcd_4line.c
+ * @brief This is a source file for the lcd_4line module.
+ *
+ * This source file contains the definition of the functions
+ * for the lcd_4line module, which provides the utilities
+ * for interacting with the BeablePod mp3 player
+ *
+ * @author Nick Hannay
+ * @date 2023-03-25
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -13,7 +25,6 @@
 #define I2C_BUS "/dev/i2c-1"
 #define LCD_ADDR 0x27
 
-
 // GLOBALS
 static int i2cFd;
 
@@ -22,9 +33,11 @@ static void setLineNum(LCD_LINE_NUM line_num);
 static void I2C_sendByte(unsigned char data);
 static void I2C_configPins(void);
 static void I2C_configBus(void);
-static int runCommand(char* command);
+static int runCommand(char *command);
 
-
+//------------------------------------------------
+//////////////// Public Functions ////////////////
+//------------------------------------------------
 
 void LCD_init(void)
 {
@@ -36,24 +49,24 @@ void LCD_init(void)
      * Initialize the display, using the 4-bit mode initialization sequence *
      * -------------------------------------------------------------------- */
     I2C_sendByte(0b00110100);
-    I2C_sendByte(0b00110000); 
-    Sleep_ns(0 , 4100000);     // wait 4.1msec
-    I2C_sendByte(0b00110100); 
-    I2C_sendByte(0b00110000); 
-    Sleep_ns(0 , 100000);      // wait 100usec
+    I2C_sendByte(0b00110000);
+    Sleep_ns(0, 4100000); // wait 4.1msec
+    I2C_sendByte(0b00110100);
+    I2C_sendByte(0b00110000);
+    Sleep_ns(0, 100000);      // wait 100usec
     I2C_sendByte(0b00110100); //
     I2C_sendByte(0b00110000);
-    Sleep_ns(0 , 4100000);     // wait 4.1msec
+    Sleep_ns(0, 4100000); // wait 4.1msec
     I2C_sendByte(0b00100100);
     I2C_sendByte(0b00100000); // 4 bit mode
 
     /* -------------------------------------------------------------------- *
      * Set 4-bt, 2 Line, 5x8 char mode                                      *
      * -------------------------------------------------------------------- */
-    Sleep_ns(0, 40000);       // wait 40usec
-    I2C_sendByte(0b00100100); 
+    Sleep_ns(0, 40000); // wait 40usec
+    I2C_sendByte(0b00100100);
     I2C_sendByte(0b00100000); // keep 4-bit mode
-    I2C_sendByte(0b10000100); 
+    I2C_sendByte(0b10000100);
     I2C_sendByte(0b10000000); // D3=2 lines, D2=char5x8
 
     LCD_setCursorDirection();
@@ -63,43 +76,42 @@ void LCD_init(void)
     LCD_clear();
 }
 
-
 void LCD_cleanup(void)
-{ 
+{
     LCD_clear();
     LCD_writeStringAtLine("Shutting Down...", LCD_LINE1);
     Sleep_ms(1000);
     LCD_clear();
-    close(i2cFd); 
+    close(i2cFd);
 }
 
 void LCD_writeStringAtLine(char *string, LCD_LINE_NUM line_num)
 {
     setLineNum(line_num);
-    
+
     LCD_writeString(string);
 }
 
-void LCD_shiftDisplay(LCD_LINE_NUM line, LCD_DIRECTION dir){
-    switch(dir){
-        case LCD_LEFT:
-            I2C_sendByte(0b00010100);
-            I2C_sendByte(0b00000000);
-            I2C_sendByte(0b10000100);
-            I2C_sendByte(0b00000000);
-            break;
-        case LCD_RIGHT:
-            I2C_sendByte(0b00010100);
-            I2C_sendByte(0b00000000);
-            I2C_sendByte(0b11000100);
-            I2C_sendByte(0b00000000);
-            break;
-        default:
-            // invalid direction
-            break;
-        
+void LCD_shiftDisplay(LCD_LINE_NUM line, LCD_DIRECTION dir)
+{
+    switch (dir)
+    {
+    case LCD_LEFT:
+        I2C_sendByte(0b00010100);
+        I2C_sendByte(0b00000000);
+        I2C_sendByte(0b10000100);
+        I2C_sendByte(0b00000000);
+        break;
+    case LCD_RIGHT:
+        I2C_sendByte(0b00010100);
+        I2C_sendByte(0b00000000);
+        I2C_sendByte(0b11000100);
+        I2C_sendByte(0b00000000);
+        break;
+    default:
+        // invalid direction
+        break;
     }
-
 }
 
 void LCD_writeChar(unsigned char character)
@@ -111,7 +123,7 @@ void LCD_writeChar(unsigned char character)
     full = full | 0x05;
 
     I2C_sendByte(full);
-    //printf("sent: %0x\n", full);
+    // printf("sent: %0x\n", full);
     I2C_sendByte(0b00000000);
 
     full = 0x00;
@@ -119,7 +131,7 @@ void LCD_writeChar(unsigned char character)
     full = full | 0x05;
 
     I2C_sendByte(full);
-    //printf("sent: %0x\n", full);
+    // printf("sent: %0x\n", full);
     I2C_sendByte(0b00000000);
 }
 
@@ -131,7 +143,8 @@ void LCD_clear(void)
     I2C_sendByte(0b00000000);
 }
 
-void LCD_clearLine(LCD_LINE_NUM line){
+void LCD_clearLine(LCD_LINE_NUM line)
+{
     // clear
     LCD_writeStringAtLine("                    ", line);
 
@@ -141,11 +154,11 @@ void LCD_clearLine(LCD_LINE_NUM line){
 
 void LCD_turnOnDisplay(void)
 {
-    Sleep_ns(0, 40000);        // wait 40usec
-    I2C_sendByte(0b00000100); 
-    I2C_sendByte(0b00000000); 
-    I2C_sendByte(0b11000100); 
-    I2C_sendByte(0b11000000); 
+    Sleep_ns(0, 40000); // wait 40usec
+    I2C_sendByte(0b00000100);
+    I2C_sendByte(0b00000000);
+    I2C_sendByte(0b11000100);
+    I2C_sendByte(0b11000000);
 }
 
 void LCD_setCursorDirection(void)
@@ -157,18 +170,22 @@ void LCD_setCursorDirection(void)
 }
 
 void LCD_writeString(char *string)
-{   
+{
     // add ... to long strings
-    if(strlen(string) > 20){
-        for(int i = 0; i < 16; i++){
+    if (strlen(string) > 20)
+    {
+        for (int i = 0; i < 16; i++)
+        {
             LCD_writeChar(*string);
             string++;
         }
-        for(int i = 0; i < 3; i++){
+        for (int i = 0; i < 3; i++)
+        {
             LCD_writeChar('.');
         }
     }
-    else{
+    else
+    {
         while (*string != '\0')
         {
             LCD_writeChar(*string);
@@ -177,9 +194,9 @@ void LCD_writeString(char *string)
     }
 }
 
-/* -------------------------------------------------------------------- *
- * Private Functions                                                    *
- * -------------------------------------------------------------------- */
+//------------------------------------------------
+//////////////// Private Functions ////////////////
+//------------------------------------------------
 
 static void I2C_configPins(void)
 {
@@ -198,7 +215,8 @@ static void I2C_configPins(void)
     }
 }
 
-static void I2C_configBus(void){
+static void I2C_configBus(void)
+{
     if ((i2cFd = open(I2C_BUS, O_RDWR)) < 0)
     {
         printf("Error failed to open I2C bus [%s].\n", I2C_BUS);
@@ -212,7 +230,6 @@ static void I2C_configBus(void){
     }
 }
 
-
 static void I2C_sendByte(unsigned char data)
 {
     unsigned char byte[1];
@@ -223,7 +240,6 @@ static void I2C_sendByte(unsigned char data)
      * -------------------------------------------------------------------- */
     Sleep_ns(0, 1000000);
 }
-
 
 static int runCommand(char *command)
 {

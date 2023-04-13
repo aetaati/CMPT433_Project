@@ -1,7 +1,13 @@
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
-
+/**
+ * @file beaglePod.c
+ * @brief This is a source file for the main program
+ *
+ * This source file call the module for each of the features
+ * to initialize, run and clean up the program.
+ *
+ * @author Amirhossein Etaati
+ * @date 2023-03-01
+ */
 
 #include "sleep.h"
 #include "shutdown.h"
@@ -14,13 +20,6 @@
 #include "lcd_4line.h"
 #include "network.h"
 
-
-#define SONG "songs/som-liveletlive.wav"
-#define SONG3 "songs/hunnybee.wav"
-#define SONG4 "songs/moves.wav"
-#define SONG5 "songs/kiss-from-rose.wav"
-
-
 int main(int argc, char const *argv[])
 {
 
@@ -29,8 +28,7 @@ int main(int argc, char const *argv[])
     MenuManager_init();
     Network_init();
     songManager_init();
-    
-    
+
     Shutdown_init();
     Shutdown_waitForShutdown();
 

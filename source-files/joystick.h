@@ -2,7 +2,7 @@
  * @file joystick.c
  * @brief This is a source file for the Joystick module.
  *
- * This source file contains the declaration of the functions
+ * This source file contains the definition of the functions
  * for the Joystick module, which provides the utilities
  * for setting up joystick and handling the joystick
  * movement when pressed.
