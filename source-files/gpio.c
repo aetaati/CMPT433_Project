@@ -35,91 +35,15 @@ static bool is_module_initialized = false;
 #define DIR_PATH "/direction"
 #define VAL_PATH "/value"
 
+// Private functions definitions
 static void set_pin_direction(const int *pins, int pin_size, const char *pin_direction);
+static void export_pins(const int *pins, int pin_size);
+static void enable_buses(const char **buses, int bus_size);
+static void run_command(const char *command);
 
 //------------------------------------------------
-/////////////// Private Functions ////////////////
+//////////////// Public Functions ////////////////
 //------------------------------------------------
-
-// Helper function to run linux command
-// Note: adapted from assignment one description
-static void run_command(const char *command)
-{
-    // Execute the shell command (output into pipe)
-    FILE *pipe = popen(command, "r");
-
-    // Ignore output of the command; but consume it
-    // so we don't get an error when closing the pipe.
-    char buffer[1024];
-    while (!feof(pipe) && !ferror(pipe))
-    {
-        if (fgets(buffer, sizeof(buffer), pipe) == NULL)
-            break;
-    }
-    // printf("--> %s", buffer); // Uncomment for debugging
-    // Get the exit code from the pipe; non-zero is an error:
-    int exitCode = WEXITSTATUS(pclose(pipe));
-    if (exitCode != 0)
-    {
-        perror("Unable to execute command:");
-        printf(" command: %s\n", command);
-        printf(" exit code: %d\n", exitCode);
-    }
-}
-
-// Helper function to enable buses for i2c
-// Enables linux support for the bus "/dev/i2c-1" by configuring the data and clock pins (SDA and SCL)
-static void enable_buses(const char **buses, int bus_size)
-{
-    for (size_t i = 0; i < bus_size; i++)
-    {
-        run_command(buses[i]);
-    }
-}
-
-// Helper function to export "pin_size" of pins in "pins"
-static void export_pins(const int *pins, int pin_size)
-{
-    for (size_t i = 0; i < pin_size; i++)
-    {
-        // concatenate to get pin's file location
-        char direction_path[MAX_PATH_LEN];
-        sprintf(direction_path, "%s%d", DIGIT_GPIO_PATH, pins[i]);
-
-        // check to see if the pin is already exported
-        if (access(direction_path, F_OK) == 0)
-        {
-            // file exists - don't need to import it
-            continue;
-        }
-
-        // open pin file for write access
-        FILE *exportFile = fopen(EXPORT_PATH, "w");
-        if (exportFile == NULL)
-        {
-            printf("GPIO ERROR: Unable to open export file (export_pins). Pin#=%d\n", pins[i]);
-            exit(1);
-        }
-
-        fprintf(exportFile, "%d", pins[i]);
-
-        fclose(exportFile);
-    }
-
-    // wait for ~300ms before use
-    Sleep_ms(300);
-}
-
-// Helper function to set pins' directions to "pin_dir"
-static void set_pin_direction(const int *pins, int pin_size, const char *pin_direction)
-{
-    for (size_t i = 0; i < pin_size; i++)
-    {
-        GPIO_SetPinDirection(pins[i], pin_direction);
-    }
-}
-
-/****************************** Public/Module Functions ******************************/
 
 void GPIO_init(const char **buses_config_commands, int bus_size, const int *pins, int pin_size, char *pin_dir)
 {
@@ -221,4 +145,86 @@ void GPIO_cleanup(int *pins, int size)
     // does nothing
 
     is_module_initialized = false;
+}
+
+//------------------------------------------------
+/////////////// Private Functions ////////////////
+//------------------------------------------------
+
+// Helper function to run linux command
+// Note: adapted from assignment one description
+static void run_command(const char *command)
+{
+    // Execute the shell command (output into pipe)
+    FILE *pipe = popen(command, "r");
+
+    // Ignore output of the command; but consume it
+    // so we don't get an error when closing the pipe.
+    char buffer[1024];
+    while (!feof(pipe) && !ferror(pipe))
+    {
+        if (fgets(buffer, sizeof(buffer), pipe) == NULL)
+            break;
+    }
+    // printf("--> %s", buffer); // Uncomment for debugging
+    // Get the exit code from the pipe; non-zero is an error:
+    int exitCode = WEXITSTATUS(pclose(pipe));
+    if (exitCode != 0)
+    {
+        perror("Unable to execute command:");
+        printf(" command: %s\n", command);
+        printf(" exit code: %d\n", exitCode);
+    }
+}
+
+// Helper function to enable buses for i2c
+// Enables linux support for the bus "/dev/i2c-1" by configuring the data and clock pins (SDA and SCL)
+static void enable_buses(const char **buses, int bus_size)
+{
+    for (size_t i = 0; i < bus_size; i++)
+    {
+        run_command(buses[i]);
+    }
+}
+
+// Helper function to export "pin_size" of pins in "pins"
+static void export_pins(const int *pins, int pin_size)
+{
+    for (size_t i = 0; i < pin_size; i++)
+    {
+        // concatenate to get pin's file location
+        char direction_path[MAX_PATH_LEN];
+        sprintf(direction_path, "%s%d", DIGIT_GPIO_PATH, pins[i]);
+
+        // check to see if the pin is already exported
+        if (access(direction_path, F_OK) == 0)
+        {
+            // file exists - don't need to import it
+            continue;
+        }
+
+        // open pin file for write access
+        FILE *exportFile = fopen(EXPORT_PATH, "w");
+        if (exportFile == NULL)
+        {
+            printf("GPIO ERROR: Unable to open export file (export_pins). Pin#=%d\n", pins[i]);
+            exit(1);
+        }
+
+        fprintf(exportFile, "%d", pins[i]);
+
+        fclose(exportFile);
+    }
+
+    // wait for ~300ms before use
+    Sleep_ms(300);
+}
+
+// Helper function to set pins' directions to "pin_dir"
+static void set_pin_direction(const int *pins, int pin_size, const char *pin_direction)
+{
+    for (size_t i = 0; i < pin_size; i++)
+    {
+        GPIO_SetPinDirection(pins[i], pin_direction);
+    }
 }
