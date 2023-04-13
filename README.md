@@ -17,7 +17,7 @@ To build the Beaglepod project, follow these steps:
 
 1. Clone the repository to your Beaglebone Green board.
 2. Navigate to the project directory in your terminal.
-3. Run the command `make all` to build the entire project, including the C code and the web interface.
+3. Run the command `make all` to build the entire project and create an executable called `beaglePod` in the shared folder.
 
 ## Running the Project
 
