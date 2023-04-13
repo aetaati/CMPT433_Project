@@ -13,6 +13,8 @@
 #if !defined(DOUBLY_LINKED_LIST_H)
 #define DOUBLY_LINKED_LIST_H
 
+#define bool _Bool
+
 // Returns a pointer to the newly allocated empty list
 // Note: caller should call doublyLinkedList_cleanup() to free the memory
 void doublyLinkedList_init(void);
