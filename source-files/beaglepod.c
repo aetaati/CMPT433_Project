@@ -19,6 +19,7 @@
 #include "volume.h"
 #include "lcd_4line.h"
 #include "network.h"
+#include "songManager.h"
 
 int main(int argc, char const *argv[])
 {

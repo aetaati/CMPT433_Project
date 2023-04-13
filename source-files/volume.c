@@ -1,3 +1,15 @@
+/**
+ * @file volume.c
+ * @brief This is a source file for the volume module.
+ *
+ * This source file contains the definitions of the functions
+ * for the volume module, which provides the utilities for
+ * changing the current volume the playing songs.
+ *
+ * @author Nick Hannay
+ * @date 2023-03-15
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

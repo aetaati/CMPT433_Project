@@ -1,3 +1,14 @@
+/**
+ * @file network.c
+ * @brief This is a source file for the network module.
+ *
+ * This source file contains the declarations of the functions
+ * for the network module, which provides the utilities
+ * for sending, receiving, and parsing UDP packets.
+ *
+ * @author Amirhossein Etaati
+ * @date 2023-03-10
+ */
 
 /*
 Subject: CMPT433 (Embedded Systems) - BeablePod Project
@@ -37,7 +48,7 @@ bool is_module_initialized = false;
 enum eWebCommands
 {
     COMMAND_ADD_SONG = 0,
-    COMMAND_REMOVE_SONG, 
+    COMMAND_REMOVE_SONG,
     COMMAND_VOLUME_UP,
     COMMAND_VOLUME_DOWN,
     COMMAND_SONG_NEXT,
@@ -88,7 +99,7 @@ static enum eWebCommands parse_command(char messageRx[MSG_MAX_LEN])
 // run the commands and return the appropriate string to be sent back
 // returns NULL rerun is required
 // the caller should call free()
-static void run_command(enum eWebCommands cur_command, char* message)
+static void run_command(enum eWebCommands cur_command, char *message)
 {
     printf("current command: %d\n", cur_command);
     // TODO: consider using an array of function pointers to respond to each command
@@ -101,94 +112,99 @@ static void run_command(enum eWebCommands cur_command, char* message)
     {
         // TODO call the call songManager module to add the new song
         // TODO: SOS - need the path of the song ??
-        char* path; // 0
-        char* song_name; // 1
-        char* singer; // 2
-        char* album; // 3
-        
+        char *path;      // 0
+        char *song_name; // 1
+        char *singer;    // 2
+        char *album;     // 3
+
         int iter = 0;
 
-        while((message = strtok(NULL, "\n") )!= NULL ) {
-            
+        while ((message = strtok(NULL, "\n")) != NULL)
+        {
+
             printf("%s\n", message);
             printf("after printing\n");
 
-            if(iter == 0) {
-                path = malloc(strlen(message)+ 1);
+            if (iter == 0)
+            {
+                path = malloc(strlen(message) + 1);
                 strcpy(path, message);
             }
-            else if(iter == 1) {
-                song_name = malloc(strlen(message)+ 1);
+            else if (iter == 1)
+            {
+                song_name = malloc(strlen(message) + 1);
                 strcpy(song_name, message);
             }
-            else if(iter == 3) {
-                album = malloc(strlen(message)+ 1);
+            else if (iter == 3)
+            {
+                album = malloc(strlen(message) + 1);
                 strcpy(album, message);
             }
-            else if(iter == 2) {
-                singer = malloc(strlen(message)+ 1);
+            else if (iter == 2)
+            {
+                singer = malloc(strlen(message) + 1);
                 strcpy(singer, message);
             }
             iter++;
         }
 
         printf("after parsing\n");
-        //song_info * song = create_song
-        // Create Song stuct
-        song_info* song_struct = create_song_struct(singer, album, path, song_name);
+        // song_info * song = create_song
+        //  Create Song stuct
+        song_info *song_struct = create_song_struct(singer, album, path, song_name);
         songManager_addSongBack(song_struct);
         // add song into linked list back
         printf("DEBUG: add song\n");
-        
-        //return result;
+
+        // return result;
     }
     else if (cur_command == COMMAND_REMOVE_SONG)
     {
-        char* song_num  = strtok(NULL, "\n");
+        char *song_num = strtok(NULL, "\n");
         int index = atoi(song_num);
-        
+
         songManager_deleteSong(index);
         // Delete a song number index
-        
+
         // TODO call the call songManager module to remove the song
         // TODO: SOS - need the path of the song ??
         printf("DEBUG: remove song\n");
-        //return result;
+        // return result;
     }
     else if (cur_command == COMMAND_VOLUME_UP)
     {
         // TODO call the volume module to increase the volume
         printf("DEBUG: volume up\n");
-        //return result;
+        // return result;
     }
     else if (cur_command == COMMAND_VOLUME_DOWN)
     {
         // TODO call the volume module to decrease the volume
         printf("DEBUG: volume down\n");
-        //return result;
+        // return result;
     }
     else if (cur_command == COMMAND_SONG_NEXT)
     {
         // TODO call the song module to go to the next song
         printf("DEBUG: next song\n");
-        //return result;
+        // return result;
     }
     else if (cur_command == COMMAND_SONG_PREVIOUS)
     {
         // TODO call the song module to the previous song
         printf("DEBUG: previous song\n");
-        //return result;
+        // return result;
     }
     else if (cur_command == COMMAND_STOP)
     {
         // TODO stop all the other threads and modules
         printf("DEBUG: stop\n");
-        //return result;
+        // return result;
     }
     else
     {
         printf("DEBUG: unkown command\n");
-        //return NULL; // TODO: ??
+        // return NULL; // TODO: ??
     }
 }
 // static int get_size_string(int start,char * str) {
@@ -200,8 +216,8 @@ static void run_command(enum eWebCommands cur_command, char* message)
 //             return size;
 //         }
 //         size++;
-//     }        
-//     return size; 
+//     }
+//     return size;
 // }
 
 static void network_logic(int socketDescriptor)
@@ -236,28 +252,24 @@ static void network_logic(int socketDescriptor)
 
         printf("Recieved Message <%s>\n", messageRx);
 
-        
-        
         // if command is not 'enter' (!= "\n")
 
         // Command
         // Path
-        // 
-        
+        //
+
         enum eWebCommands curr_command = UNKNOWN_COMMAND;
-        char * token = NULL;
+        char *token = NULL;
         if (bytesRx > 1)
         {
 
             token = strtok(messageRx, "\n");
             curr_command = parse_command(token);
-            
         }
 
         run_command(curr_command, token);
 
         // extract the command from the message received
-         
 
         // compose the response message
 
@@ -266,7 +278,7 @@ static void network_logic(int socketDescriptor)
             // unknown command
             continue;
         }
-        //char *response = run_command(curr_command);
+        // char *response = run_command(curr_command);
 
         // TODO: for now all the replies are ACK; Kept for potential later use
         // if (strlen(response) <= MSG_MAX_LEN)
@@ -279,8 +291,6 @@ static void network_logic(int socketDescriptor)
         //     sin_len = sizeof(sinRemote);
         //     sendto(socketDescriptor, messageTx, strlen(messageTx), 0, (struct sockaddr *)&sinRemote, sin_len);
         // }
-
-        
 
         // check termination condition
         if (curr_command == COMMAND_STOP)
@@ -344,7 +354,6 @@ void Network_cleanup()
     // wait for the thread to finish
     pthread_join(thread_id, NULL);
 }
-
 
 // #include "sleep.h"
 // int main(int argc, char const *argv[])

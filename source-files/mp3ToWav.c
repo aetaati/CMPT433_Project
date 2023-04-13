@@ -1,3 +1,17 @@
+/**
+ * @file mp3ToWav.c
+ * @brief This is a source file for the mp3ToWav module.
+ * Note: This Module is not used - Found a more efficient way to convert using the ffmpeg javascript library
+ *
+ * This source file contains the declaration of the functions
+ * for the mp3ToWav module, which provides the utilities
+ * for converting an MP3 file to WAV format
+ *
+ * @author Amirhossein Etaati
+ * @date 2023-03-07
+ */
+
+
 #include "mp3ToWav.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -32,7 +46,6 @@ static void runCommand(char* command)
             printf(" exit code: %d\n", exitCode);
         }
 }
-
 
 bool isModuleInitialize = false;
 

@@ -1,14 +1,27 @@
+/**
+ * @file songManager.h
+ * @brief This is a header file for the songManager module.
+ *
+ * This header file contains the definitions of the functions
+ * for the songManager module, which provides the utilities for
+ * for playing, stopping and traversing in the list of songs.
+ *
+ * @author Mehdi Esmaeilzadeh
+ * @date 2023-03-10
+ */
+
 #if !defined(SONG_MANAGER_H)
 #define SONG_MANAGER_H
 #include "audio_player.h"
 
-typedef struct {
-    char * song_path;
-    char * author_name;
-    char * album;
-    char * song_name;
-    wavedata_t * pSong_DWave; 
-}song_info;
+typedef struct
+{
+  char *song_path;
+  char *author_name;
+  char *album;
+  char *song_name;
+  wavedata_t *pSong_DWave;
+} song_info;
 
 typedef enum
 {
@@ -27,7 +40,7 @@ void songManager_playSong();
 /* Adds the song to the front of the list*/
 void songManager_addSongFront(song_info *);
 /* Adds the song to the back of the list*/
-void songManager_addSongBack (song_info *);
+void songManager_addSongBack(song_info *);
 /*Resets the songManager when user exits the song menu */
 void songManager_reset(void);
 /* Moves the cursor up */
@@ -38,7 +51,7 @@ void songManager_moveCursorUp(void);
 void songManager_displaySongs();
 
 /*Create Song struct */
-song_info *create_song_struct(char *name, char *album, char *path, char* song_name_local);
+song_info *create_song_struct(char *name, char *album, char *path, char *song_name_local);
 /* Song Mananger Delete a song*/
 void songManager_deleteSong();
 
